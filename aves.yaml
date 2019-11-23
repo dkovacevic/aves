@@ -1,0 +1,34 @@
+server:
+  rootPath: /aves/*
+  requestLog:
+    appenders: []
+
+logging:
+  level: ${LOG_LEVEL:-INFO}
+  loggers:
+    "com.aves.logger": ${LOG_LEVEL:-INFO}
+
+swagger:
+  resourcePackage: com.aves.server.resource
+  uriPrefix: /aves
+  schemes:
+    - http
+    - https
+
+key: ${AVES_KEY:-}
+
+database:
+  driverClass: org.postgresql.Driver
+  user: ${DB_PASSWORD:-postgres}
+  password: ${AVES_DB_PASSWORD:-}
+  url: ${AVES_DB_URL:-}
+  properties:
+    charSet: UTF-8
+  maxWaitForConnection: 1s
+  validationQuery: "/* MyService Health Check */ SELECT 1"
+  minSize: 8
+  maxSize: 32
+  checkConnectionWhileIdle: false
+  evictionInterval: 10s
+  minIdleTime: 1 minute
+
