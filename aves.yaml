@@ -19,7 +19,7 @@ key: ${AVES_KEY:-}
 
 database:
   driverClass: org.postgresql.Driver
-  user: ${DB_PASSWORD:-postgres}
+  user: ${DB_USER:-}
   password: ${AVES_DB_PASSWORD:-}
   url: ${AVES_DB_URL:-}
   properties:

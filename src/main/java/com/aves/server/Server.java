@@ -22,6 +22,10 @@ public class Server extends Application<Configuration> {
         return key;
     }
 
+    public static void main(String[] args) throws Exception {
+        new Server().run(args);
+    }
+    
     @Override
     public void initialize(Bootstrap<Configuration> bootstrap) {
         bootstrap.setConfigurationSourceProvider(

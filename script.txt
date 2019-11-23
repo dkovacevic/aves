@@ -1,0 +1,32 @@
+CREATE TABLE Users (
+ user_id UUID PRIMARY KEY,
+ name VARCHAR NOT NULL,
+ email VARCHAR NOT NULL,
+ hash VARCHAR NOT NULL,
+ time TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE Prekeys (
+ client_id VARCHAR NOT NULL,
+ key_id INTEGER NOT NULL,
+ key VARCHAR NOT NULL
+);
+
+CREATE TABLE Participants (
+ conv_Id UUID NOT NULL,
+ user_Id UUID NOT NULL
+);
+
+CREATE TABLE Conversations (
+ conv_Id UUID PRIMARY KEY,
+ creator UUID NOT NULL,
+ name VARCHAR NOT NULL,
+ time TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE Clients (
+ client_Id VARCHAR PRIMARY KEY,
+ user_id UUID NOT NULL,
+ lastkey INTEGER NOT NULL,
+ time TIMESTAMP DEFAULT NOW()
+);

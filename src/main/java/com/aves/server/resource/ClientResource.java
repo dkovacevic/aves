@@ -62,12 +62,13 @@ public class ClientResource {
             ClientsDAO clientsDAO = jdbi.onDemand(ClientsDAO.class);
             PrekeysDAO prekeysDAO = jdbi.onDemand(PrekeysDAO.class);
 
-            clientsDAO.insert(clientId, userId, newClient.lastkey.id);
+            PreKey lastkey = newClient.lastkey;
+            clientsDAO.insert(clientId, userId, lastkey.id);
 
-            for(PreKey preKey : newClient.prekeys){
-                prekeysDAO.insert(preKey.id, preKey.key);
+            for (PreKey preKey : newClient.prekeys) {
+                prekeysDAO.insert(clientId, preKey.id, preKey.key);
             }
-            prekeysDAO.insert(newClient.lastkey.id, newClient.lastkey.key);
+            prekeysDAO.insert(clientId, lastkey.id, lastkey.key);
 
             return Response.
                     ok().

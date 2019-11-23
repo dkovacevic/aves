@@ -27,8 +27,7 @@ public class RegisterResource {
 
     @POST
     @ApiOperation(value = "Register new user")
-    @ApiResponses(value = {@ApiResponse(code = 403, message = "Wrong email or password")})
-    public Response register(@ApiParam @Valid NewUser newUser) {
+    public Response post(@ApiParam @Valid NewUser newUser) {
         try {
             UserDAO userDAO = jdbi.onDemand(UserDAO.class);
 
@@ -43,7 +42,7 @@ public class RegisterResource {
                     build();
         } catch (Exception e) {
             e.printStackTrace();
-            Logger.error("RegisterResource.register : %s", e);
+            Logger.error("RegisterResource.post : %s", e);
             return Response
                     .ok(new ErrorMessage(e.getMessage()))
                     .status(500)

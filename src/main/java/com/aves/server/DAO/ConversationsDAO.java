@@ -6,7 +6,7 @@ import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 import java.util.UUID;
 
 public interface ConversationsDAO {
-    @SqlUpdate("INSERT INTO Conversations (id, name, creator) " +
+    @SqlUpdate("INSERT INTO Conversations (conv_Id, name, creator) " +
             "VALUES (:convId, :name, :creator)")
     int insert(@Bind("convId") UUID convId,
                @Bind("name") String name,
