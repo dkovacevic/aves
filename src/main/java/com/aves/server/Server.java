@@ -48,8 +48,9 @@ public class Server extends Application<Configuration> {
 
         environment.jersey().register(new LoginResource(jdbi));
         environment.jersey().register(new RegisterResource(jdbi));
-        environment.jersey().register(new ClientResource(jdbi));
+        environment.jersey().register(new ClientsResource(jdbi));
         environment.jersey().register(new ConversationsResource(jdbi));
         environment.jersey().register(new MessagesResource(jdbi));
+        environment.jersey().register(new PrekeysResource(jdbi));
     }
 }

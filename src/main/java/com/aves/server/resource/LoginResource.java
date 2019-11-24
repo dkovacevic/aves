@@ -4,6 +4,7 @@ import com.aves.server.DAO.UserDAO;
 import com.aves.server.Logger;
 import com.aves.server.Server;
 import com.aves.server.model.ErrorMessage;
+import com.aves.server.model.LoginResult;
 import com.aves.server.model.SignIn;
 import com.lambdaworks.crypto.SCryptUtil;
 import io.jsonwebtoken.Jwts;
@@ -17,7 +18,9 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
+import java.util.Date;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 @Api
 @Path("/login")
@@ -44,15 +47,25 @@ public class LoginResource {
                         .build();
             }
 
+            long mills = TimeUnit.MINUTES.toMillis(15);
+            Date exp = new Date(new Date().getTime() + mills);
+
             UUID userId = userDAO.getUserId(signIn.email);
             String jwt = Jwts.builder()
                     .setIssuer("https://aves.com")
                     .setSubject("" + userId)
+                    .setExpiration(exp)
                     .signWith(Server.getKey())
                     .compact();
 
+            LoginResult result = new LoginResult();
+            result.expiresIn = TimeUnit.MINUTES.toSeconds(15);
+            result.accessToken = jwt;
+            result.tokenType = "Bearer";
+            result.user = userId;
+
             return Response.
-                    ok().
+                    ok(result).
                     cookie(new NewCookie("Authorization", jwt)).
                     build();
         } catch (Exception e) {

@@ -3,6 +3,7 @@ package com.aves.server.DAO;
 import org.skife.jdbi.v2.sqlobject.Bind;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
+import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
 
 import java.util.List;
 import java.util.UUID;
@@ -13,6 +14,7 @@ public interface ParticipantsDAO {
     int insert(@Bind("convId") UUID convId,
                @Bind("userId") UUID userId);
 
-    @SqlQuery("SELECT user_Id FROM Participants WHERE conv_Id = :convId ")
+    @SqlQuery("SELECT user_Id AS uuid FROM Participants WHERE conv_Id = :convId ")
+    @RegisterMapper(UUIDMapper.class)
     List<UUID> get(@Bind("convId") UUID convId);
 }

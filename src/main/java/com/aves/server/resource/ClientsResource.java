@@ -13,10 +13,7 @@ import org.skife.jdbi.v2.DBI;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.CookieParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.math.BigInteger;
@@ -26,7 +23,7 @@ import java.util.UUID;
 @Api
 @Path("/clients")
 @Produces(MediaType.APPLICATION_JSON)
-public class ClientResource {
+public class ClientsResource {
     private final SecureRandom random = new SecureRandom();
 
     public String next() {
@@ -39,24 +36,26 @@ public class ClientResource {
 
     private final DBI jdbi;
 
-    public ClientResource(DBI jdbi) {
+    public ClientsResource(DBI jdbi) {
         this.jdbi = jdbi;
     }
 
     @POST
     @ApiOperation(value = "Register new device")
-    @ApiResponses(value = {@ApiResponse(code = 403, message = "Wrong email or password")})
-    public Response client(@ApiParam(hidden = true) @NotNull @CookieParam("Authorization") String cookie,
+    public Response client(@ApiParam(hidden = true) @NotNull @HeaderParam("Authorization") String cookie,
                            @ApiParam @Valid NewClient newClient) {
 
         try {
-            String token = Jwts.parser()
+            String[] split = cookie.split(" ");
+            String token = split[1];
+
+            String subject = Jwts.parser()
                     .setSigningKey(Server.getKey())
-                    .parseClaimsJws(cookie)
+                    .parseClaimsJws(token)
                     .getBody()
                     .getSubject();
 
-            UUID userId = UUID.fromString(token);
+            UUID userId = UUID.fromString(subject);
             String clientId = next(6);
 
             ClientsDAO clientsDAO = jdbi.onDemand(ClientsDAO.class);
@@ -70,8 +69,11 @@ public class ClientResource {
             }
             prekeysDAO.insert(clientId, lastkey.id, lastkey.key);
 
+            NewClient result = new NewClient();
+            result.id = clientId;
+
             return Response.
-                    ok().
+                    ok(result).
                     build();
         } catch (Exception e) {
             e.printStackTrace();

@@ -22,26 +22,14 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.List;
 import java.util.UUID;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class Conversation {
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class Member {
     @JsonProperty
     public UUID id;
 
     @JsonProperty
-    public String name;
-
-    @JsonProperty
-    public UUID creator;
-    
-    @JsonProperty
-    public Members members = new Members();
-
-    public static class Members {
-        @JsonProperty
-        public List<Member> others;
-    }
+    public Integer status;
 }
