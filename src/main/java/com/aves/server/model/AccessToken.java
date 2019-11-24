@@ -9,7 +9,7 @@ import java.util.UUID;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class LoginResult {
+public class AccessToken {
     @NotNull
     @JsonProperty("expires_in")
     public long expiresIn;

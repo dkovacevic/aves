@@ -21,4 +21,6 @@ public class Configuration extends io.dropwizard.Configuration {
     @JsonProperty
     public String key;
 
+    @JsonProperty
+    public long tokenExpiration = 30;
 }

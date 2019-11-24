@@ -1,15 +1,18 @@
 package com.aves.server.websocket;
 
 
+import com.aves.server.DAO.ClientsDAO;
 import com.aves.server.Logger;
 import com.aves.server.Server;
 import com.aves.server.model.Message;
 import io.jsonwebtoken.Jwts;
+import org.skife.jdbi.v2.DBI;
 
 import javax.websocket.*;
-import javax.websocket.server.ServerEndpoint;
 import javax.websocket.server.PathParam;
+import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 @ServerEndpoint(
@@ -18,6 +21,11 @@ import java.util.concurrent.ConcurrentHashMap;
 )
 public class WebSocket {
     private final static ConcurrentHashMap<String, Session> sessions = new ConcurrentHashMap<>();// ClientID, Session,
+    private final DBI jdbi;
+
+    public WebSocket(DBI jdbi) {
+        this.jdbi = jdbi;
+    }
 
     public static boolean send(String clientId, Message message) throws IOException, EncodeException {
         Session session = sessions.get(clientId);
@@ -33,19 +41,29 @@ public class WebSocket {
     }
 
     @OnOpen
-    public void onOpen(Session session, @PathParam("token") String token, @PathParam("clientId") String clientId) {
+    public void onOpen(Session session, @PathParam("token") String token, @PathParam("clientId") String clientId) throws IOException {
+        try {
+            String subject = Jwts.parser()
+                    .setSigningKey(Server.getKey())
+                    .parseClaimsJws(token)
+                    .getBody()
+                    .getSubject();
 
-        String subject = Jwts.parser()
-                .setSigningKey(Server.getKey())
-                .parseClaimsJws(token)
-                .getBody()
-                .getSubject();
+            UUID userId = UUID.fromString(subject);
+            ClientsDAO clientsDAO = jdbi.onDemand(ClientsDAO.class);
+            UUID challenge = clientsDAO.getUserId(clientId);
+            if (!userId.equals(challenge)) {
+                Logger.warning("Session %s client: %s. Unknown clientId", session.getId(), clientId);
+                session.close();
+                return;
+            }
 
-        //todo validate this clientId belongs to this user(subject)
-        
-        sessions.put(clientId, session);
-
-        Logger.debug("Session %s connected. client: %s", session.getId(), clientId);
+            sessions.put(clientId, session);
+            Logger.debug("Session %s connected. client: %s", session.getId(), clientId);
+        } catch (Exception e) {
+            Logger.warning("onOpen: client: %s err: %s", clientId, e);
+            session.close();
+        }
     }
 
     @OnClose

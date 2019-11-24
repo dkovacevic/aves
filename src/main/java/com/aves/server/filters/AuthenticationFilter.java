@@ -18,7 +18,7 @@ public class AuthenticationFilter implements ContainerRequestFilter {
     public void filter(ContainerRequestContext requestContext) {
         String auth = requestContext.getHeaderString(HttpHeaders.AUTHORIZATION);
 
-        Cookie authCookie = requestContext.getCookies().get("Authorization");
+        Cookie authCookie = requestContext.getCookies().get("zuid");
 
         if (auth == null && authCookie == null) {
             Exception cause = new IllegalArgumentException("Authorization Header was not specified");
@@ -53,7 +53,8 @@ public class AuthenticationFilter implements ContainerRequestFilter {
             UUID userId = UUID.fromString(subject);
             requestContext.setProperty("zuid", userId);
         } catch (Exception e) {
-            throw new WebApplicationException(e, Response.Status.UNAUTHORIZED);
+            Exception cause = new IllegalArgumentException(e.getMessage());
+            throw new WebApplicationException(cause, Response.Status.UNAUTHORIZED);
         }
     }
 }
