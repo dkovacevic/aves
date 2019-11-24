@@ -14,6 +14,8 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.List;
@@ -31,7 +33,9 @@ public class MessagesResource {
 
     @POST
     @ApiOperation(value = "Post new Otr Message")
-    public Response post(@PathParam("convId") UUID convId,
+    @Authorization("Bearer")
+    public Response post(@Context ContainerRequestContext context,
+                         @PathParam("convId") UUID convId,
                          @ApiParam @Valid NewOtrMessage otrMessage) {
 
         try {
@@ -50,9 +54,16 @@ public class MessagesResource {
                 }
             }
 
+            if (!clientMismatch.missing.isEmpty())
+                return Response.
+                        ok(clientMismatch).
+                        status(412).
+                        build();
+
+            //todo Send event via Socket
+
             return Response.
                     ok(clientMismatch).
-                    status(clientMismatch.missing.isEmpty() ? 200 : 412).
                     build();
         } catch (Exception e) {
             e.printStackTrace();

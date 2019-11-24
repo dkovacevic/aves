@@ -51,7 +51,7 @@ public class LoginResource {
             Date exp = new Date(new Date().getTime() + mills);
 
             UUID userId = userDAO.getUserId(signIn.email);
-            String jwt = Jwts.builder()
+            String token = Jwts.builder()
                     .setIssuer("https://aves.com")
                     .setSubject("" + userId)
                     .setExpiration(exp)
@@ -60,13 +60,15 @@ public class LoginResource {
 
             LoginResult result = new LoginResult();
             result.expiresIn = TimeUnit.MINUTES.toSeconds(15);
-            result.accessToken = jwt;
+            result.accessToken = token;
             result.tokenType = "Bearer";
             result.user = userId;
 
+            String authorization = String.format("%s %s", result.tokenType, result.accessToken);
+
             return Response.
                     ok(result).
-                    cookie(new NewCookie("Authorization", jwt)).
+                    cookie(new NewCookie("Authorization", authorization)).
                     build();
         } catch (Exception e) {
             e.printStackTrace();

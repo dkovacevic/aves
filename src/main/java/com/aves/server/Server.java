@@ -1,5 +1,6 @@
 package com.aves.server;
 
+import com.aves.server.filters.AuthenticationFeature;
 import com.aves.server.model.Configuration;
 import com.aves.server.resource.*;
 import io.dropwizard.Application;
@@ -45,6 +46,8 @@ public class Server extends Application<Configuration> {
     public void run(Configuration config, Environment environment) throws Exception {
         Server.key = Keys.hmacShaKeyFor(config.key.getBytes());
         DBI jdbi = new DBIFactory().build(environment, config.database, "postgresql");
+
+        environment.jersey().register(AuthenticationFeature.class);
 
         environment.jersey().register(new LoginResource(jdbi));
         environment.jersey().register(new RegisterResource(jdbi));

@@ -3,18 +3,22 @@ package com.aves.server.resource;
 import com.aves.server.DAO.ConversationsDAO;
 import com.aves.server.DAO.ParticipantsDAO;
 import com.aves.server.Logger;
-import com.aves.server.Server;
 import com.aves.server.model.Conversation;
+import com.aves.server.model.ErrorMessage;
 import com.aves.server.model.Member;
 import com.aves.server.model.NewConversation;
-import com.aves.server.model.ErrorMessage;
-import io.jsonwebtoken.Jwts;
-import io.swagger.annotations.*;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.Authorization;
 import org.skife.jdbi.v2.DBI;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import javax.ws.rs.*;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
@@ -32,24 +36,15 @@ public class ConversationsResource {
 
     @POST
     @ApiOperation(value = "Create a new conversation")
-    @ApiResponses(value = {@ApiResponse(code = 403, message = "Wrong email or password")})
-    public Response create(@ApiParam(hidden = true) @NotNull @HeaderParam("Authorization") String cookie,
+    @Authorization("Bearer")
+    public Response create(@Context ContainerRequestContext context,
                            @ApiParam @Valid NewConversation conv) {
 
         try {
             ConversationsDAO conversationsDAO = jdbi.onDemand(ConversationsDAO.class);
             ParticipantsDAO participantsDAO = jdbi.onDemand(ParticipantsDAO.class);
 
-            String[] split = cookie.split(" ");
-            String token = split[1];
-
-            String subject = Jwts.parser()
-                    .setSigningKey(Server.getKey())
-                    .parseClaimsJws(token)
-                    .getBody()
-                    .getSubject();
-
-            UUID userId = UUID.fromString(subject);
+            UUID userId = (UUID) context.getProperty("zuid");
             UUID convId = UUID.randomUUID();
 
             ArrayList<Member> members = new ArrayList<>();
