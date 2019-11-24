@@ -3,14 +3,14 @@ package com.aves.server.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import javax.validation.constraints.NotNull;
+import java.util.UUID;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class NewOtrMessage {
+public class Message {
     @JsonProperty
-    @NotNull
-    public String sender; //clientId of the sender
-
+    public UUID id;
     @JsonProperty
-    public Recipients recipients;
+    public Payload[] payload;
+    @JsonProperty("transient")
+    public boolean trans;
 }

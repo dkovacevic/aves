@@ -10,13 +10,12 @@ import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.Provider;
-import java.io.IOException;
 import java.util.UUID;
 
 @Provider
 public class AuthenticationFilter implements ContainerRequestFilter {
     @Override
-    public void filter(ContainerRequestContext requestContext) throws IOException {
+    public void filter(ContainerRequestContext requestContext) {
         String auth = requestContext.getHeaderString(HttpHeaders.AUTHORIZATION);
 
         Cookie authCookie = requestContext.getCookies().get("Authorization");

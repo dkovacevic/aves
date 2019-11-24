@@ -3,12 +3,14 @@ package com.aves.server;
 import com.aves.server.filters.AuthenticationFeature;
 import com.aves.server.model.Configuration;
 import com.aves.server.resource.*;
+import com.aves.server.websocket.WebSocket;
 import io.dropwizard.Application;
 import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
 import io.dropwizard.configuration.SubstitutingSourceProvider;
 import io.dropwizard.jdbi.DBIFactory;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
+import io.dropwizard.websockets.WebsocketBundle;
 import io.federecio.dropwizard.swagger.SwaggerBundle;
 import io.federecio.dropwizard.swagger.SwaggerBundleConfiguration;
 import io.jsonwebtoken.security.Keys;
@@ -41,6 +43,9 @@ public class Server extends Application<Configuration> {
                 return configuration.swagger;
             }
         });
+
+        WebsocketBundle bundle = new WebsocketBundle(WebSocket.class);
+        bootstrap.addBundle(bundle);
     }
 
     public void run(Configuration config, Environment environment) throws Exception {
