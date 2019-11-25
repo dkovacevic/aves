@@ -20,6 +20,7 @@ import javax.crypto.SecretKey;
 
 public class Server extends Application<Configuration> {
     private static SecretKey key;
+    public static DBI jdbi;
 
     public static SecretKey getKey() {
         return key;
@@ -28,7 +29,7 @@ public class Server extends Application<Configuration> {
     public static void main(String[] args) throws Exception {
         new Server().run(args);
     }
-    
+
     @Override
     public void initialize(Bootstrap<Configuration> bootstrap) {
         bootstrap.setConfigurationSourceProvider(
@@ -50,7 +51,7 @@ public class Server extends Application<Configuration> {
 
     public void run(Configuration config, Environment environment) {
         Server.key = Keys.hmacShaKeyFor(config.key.getBytes());
-        DBI jdbi = new DBIFactory().build(environment, config.database, "postgresql");
+        jdbi = new DBIFactory().build(environment, config.database, "postgresql");
 
         environment.jersey().register(AuthenticationFeature.class);
 

@@ -70,11 +70,9 @@ public class AccessResource {
             result.tokenType = "Bearer";
             result.user = userId;
 
-            String authorization = String.format("%s %s", result.tokenType, result.accessToken);
-
             return Response.
                     ok(result).
-                    cookie(new NewCookie("zuid", authorization)).
+                    cookie(new NewCookie("zuid", result.accessToken)).
                     build();
         } catch (Exception e) {
             e.printStackTrace();

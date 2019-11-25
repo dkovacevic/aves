@@ -6,7 +6,6 @@ import com.aves.server.Logger;
 import com.aves.server.Server;
 import com.aves.server.model.Message;
 import io.jsonwebtoken.Jwts;
-import org.skife.jdbi.v2.DBI;
 
 import javax.websocket.*;
 import javax.websocket.server.PathParam;
@@ -21,11 +20,6 @@ import java.util.concurrent.ConcurrentHashMap;
 )
 public class WebSocket {
     private final static ConcurrentHashMap<String, Session> sessions = new ConcurrentHashMap<>();// ClientID, Session,
-    private final DBI jdbi;
-
-    public WebSocket(DBI jdbi) {
-        this.jdbi = jdbi;
-    }
 
     public static boolean send(String clientId, Message message) throws IOException, EncodeException {
         Session session = sessions.get(clientId);
@@ -50,7 +44,7 @@ public class WebSocket {
                     .getSubject();
 
             UUID userId = UUID.fromString(subject);
-            ClientsDAO clientsDAO = jdbi.onDemand(ClientsDAO.class);
+            ClientsDAO clientsDAO = Server.jdbi.onDemand(ClientsDAO.class);
             UUID challenge = clientsDAO.getUserId(clientId);
             if (!userId.equals(challenge)) {
                 Logger.warning("Session %s client: %s. Unknown clientId", session.getId(), clientId);
