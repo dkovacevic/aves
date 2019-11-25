@@ -56,9 +56,6 @@ public class MessagesResource {
                 for (String clientId : clientIds) {
                     if (!otrMessage.recipients.contains(participantId, clientId))
                         clientMismatch.missing.add(participantId, clientId);
-                    else {
-                        String data = otrMessage.recipients.get(participantId, clientId);
-                    }
                 }
             }
 
@@ -86,7 +83,7 @@ public class MessagesResource {
                     message.id = UUID.randomUUID();
                     message.payload = new Payload[]{payload};
 
-                    WebSocket.send(clientId, message);
+                    WebSocket.send(clientId, message);        //todo use execution service to send via socket
                 }
             }
 

@@ -48,7 +48,7 @@ public class Server extends Application<Configuration> {
         bootstrap.addBundle(bundle);
     }
 
-    public void run(Configuration config, Environment environment) throws Exception {
+    public void run(Configuration config, Environment environment) {
         Server.key = Keys.hmacShaKeyFor(config.key.getBytes());
         DBI jdbi = new DBIFactory().build(environment, config.database, "postgresql");
 

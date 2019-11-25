@@ -48,15 +48,22 @@ public class ClientsResource {
     @ApiOperation(value = "Register new device")
     @Authorization("Bearer")
     public Response post(@Context ContainerRequestContext context,
-                           @ApiParam @Valid NewClient newClient) {
+                         @ApiParam @Valid NewClient newClient) {
 
         try {
             UUID userId = (UUID) context.getProperty("zuid");
 
-            String clientId = next(12);
-
             ClientsDAO clientsDAO = jdbi.onDemand(ClientsDAO.class);
             PrekeysDAO prekeysDAO = jdbi.onDemand(PrekeysDAO.class);
+
+            if (clientsDAO.getClients(userId).size() > 7) {
+                return Response.
+                        ok(new ErrorMessage("Too many devices already")).
+                        status(409).
+                        build();
+            }
+
+            String clientId = next(12);
 
             PreKey lastkey = newClient.lastkey;
             clientsDAO.insert(clientId, userId, lastkey.id);
