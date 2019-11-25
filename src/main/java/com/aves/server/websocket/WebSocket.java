@@ -62,7 +62,7 @@ public class WebSocket {
 
     @OnClose
     public void onClose(Session session) throws IOException {
-        Logger.debug("%s disconnected", session.getId());
+        Logger.warning("%s disconnected", session.getId());
     }
 
     @OnError

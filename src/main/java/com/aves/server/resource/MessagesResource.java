@@ -54,6 +54,9 @@ public class MessagesResource {
                 List<String> clientIds = clientsDAO.getClients(participantId);
 
                 for (String clientId : clientIds) {
+                    if (clientId.equals(otrMessage.sender))
+                        continue;
+
                     if (!otrMessage.recipients.contains(participantId, clientId))
                         clientMismatch.missing.add(participantId, clientId);
                 }
@@ -68,6 +71,9 @@ public class MessagesResource {
             for (UUID participantId : participants) {
                 List<String> clientIds = clientsDAO.getClients(participantId);
                 for (String clientId : clientIds) {
+
+                    if (clientId.equals(otrMessage.sender))
+                        continue;
 
                     //Send event via Socket
                     Payload payload = new Payload();
