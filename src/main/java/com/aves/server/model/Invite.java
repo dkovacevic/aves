@@ -4,7 +4,7 @@ import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.validation.constraints.NotNull;
 
-public class NewUser {
+public class Invite {
     @NotNull
     @NotEmpty
     public String email;
@@ -12,10 +12,6 @@ public class NewUser {
     @NotNull
     @NotEmpty
     public String name;
-
-    @NotNull
-    @NotEmpty
-    public String password;
 
     @NotNull
     @NotEmpty

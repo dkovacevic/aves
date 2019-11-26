@@ -30,11 +30,11 @@ import java.util.UUID;
 public class ClientsResource {
     private final SecureRandom random = new SecureRandom();
 
-    public String next() {
+    private String next() {
         return new BigInteger(130, random).toString(32);
     }
 
-    public String next(int length) {
+    private String next(int length) {
         return next().substring(0, length);
     }
 
