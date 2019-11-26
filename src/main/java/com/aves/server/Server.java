@@ -14,6 +14,8 @@ import io.dropwizard.websockets.WebsocketBundle;
 import io.federecio.dropwizard.swagger.SwaggerBundle;
 import io.federecio.dropwizard.swagger.SwaggerBundleConfiguration;
 import io.jsonwebtoken.security.Keys;
+import io.minio.errors.InvalidEndpointException;
+import io.minio.errors.InvalidPortException;
 import org.skife.jdbi.v2.DBI;
 
 import javax.crypto.SecretKey;
@@ -49,7 +51,7 @@ public class Server extends Application<Configuration> {
         bootstrap.addBundle(bundle);
     }
 
-    public void run(Configuration config, Environment environment) {
+    public void run(Configuration config, Environment environment) throws InvalidPortException, InvalidEndpointException {
         Server.key = Keys.hmacShaKeyFor(config.key.getBytes());
         jdbi = new DBIFactory().build(environment, config.database, "postgresql");
 
@@ -62,6 +64,7 @@ public class Server extends Application<Configuration> {
         environment.jersey().register(new MessagesResource(jdbi));
         environment.jersey().register(new PrekeysResource(jdbi));
         environment.jersey().register(new AccessResource(jdbi, config));
+        environment.jersey().register(new AssetsResource(jdbi));
 
     }
 }

@@ -17,16 +17,19 @@ public class AuthenticationFilter implements ContainerRequestFilter {
     @Override
     public void filter(ContainerRequestContext requestContext) {
         String auth = requestContext.getHeaderString(HttpHeaders.AUTHORIZATION);
-
         Cookie authCookie = requestContext.getCookies().get("zuid");
+        String access_token = requestContext.getUriInfo().getQueryParameters(true).getFirst("access_token");
 
-        if (auth == null && authCookie == null) {
+        if (auth == null && authCookie == null && access_token == null) {
             Exception cause = new IllegalArgumentException("Authorization Header was not specified");
             throw new WebApplicationException(cause, Response.Status.BAD_REQUEST);
         }
 
-        if(authCookie != null)
+        if (authCookie != null)
             auth = authCookie.getValue();
+
+        if (access_token != null)
+            auth = String.format("Bearer %s", access_token);
 
         String[] split = auth.split(" ");
 
