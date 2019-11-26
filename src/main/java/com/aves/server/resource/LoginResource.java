@@ -54,6 +54,13 @@ public class LoginResource {
             Date exp = new Date(new Date().getTime() + mills);
 
             UUID userId = userDAO.getUserId(signIn.email);
+            if (userId == null) {
+                return Response
+                        .ok(new ErrorMessage("Wrong email or password"))
+                        .status(403)
+                        .build();
+            }
+
             String token = Jwts.builder()
                     .setIssuer("https://aves.com")
                     .setSubject("" + userId)

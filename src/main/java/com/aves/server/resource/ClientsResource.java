@@ -20,24 +20,14 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.math.BigInteger;
-import java.security.SecureRandom;
 import java.util.UUID;
+
+import static com.aves.server.Util.next;
 
 @Api
 @Path("/clients")
 @Produces(MediaType.APPLICATION_JSON)
 public class ClientsResource {
-    private final SecureRandom random = new SecureRandom();
-
-    private String next() {
-        return new BigInteger(130, random).toString(32);
-    }
-
-    private String next(int length) {
-        return next().substring(0, length);
-    }
-
     private final DBI jdbi;
 
     public ClientsResource(DBI jdbi) {
@@ -49,7 +39,6 @@ public class ClientsResource {
     @Authorization("Bearer")
     public Response post(@Context ContainerRequestContext context,
                          @ApiParam @Valid NewClient newClient) {
-
         try {
             UUID userId = (UUID) context.getProperty("zuid");
 

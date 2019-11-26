@@ -68,5 +68,7 @@ public class Server extends Application<Configuration> {
         environment.jersey().register(new UsersResource(jdbi));
         environment.jersey().register(new StatusResource());
         environment.jersey().register(new InviteResource(jdbi));
+        environment.jersey().register(new SignatureResource(jdbi));
+
     }
 }

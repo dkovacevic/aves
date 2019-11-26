@@ -20,29 +20,20 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.math.BigInteger;
-import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
+import static com.aves.server.Util.next;
 
 @Api
 @Path("/invite")
 @Produces(MediaType.APPLICATION_JSON)
 public class InviteResource {
-    private final SecureRandom random = new SecureRandom();
     private final DBI jdbi;
 
     public InviteResource(DBI jdbi) {
         this.jdbi = jdbi;
-    }
-
-    private String next() {
-        return new BigInteger(130, random).toString(32);
-    }
-
-    private String next(int length) {
-        return next().substring(0, length);
     }
 
     @POST
