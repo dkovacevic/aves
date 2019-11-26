@@ -1,4 +1,4 @@
-package com.aves.server.model;
+package com.aves.server.model.otr;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

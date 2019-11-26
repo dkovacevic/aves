@@ -22,11 +22,11 @@ public class AuthenticationFilter implements ContainerRequestFilter {
 
         if (auth == null && authCookie == null && access_token == null) {
             Exception cause = new IllegalArgumentException("Authorization Header was not specified");
-            throw new WebApplicationException(cause, Response.Status.BAD_REQUEST);
+            throw new WebApplicationException(cause, Response.Status.UNAUTHORIZED);
         }
 
         if (authCookie != null)
-            auth = authCookie.getValue();
+            auth = String.format("Bearer %s", authCookie.getValue());
 
         if (access_token != null)
             auth = String.format("Bearer %s", access_token);
@@ -35,13 +35,13 @@ public class AuthenticationFilter implements ContainerRequestFilter {
 
         if (split.length != 2) {
             Exception cause = new IllegalArgumentException("Bad Authorization");
-            throw new WebApplicationException(cause, Response.Status.BAD_REQUEST);
+            throw new WebApplicationException(cause, Response.Status.UNAUTHORIZED);
         }
 
         String type = split[0];
         if (!type.equalsIgnoreCase("Bearer")) {
             Exception cause = new IllegalArgumentException("Missing Bearer in the Authorization");
-            throw new WebApplicationException(cause, Response.Status.BAD_REQUEST);
+            throw new WebApplicationException(cause, Response.Status.UNAUTHORIZED);
         }
 
         String token = split[1];

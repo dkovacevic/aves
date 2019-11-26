@@ -1,4 +1,4 @@
-package com.aves.server.model.otr;
+package com.aves.server.model;
 
 import java.util.UUID;
 

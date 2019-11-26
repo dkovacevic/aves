@@ -2,8 +2,8 @@ package com.aves.server.resource;
 
 import com.aves.server.Logger;
 import com.aves.server.Server;
+import com.aves.server.model.AssetKey;
 import com.aves.server.model.ErrorMessage;
-import com.aves.server.model.otr.AssetKey;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.xml.internal.messaging.saaj.packaging.mime.internet.ContentType;

@@ -24,7 +24,7 @@ public class WebSocket {
     public static boolean send(String clientId, Message message) throws IOException, EncodeException {
         Session session = sessions.get(clientId);
         if (session != null && session.isOpen()) {
-            Logger.info("Sending message (%s) over wss to client: %s",
+            Logger.debug("Sending message (%s) over wss to client: %s",
                     message.id,
                     clientId);
 
@@ -55,18 +55,20 @@ public class WebSocket {
             sessions.put(clientId, session);
             Logger.debug("Session %s connected. client: %s", session.getId(), clientId);
         } catch (Exception e) {
-            Logger.warning("onOpen: client: %s err: %s", clientId, e);
+            Logger.error("onOpen: client: %s err: %s", clientId, e);
             session.close();
         }
     }
 
     @OnClose
     public void onClose(Session session) throws IOException {
-        Logger.warning("%s disconnected", session.getId());
+        Logger.debug("%s disconnected", session.getId());
+        sessions.values().remove(session);
     }
 
     @OnError
     public void onError(Session session, Throwable throwable) {
-        Logger.warning("%s error: %s", session.getId(), throwable);
+        Logger.debug("%s error: %s", session.getId(), throwable);
+        sessions.values().remove(session);
     }
 }

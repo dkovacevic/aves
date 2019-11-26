@@ -1,6 +1,6 @@
 package com.aves.server.DAO;
 
-import com.aves.server.model.PreKey;
+import com.aves.server.model.otr.PreKey;
 import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.sqlobject.Bind;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;

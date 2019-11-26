@@ -24,6 +24,7 @@ swagger:
     - https
 
 key: ${AVES_KEY:-}
+tokenExpiration: ${AVES_EXP:-900}
 
 database:
   driverClass: org.postgresql.Driver

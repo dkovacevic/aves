@@ -14,14 +14,13 @@ import io.swagger.annotations.Authorization;
 import org.skife.jdbi.v2.DBI;
 
 import javax.validation.Valid;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Api
@@ -80,5 +79,51 @@ public class ConversationsResource {
                     .status(500)
                     .build();
         }
+    }
+
+    @GET
+    @Path("{convId}")
+    @Authorization("Bearer")
+    @ApiOperation(value = "Get Conversation by conv id")
+    public Response create(@Context ContainerRequestContext context,
+                           @QueryParam("convId") UUID convId) {
+
+        ConversationsDAO conversationsDAO = jdbi.onDemand(ConversationsDAO.class);
+        ParticipantsDAO participantsDAO = jdbi.onDemand(ParticipantsDAO.class);
+
+        UUID userId = (UUID) context.getProperty("zuid");
+
+        Conversation conversation = conversationsDAO.get(convId);
+
+        if (conversation == null) {
+            return Response.
+                    status(404).
+                    build();
+        }
+
+        boolean valid = false;
+
+        List<UUID> others = participantsDAO.get(convId);
+
+        conversation.members.others = new ArrayList<>();
+        for (UUID participant : others) {
+            if (participant.equals(userId))
+                valid = true;
+
+            Member member = new Member();
+            member.id = participant;
+
+            conversation.members.others.add(member);
+        }
+
+        if (!valid) {
+            return Response.
+                    status(403).
+                    build();
+        }
+
+        return Response.
+                ok(conversation).
+                build();
     }
 }
