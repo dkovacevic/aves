@@ -6,9 +6,6 @@ import com.aves.server.model.AssetKey;
 import com.aves.server.model.ErrorMessage;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sun.xml.internal.messaging.saaj.packaging.mime.internet.ContentType;
-import com.sun.xml.internal.messaging.saaj.packaging.mime.internet.MimeBodyPart;
-import com.sun.xml.internal.messaging.saaj.packaging.mime.internet.MimeMultipart;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.minio.MinioClient;
@@ -18,9 +15,11 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.Authorization;
-import org.glassfish.jersey.message.internal.DataSourceProvider;
 import org.skife.jdbi.v2.DBI;
 
+import javax.mail.BodyPart;
+import javax.mail.internet.MimeMultipart;
+import javax.mail.util.ByteArrayDataSource;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -76,13 +75,12 @@ public class AssetsResource {
     public Response post(@HeaderParam("Content-type") String contentType,
                          @ApiParam InputStream data) {
         try {
-            DataSourceProvider.ByteArrayDataSource ds = new DataSourceProvider.ByteArrayDataSource(data, contentType);
-            MimeMultipart mimeMultipart = new MimeMultipart(ds, new ContentType(contentType));
-            MimeBodyPart bodyPart1 = mimeMultipart.getBodyPart(0);
-            MimeBodyPart bodyPart2 = mimeMultipart.getBodyPart(1);
+            ByteArrayDataSource ds = new ByteArrayDataSource(data, contentType);
+            MimeMultipart mimeMultipart = new MimeMultipart(ds);
+            BodyPart bodyPart1 = mimeMultipart.getBodyPart(0);
+            BodyPart bodyPart2 = mimeMultipart.getBodyPart(1);
 
-
-            String contentMD5 = bodyPart2.getContentMD5();
+            String contentMD5 = bodyPart2.getHeader("Content-MD5")[0];
             byte[] bytes = toByteArray(bodyPart2.getInputStream());
 
             String challenge = calcMd5(bytes);
@@ -108,6 +106,8 @@ public class AssetsResource {
                         assetKey.key.toString(),
                         bais,
                         (long) bodyPart2.getSize(),
+                        null,
+                        null,
                         "application/octet-stream");
             }
 

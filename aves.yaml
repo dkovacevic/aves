@@ -28,7 +28,7 @@ tokenExpiration: ${AVES_EXP:-900}
 
 database:
   driverClass: org.postgresql.Driver
-  user: ${DB_USER:-}
+  user: ${AVES_DB_USER:-}
   password: ${AVES_DB_PASSWORD:-}
   url: ${AVES_DB_URL:-}
   properties:

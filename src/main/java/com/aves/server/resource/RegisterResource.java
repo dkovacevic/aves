@@ -4,6 +4,7 @@ import com.aves.server.DAO.UserDAO;
 import com.aves.server.Logger;
 import com.aves.server.model.ErrorMessage;
 import com.aves.server.model.NewUser;
+import com.aves.server.model.User;
 import com.lambdaworks.crypto.SCryptUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -37,10 +38,12 @@ public class RegisterResource {
 
             UUID userId = UUID.randomUUID();
 
-            int insert = userDAO.insert(userId, newUser.name, newUser.email, newUser.phone, hash);
+            userDAO.insert(userId, newUser.name, newUser.email, newUser.phone, hash);
+
+            User user = userDAO.getUser(userId);
 
             return Response.
-                    ok().
+                    ok(user).
                     build();
         } catch (Exception e) {
             e.printStackTrace();
