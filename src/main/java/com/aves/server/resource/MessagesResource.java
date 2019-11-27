@@ -8,7 +8,7 @@ import com.aves.server.model.Message;
 import com.aves.server.model.Payload;
 import com.aves.server.model.otr.ClientMismatch;
 import com.aves.server.model.otr.NewOtrMessage;
-import com.aves.server.websocket.WebSocket;
+import com.aves.server.websocket.ServerEndpoint;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -93,7 +93,7 @@ public class MessagesResource {
                     message.id = UUID.randomUUID();
                     message.payload = new Payload[]{payload};
 
-                    WebSocket.send(clientId, message);        //todo use execution service to send via socket
+                    ServerEndpoint.send(clientId, message);        //todo use execution service to send via socket
                 }
             }
 

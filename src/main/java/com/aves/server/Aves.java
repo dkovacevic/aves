@@ -4,7 +4,8 @@ import com.aves.server.clients.SwisscomClient;
 import com.aves.server.filters.AuthenticationFeature;
 import com.aves.server.model.Configuration;
 import com.aves.server.resource.*;
-import com.aves.server.websocket.WebSocket;
+import com.aves.server.websocket.MessageEncoder;
+import com.aves.server.websocket.ServerEndpoint;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import io.dropwizard.Application;
 import io.dropwizard.client.JerseyClientBuilder;
@@ -22,7 +23,10 @@ import io.minio.errors.InvalidPortException;
 import org.skife.jdbi.v2.DBI;
 
 import javax.crypto.SecretKey;
+import javax.websocket.Encoder;
+import javax.websocket.server.ServerEndpointConfig;
 import javax.ws.rs.client.Client;
+import java.util.ArrayList;
 
 public class Aves extends Application<Configuration> {
     private static SecretKey key;
@@ -51,7 +55,16 @@ public class Aves extends Application<Configuration> {
             }
         });
 
-        WebsocketBundle bundle = new WebsocketBundle(WebSocket.class);
+        ArrayList<Class<? extends Encoder>> encoders = new ArrayList<>();
+        encoders.add(MessageEncoder.class);
+
+        final ServerEndpointConfig config = ServerEndpointConfig
+                .Builder
+                .create(ServerEndpoint.class, "/aves/await")
+                .encoders(encoders)
+                .build();
+
+        WebsocketBundle bundle = new WebsocketBundle(config);
         bootstrap.addBundle(bundle);
     }
 
