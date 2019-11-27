@@ -1,7 +1,8 @@
 FROM dejankovacevic/bots.runtime:2.10.3
 
-COPY target/aves.jar     /opt/aves/aves.jar
-COPY aves.yaml           /etc/aves/aves.yaml
+COPY target/aves.jar     /opt/aves/
+COPY swisscom.jks        /opt/aves/
+COPY aves.yaml           /etc/aves/
 
 WORKDIR /opt/aves
 

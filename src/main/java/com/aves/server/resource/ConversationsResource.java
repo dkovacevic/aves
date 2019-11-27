@@ -7,6 +7,7 @@ import com.aves.server.model.Conversation;
 import com.aves.server.model.ErrorMessage;
 import com.aves.server.model.Member;
 import com.aves.server.model.NewConversation;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -85,8 +86,8 @@ public class ConversationsResource {
     @Path("{convId}")
     @Authorization("Bearer")
     @ApiOperation(value = "Get Conversation by conv id")
-    public Response create(@Context ContainerRequestContext context,
-                           @QueryParam("convId") UUID convId) {
+    public Response get(@Context ContainerRequestContext context,
+                        @QueryParam("convId") UUID convId) {
 
         ConversationsDAO conversationsDAO = jdbi.onDemand(ConversationsDAO.class);
         ParticipantsDAO participantsDAO = jdbi.onDemand(ParticipantsDAO.class);
@@ -101,14 +102,17 @@ public class ConversationsResource {
                     build();
         }
 
+        conversation.members.self.id = userId;
+
         boolean valid = false;
 
-        List<UUID> others = participantsDAO.get(convId);
+        List<UUID> others = participantsDAO.getUsers(convId);
 
-        conversation.members.others = new ArrayList<>();
         for (UUID participant : others) {
-            if (participant.equals(userId))
+            if (participant.equals(userId)) {
                 valid = true;
+                continue;
+            }
 
             Member member = new Member();
             member.id = participant;
@@ -125,5 +129,49 @@ public class ConversationsResource {
         return Response.
                 ok(conversation).
                 build();
+    }
+
+    @GET
+    @Authorization("Bearer")
+    @ApiOperation(value = "Get all conversations")
+    public Response getAll(@Context ContainerRequestContext context) {
+
+        ConversationsDAO conversationsDAO = jdbi.onDemand(ConversationsDAO.class);
+        ParticipantsDAO participantsDAO = jdbi.onDemand(ParticipantsDAO.class);
+
+        UUID userId = (UUID) context.getProperty("zuid");
+
+        _Result result = new _Result();
+        result.conversations = new ArrayList<>();
+
+        List<UUID> convIds = participantsDAO.getConversations(userId);
+
+        for (UUID convId : convIds) {
+            Conversation conversation = conversationsDAO.get(convId);
+            conversation.members.self.id = userId;
+
+            List<UUID> others = participantsDAO.getUsers(convId);
+            for (UUID participant : others) {
+                if (participant.equals(userId)) {
+                    continue;
+                }
+                Member member = new Member();
+                member.id = participant;
+
+                conversation.members.others.add(member);
+            }
+
+            result.conversations.add(conversation);
+        }
+
+        return Response.
+                ok(result).
+                build();
+    }
+
+    public static class _Result {
+        @JsonProperty("has_more")
+        public boolean hasMore;
+        public List<Conversation> conversations;
     }
 }

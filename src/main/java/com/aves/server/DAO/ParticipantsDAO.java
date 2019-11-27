@@ -16,5 +16,9 @@ public interface ParticipantsDAO {
 
     @SqlQuery("SELECT user_Id AS uuid FROM Participants WHERE conv_Id = :convId ")
     @RegisterMapper(UUIDMapper.class)
-    List<UUID> get(@Bind("convId") UUID convId);
+    List<UUID> getUsers(@Bind("convId") UUID convId);
+
+    @SqlQuery("SELECT conv_Id AS uuid FROM Participants WHERE user_Id = :userId ")
+    @RegisterMapper(UUIDMapper.class)
+    List<UUID> getConversations(@Bind("userId") UUID userId);
 }

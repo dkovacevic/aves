@@ -13,5 +13,5 @@ public class Member {
     public UUID id;
 
     @JsonProperty
-    public Integer status;
+    public int status;
 }

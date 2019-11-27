@@ -3,6 +3,7 @@ package com.aves.server.resource;
 import com.aves.server.DAO.ClientsDAO;
 import com.aves.server.DAO.PrekeysDAO;
 import com.aves.server.Logger;
+import com.aves.server.model.Device;
 import com.aves.server.model.ErrorMessage;
 import com.aves.server.model.NewClient;
 import com.aves.server.model.otr.PreKey;
@@ -13,6 +14,7 @@ import io.swagger.annotations.Authorization;
 import org.skife.jdbi.v2.DBI;
 
 import javax.validation.Valid;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -20,6 +22,7 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.List;
 import java.util.UUID;
 
 import static com.aves.server.Util.next;
@@ -71,6 +74,30 @@ public class ClientsResource {
         } catch (Exception e) {
             e.printStackTrace();
             Logger.error("ClientResource.post : %s", e);
+            return Response
+                    .ok(new ErrorMessage(e.getMessage()))
+                    .status(500)
+                    .build();
+        }
+    }
+
+    @GET
+    @ApiOperation(value = "Get all devices")
+    @Authorization("Bearer")
+    public Response get(@Context ContainerRequestContext context) {
+        try {
+            UUID userId = (UUID) context.getProperty("zuid");
+
+            ClientsDAO clientsDAO = jdbi.onDemand(ClientsDAO.class);
+
+            List<Device> devices = clientsDAO.getDevices(userId);
+
+            return Response.
+                    ok(devices).
+                    build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Logger.error("ClientResource.get : %s", e);
             return Response
                     .ok(new ErrorMessage(e.getMessage()))
                     .status(500)

@@ -69,7 +69,7 @@ public class InviteResource {
 
             Conversation conversation = conversationsDAO.get(convId);
 
-            List<UUID> others = participantsDAO.get(convId);
+            List<UUID> others = participantsDAO.getUsers(convId);
             conversation.members.others = new ArrayList<>();
             for (UUID participant : others) {
                 Member member = new Member();

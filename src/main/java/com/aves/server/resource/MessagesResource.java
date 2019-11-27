@@ -53,7 +53,7 @@ public class MessagesResource {
 
             ClientMismatch clientMismatch = new ClientMismatch();
 
-            List<UUID> participants = participantsDAO.get(convId);
+            List<UUID> participants = participantsDAO.getUsers(convId);
             for (UUID participantId : participants) {
                 List<String> clientIds = clientsDAO.getClients(participantId);
 
