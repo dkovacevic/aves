@@ -13,9 +13,7 @@ import io.swagger.annotations.Authorization;
 import org.skife.jdbi.v2.DBI;
 
 import javax.validation.Valid;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -24,7 +22,7 @@ import java.util.HashMap;
 import java.util.UUID;
 
 @Api
-@Path("/users/prekeys")
+@Path("/users")
 @Produces(MediaType.APPLICATION_JSON)
 public class PrekeysResource {
     private final DBI jdbi;
@@ -34,10 +32,11 @@ public class PrekeysResource {
     }
 
     @POST
+    @Path("prekeys")
     @ApiOperation(value = "Get prekeys for users/clients")
     @Authorization("Bearer")
-    public Response post( @Context ContainerRequestContext context,
-            @ApiParam @Valid Missing missing) {
+    public Response post(@Context ContainerRequestContext context,
+                         @ApiParam @Valid Missing missing) {
 
         try {
             PrekeysDAO prekeysDAO = jdbi.onDemand(PrekeysDAO.class);
@@ -64,5 +63,37 @@ public class PrekeysResource {
                     .status(500)
                     .build();
         }
+    }
+
+    @GET
+    @Path("{userId}/prekeys/{clientId}")
+    @ApiOperation(value = "Get prekey for users/clients")
+    @Authorization("Bearer")
+    public Response getPrekey(@PathParam("userId") UUID userId, @PathParam("clientId") String clientId) {
+
+        try {
+            PrekeysDAO prekeysDAO = jdbi.onDemand(PrekeysDAO.class);
+            PreKey preKey = prekeysDAO.get(clientId);
+
+            ClientPrekey result = new ClientPrekey();
+            result.client = clientId;
+            result.prekey = preKey;
+
+            return Response.
+                    ok(result).
+                    build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Logger.error("PrekeysResource.getPrekey : %s", e);
+            return Response
+                    .ok(new ErrorMessage(e.getMessage()))
+                    .status(500)
+                    .build();
+        }
+    }
+
+    public static class ClientPrekey {
+        public PreKey prekey;
+        public String client;
     }
 }

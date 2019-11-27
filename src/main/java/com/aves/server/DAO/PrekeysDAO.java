@@ -22,7 +22,7 @@ public interface PrekeysDAO {
 
     @SqlQuery("Select * from Prekeys WHERE client_id = :clientId")
     @RegisterMapper(_Mapper.class)
-    PreKey get(@Bind("clientId") String clientId);
+    PreKey get(@Bind("clientId") String clientId);  //todo remove duplicates - return first free prekey
 
     class _Mapper implements ResultSetMapper<PreKey> {
         @Override
@@ -46,5 +46,5 @@ public interface PrekeysDAO {
                 contact = (UUID) rsObject;
             return contact;
         }
-    }
+    }                           
 }

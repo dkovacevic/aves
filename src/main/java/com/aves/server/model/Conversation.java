@@ -23,6 +23,9 @@ public class Conversation {
     @JsonProperty
     public Members members = new Members();
 
+    @JsonProperty
+    public int type;
+    
     public static class Members {
         @JsonProperty
         public Self self = new Self();
