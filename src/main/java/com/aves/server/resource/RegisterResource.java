@@ -18,6 +18,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.UUID;
+
 @Api
 @Path("/register")
 @Produces(MediaType.APPLICATION_JSON)
@@ -38,7 +39,15 @@ public class RegisterResource {
 
             UUID userId = UUID.randomUUID();
 
-            userDAO.insert(userId, newUser.name, newUser.email, newUser.phone, hash);
+            userDAO.insert(
+                    userId,
+                    newUser.name,
+                    newUser.firstname,
+                    newUser.lastname,
+                    newUser.country,
+                    newUser.email,
+                    newUser.phone,
+                    hash);
 
             User user = userDAO.getUser(userId);
 

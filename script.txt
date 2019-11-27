@@ -4,8 +4,13 @@ CREATE TABLE Users (
  email VARCHAR NOT NULL,
  hash VARCHAR NOT NULL,
  phone VARCHAR NOT NULL,
+ firstname VARCHAR NOT NULL,
+ lastname VARCHAR NOT NULL,
+ country VARCHAR NOT NULL,
  time TIMESTAMP DEFAULT NOW()
 );
+
+CREATE UNIQUE INDEX email_index ON Users (email);
 
 CREATE TABLE Prekeys (
  client_id VARCHAR NOT NULL,

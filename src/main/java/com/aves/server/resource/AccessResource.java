@@ -1,7 +1,7 @@
 package com.aves.server.resource;
 
+import com.aves.server.Aves;
 import com.aves.server.Logger;
-import com.aves.server.Server;
 import com.aves.server.model.AccessToken;
 import com.aves.server.model.Configuration;
 import com.aves.server.model.ErrorMessage;
@@ -44,7 +44,7 @@ public class AccessResource {
             UUID userId;
             try {
                 String subject = Jwts.parser()
-                        .setSigningKey(Server.getKey())
+                        .setSigningKey(Aves.getKey())
                         .parseClaimsJws(expired)
                         .getBody()
                         .getSubject();
@@ -61,7 +61,7 @@ public class AccessResource {
                     .setIssuer("https://aves.com")
                     .setSubject("" + userId)
                     .setExpiration(exp)
-                    .signWith(Server.getKey())
+                    .signWith(Aves.getKey())
                     .compact();
 
             AccessToken result = new AccessToken();

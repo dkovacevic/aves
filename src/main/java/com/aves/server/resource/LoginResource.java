@@ -1,8 +1,8 @@
 package com.aves.server.resource;
 
+import com.aves.server.Aves;
 import com.aves.server.DAO.UserDAO;
 import com.aves.server.Logger;
-import com.aves.server.Server;
 import com.aves.server.model.AccessToken;
 import com.aves.server.model.Configuration;
 import com.aves.server.model.ErrorMessage;
@@ -65,7 +65,7 @@ public class LoginResource {
                     .setIssuer("https://aves.com")
                     .setSubject("" + userId)
                     .setExpiration(exp)
-                    .signWith(Server.getKey())
+                    .signWith(Aves.getKey())
                     .compact();
 
             AccessToken result = new AccessToken();

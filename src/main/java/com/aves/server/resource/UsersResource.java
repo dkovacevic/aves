@@ -29,7 +29,7 @@ public class UsersResource {
 
     @GET
     @Path("{userId}")
-    @ApiOperation(value = "Register new user")
+    @ApiOperation(value = "Get user's details")
     @Authorization("Bearer")
     public Response get(@PathParam("userId") UUID userId) {
         try {

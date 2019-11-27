@@ -1,10 +1,13 @@
 package com.aves.server;
 
+import com.aves.server.clients.SwisscomClient;
 import com.aves.server.filters.AuthenticationFeature;
 import com.aves.server.model.Configuration;
 import com.aves.server.resource.*;
 import com.aves.server.websocket.WebSocket;
+import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import io.dropwizard.Application;
+import io.dropwizard.client.JerseyClientBuilder;
 import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
 import io.dropwizard.configuration.SubstitutingSourceProvider;
 import io.dropwizard.jdbi.DBIFactory;
@@ -19,8 +22,9 @@ import io.minio.errors.InvalidPortException;
 import org.skife.jdbi.v2.DBI;
 
 import javax.crypto.SecretKey;
+import javax.ws.rs.client.Client;
 
-public class Server extends Application<Configuration> {
+public class Aves extends Application<Configuration> {
     private static SecretKey key;
     public static DBI jdbi;
 
@@ -29,7 +33,7 @@ public class Server extends Application<Configuration> {
     }
 
     public static void main(String[] args) throws Exception {
-        new Server().run(args);
+        new Aves().run(args);
     }
 
     @Override
@@ -52,8 +56,15 @@ public class Server extends Application<Configuration> {
     }
 
     public void run(Configuration config, Environment environment) throws InvalidPortException, InvalidEndpointException {
-        Server.key = Keys.hmacShaKeyFor(config.key.getBytes());
+        Aves.key = Keys.hmacShaKeyFor(config.key.getBytes());
         jdbi = new DBIFactory().build(environment, config.database, "postgresql");
+
+        Client jerseyClient = new JerseyClientBuilder(environment)
+                .using(config.jerseyConfig)
+                .withProvider(JacksonJsonProvider.class)
+                .build(getName());
+
+        SwisscomClient swisscomClient = new SwisscomClient(jerseyClient);
 
         environment.jersey().register(AuthenticationFeature.class);
 
@@ -68,7 +79,6 @@ public class Server extends Application<Configuration> {
         environment.jersey().register(new UsersResource(jdbi));
         environment.jersey().register(new StatusResource());
         environment.jersey().register(new InviteResource(jdbi));
-        environment.jersey().register(new SignatureResource(jdbi));
-
+        environment.jersey().register(new SignatureResource(jdbi, swisscomClient));
     }
 }

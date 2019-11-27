@@ -51,7 +51,15 @@ public class InviteResource {
             String password = next(8);
             String hash = SCryptUtil.scrypt(password, 16384, 8, 1);
             UUID userId = UUID.randomUUID();
-            userDAO.insert(userId, invite.name, invite.email, invite.phone, hash);
+            userDAO.insert(
+                    userId,
+                    invite.name,
+                    invite.firstname,
+                    invite.lastname,
+                    invite.country,
+                    invite.email,
+                    invite.phone,
+                    hash);
 
             // create new conv
             UUID convId = UUID.randomUUID();

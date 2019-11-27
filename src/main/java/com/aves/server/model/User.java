@@ -20,4 +20,10 @@ public class User {
     @NotNull
     @NotEmpty
     public String phone;
+
+    public String firstname;
+
+    public String lastname;
+
+    public String country;
 }

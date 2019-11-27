@@ -1,6 +1,6 @@
 package com.aves.server.filters;
 
-import com.aves.server.Server;
+import com.aves.server.Aves;
 import io.jsonwebtoken.Jwts;
 
 import javax.ws.rs.WebApplicationException;
@@ -48,7 +48,7 @@ public class AuthenticationFilter implements ContainerRequestFilter {
 
         try {
             String subject = Jwts.parser()
-                    .setSigningKey(Server.getKey())
+                    .setSigningKey(Aves.getKey())
                     .parseClaimsJws(token)
                     .getBody()
                     .getSubject();

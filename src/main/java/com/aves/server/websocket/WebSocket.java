@@ -1,9 +1,9 @@
 package com.aves.server.websocket;
 
 
+import com.aves.server.Aves;
 import com.aves.server.DAO.ClientsDAO;
 import com.aves.server.Logger;
-import com.aves.server.Server;
 import com.aves.server.model.Message;
 import io.jsonwebtoken.Jwts;
 
@@ -38,13 +38,13 @@ public class WebSocket {
     public void onOpen(Session session, @PathParam("token") String token, @PathParam("clientId") String clientId) throws IOException {
         try {
             String subject = Jwts.parser()
-                    .setSigningKey(Server.getKey())
+                    .setSigningKey(Aves.getKey())
                     .parseClaimsJws(token)
                     .getBody()
                     .getSubject();
 
             UUID userId = UUID.fromString(subject);
-            ClientsDAO clientsDAO = Server.jdbi.onDemand(ClientsDAO.class);
+            ClientsDAO clientsDAO = Aves.jdbi.onDemand(ClientsDAO.class);
             UUID challenge = clientsDAO.getUserId(clientId);
             if (!userId.equals(challenge)) {
                 Logger.warning("Session %s client: %s. Unknown clientId", session.getId(), clientId);

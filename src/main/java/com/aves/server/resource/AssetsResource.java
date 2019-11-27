@@ -1,7 +1,7 @@
 package com.aves.server.resource;
 
+import com.aves.server.Aves;
 import com.aves.server.Logger;
-import com.aves.server.Server;
 import com.aves.server.model.AssetKey;
 import com.aves.server.model.ErrorMessage;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -117,7 +117,7 @@ public class AssetsResource {
                 assetKey.token = Jwts.builder()
                         .setIssuer("https://aves.com")
                         .setExpiration(exp)
-                        .signWith(Server.getKey())
+                        .signWith(Aves.getKey())
                         .compact();
                 assetKey.expires = data.toString();
             }
@@ -146,7 +146,7 @@ public class AssetsResource {
             if (token != null) {
                 //todo check the token against db
                 Claims body = Jwts.parser()
-                        .setSigningKey(Server.getKey())
+                        .setSigningKey(Aves.getKey())
                         .parseClaimsJws(token)
                         .getBody();
             }

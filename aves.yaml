@@ -17,6 +17,11 @@ logging:
     "com.aves.logger": ${LOG_LEVEL:-INFO}
 
 swagger:
+  version: 1.0.0
+  title: AVES
+  description: OTR chat server
+  contact: Dejan Kovacevic
+  contactEmail: dejan@wire.com
   resourcePackage: com.aves.server.resource
   uriPrefix: /aves
   schemes:
@@ -41,3 +46,22 @@ database:
   evictionInterval: 10s
   minIdleTime: 1 minute
 
+jerseyClient:
+  timeout: 40s
+  connectionTimeout: 20s
+  connectionRequestTimeout: 20s
+  keepAlive: 0ms
+  retries: 3
+  userAgent: Aves
+
+  tls:
+    protocol: TLSv1.2
+    provider: SunJSSE
+    verifyHostname: false
+    keyStorePath: ./swisscom.jks
+    keyStorePassword: ${KEYSTORE_PASSWORD:-}
+    keyStoreType: JKS
+    trustSelfSignedCertificates: true
+    supportedProtocols:
+      - TLSv1.1
+      - TLSv1.2
