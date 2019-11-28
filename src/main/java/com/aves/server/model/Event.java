@@ -14,5 +14,5 @@ public class Event {
     @JsonProperty
     public Payload[] payload;
     @JsonProperty("transient")
-    public boolean trans;
+    public Boolean trans;
 }
