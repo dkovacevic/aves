@@ -4,7 +4,7 @@ package com.aves.server.websocket;
 import com.aves.server.Aves;
 import com.aves.server.DAO.ClientsDAO;
 import com.aves.server.Logger;
-import com.aves.server.model.Message;
+import com.aves.server.model.Event;
 import io.jsonwebtoken.Jwts;
 
 import javax.websocket.*;
@@ -21,14 +21,14 @@ import java.util.concurrent.ConcurrentHashMap;
 public class WebSocket {
     private final static ConcurrentHashMap<String, Session> sessions = new ConcurrentHashMap<>();// ClientID, Session,
 
-    public static boolean send(String clientId, Message message) throws IOException, EncodeException {
+    public static boolean send(String clientId, Event event) throws IOException, EncodeException {
         Session session = sessions.get(clientId);
         if (session != null && session.isOpen()) {
             Logger.debug("Sending message (%s) over wss to client: %s",
-                    message.id,
+                    event.id,
                     clientId);
 
-            session.getBasicRemote().sendObject(message);
+            session.getBasicRemote().sendObject(event);
             return true;
         }
         return false;

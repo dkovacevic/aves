@@ -39,3 +39,14 @@ CREATE TABLE Clients (
  lastkey INTEGER NOT NULL,
  time TIMESTAMP DEFAULT NOW()
 );
+
+CREATE TABLE Notifications (
+ id UUID PRIMARY KEY,
+ client_Id VARCHAR NOT NULL,
+ user_id UUID NOT NULL,
+ notification VARCHAR NOT NULL,
+ time TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX Notifications_index ON Notifications (client_Id, user_Id, time);
+

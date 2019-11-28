@@ -4,8 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -25,16 +23,5 @@ public class Conversation {
 
     @JsonProperty
     public int type;
-    
-    public static class Members {
-        @JsonProperty
-        public Self self = new Self();
-        @JsonProperty
-        public List<Member> others = new ArrayList<>();
-    }
 
-    public static class Self {
-        public int status;
-        public UUID id;
-    }
 }

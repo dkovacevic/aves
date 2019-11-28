@@ -4,12 +4,12 @@ import com.aves.server.Aves;
 import com.aves.server.DAO.ClientsDAO;
 import com.aves.server.Logger;
 import com.aves.server.Util;
-import com.aves.server.model.Message;
+import com.aves.server.model.Event;
 import com.codahale.metrics.annotation.Metered;
 import com.codahale.metrics.annotation.Timed;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 
-import javax.websocket.EncodeException;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfig;
 import javax.websocket.Session;
@@ -17,22 +17,33 @@ import java.io.IOException;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static com.aves.server.Aves.jdbi;
+
 @Metered
 @Timed
 public class ServerEndpoint extends Endpoint {
     private final static ConcurrentHashMap<String, Session> sessions = new ConcurrentHashMap<>();// ClientID, Session,
 
-    public static boolean send(String clientId, Message message) throws IOException, EncodeException {
+    public static boolean send(String clientId, Event event) {
         Session session = sessions.get(clientId);
-        if (session != null && session.isOpen()) {
-            Logger.debug("Sending message (%s) over wss to client: %s",
-                    message.id,
-                    clientId);
-
-            session.getBasicRemote().sendObject(message);
-            return true;
+        if (session != null) {
+            if (session.isOpen()) {
+                session.getAsyncRemote().sendObject(event);
+                return true;
+            } else {
+                sessions.remove(clientId);
+                close(session);
+            }
         }
         return false;
+    }
+
+    private static void close(Session session) {
+        try {
+            session.close();
+        } catch (IOException e1) {
+            Logger.error("session.close(): %s", e1);
+        }
     }
 
     @Override
@@ -42,7 +53,7 @@ public class ServerEndpoint extends Endpoint {
             String token = Util.getQueryParam(session.getQueryString(), "access_token");
 
             if (token == null || clientId == null) {
-                Logger.warning("Session %s missing token or clientId", session.getId());
+                Logger.debug("Session %s missing token or clientId", session.getId());
                 session.close();
                 return;
             }
@@ -54,18 +65,23 @@ public class ServerEndpoint extends Endpoint {
                     .getSubject();
 
             UUID userId = UUID.fromString(subject);
-            ClientsDAO clientsDAO = Aves.jdbi.onDemand(ClientsDAO.class);
+
+            ClientsDAO clientsDAO = jdbi.onDemand(ClientsDAO.class);
             UUID challenge = clientsDAO.getUserId(clientId);
             if (!userId.equals(challenge)) {
-                Logger.warning("Session %s client: %s. Unknown clientId", session.getId(), clientId);
+                Logger.debug("Session: %s, client: %s. Unknown clientId", session.getId(), clientId);
                 session.close();
                 return;
             }
 
-            Logger.info("Session %s connected. client: %s", session.getId(), clientId);
+            Logger.info("Session: %s connected. client: %s", session.getId(), clientId);
             sessions.put(clientId, session);
+        } catch (ExpiredJwtException e) {
+            Logger.debug("onOpen: %s", e);
+            close(session);
         } catch (Exception e) {
-
+            Logger.error("onOpen: %s", e);
+            close(session);
         }
     }
 }

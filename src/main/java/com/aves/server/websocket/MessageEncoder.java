@@ -1,6 +1,6 @@
 package com.aves.server.websocket;
 
-import com.aves.server.model.Message;
+import com.aves.server.model.Event;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -8,16 +8,16 @@ import javax.websocket.EncodeException;
 import javax.websocket.Encoder;
 import javax.websocket.EndpointConfig;
 
-public class MessageEncoder implements Encoder.Text<Message> {
+public class MessageEncoder implements Encoder.Text<Event> {
 
     private final ObjectMapper mapper = new ObjectMapper();
 
     @Override
-    public String encode(Message message) throws EncodeException {
+    public String encode(Event event) throws EncodeException {
         try {
-            return mapper.writeValueAsString(message);
+            return mapper.writeValueAsString(event);
         } catch (JsonProcessingException e) {
-            throw new EncodeException(message, e.getMessage(), e);
+            throw new EncodeException(event, e.getMessage(), e);
         }
     }
 

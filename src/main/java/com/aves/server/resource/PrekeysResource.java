@@ -14,8 +14,6 @@ import org.skife.jdbi.v2.DBI;
 
 import javax.validation.Valid;
 import javax.ws.rs.*;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.HashMap;
@@ -35,8 +33,7 @@ public class PrekeysResource {
     @Path("prekeys")
     @ApiOperation(value = "Get prekeys for users/clients")
     @Authorization("Bearer")
-    public Response post(@Context ContainerRequestContext context,
-                         @ApiParam @Valid Missing missing) {
+    public Response post(@ApiParam @Valid Missing missing) {
 
         try {
             PrekeysDAO prekeysDAO = jdbi.onDemand(PrekeysDAO.class);

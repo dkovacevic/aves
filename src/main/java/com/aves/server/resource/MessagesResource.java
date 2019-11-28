@@ -1,14 +1,16 @@
 package com.aves.server.resource;
 
 import com.aves.server.DAO.ClientsDAO;
+import com.aves.server.DAO.NotificationsDAO;
 import com.aves.server.DAO.ParticipantsDAO;
 import com.aves.server.Logger;
 import com.aves.server.model.ErrorMessage;
-import com.aves.server.model.Message;
+import com.aves.server.model.Event;
 import com.aves.server.model.Payload;
 import com.aves.server.model.otr.ClientMismatch;
 import com.aves.server.model.otr.NewOtrMessage;
 import com.aves.server.websocket.ServerEndpoint;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -33,6 +35,7 @@ import java.util.UUID;
 @Produces(MediaType.APPLICATION_JSON)
 public class MessagesResource {
     private final DBI jdbi;
+    private ObjectMapper mapper = new ObjectMapper();
 
     public MessagesResource(DBI jdbi) {
         this.jdbi = jdbi;
@@ -50,6 +53,7 @@ public class MessagesResource {
 
             ParticipantsDAO participantsDAO = jdbi.onDemand(ParticipantsDAO.class);
             ClientsDAO clientsDAO = jdbi.onDemand(ClientsDAO.class);
+            NotificationsDAO notificationsDAO = jdbi.onDemand(NotificationsDAO.class);
 
             ClientMismatch clientMismatch = new ClientMismatch();
 
@@ -75,25 +79,27 @@ public class MessagesResource {
             for (UUID participantId : participants) {
                 List<String> clientIds = clientsDAO.getClients(participantId);
                 for (String clientId : clientIds) {
-
                     if (clientId.equals(otrMessage.sender))
                         continue;
 
-                    //Send event via Socket
-                    Payload payload = new Payload();
-                    payload.convId = convId;
-                    payload.from = userId;
-                    payload.type = "conversation.otr-message-add";
-                    payload.time = new Date().toString();
-                    payload.data = new Payload.Data();
-                    payload.data.sender = otrMessage.sender;
-                    payload.data.text = otrMessage.recipients.get(participantId, clientId);
+                    Payload.Data data = new Payload.Data();
+                    data.sender = otrMessage.sender;
+                    data.recipient = clientId;
+                    data.text = otrMessage.recipients.get(participantId, clientId);
 
-                    Message message = new Message();
-                    message.id = UUID.randomUUID();
-                    message.payload = new Payload[]{payload};
+                    Event event = buildEvent(convId, userId, data);
 
-                    ServerEndpoint.send(clientId, message);        //todo use execution service to send via socket
+                    // Persist event into Notification stream
+                    String strEvent = mapper.writeValueAsString(event);
+                    notificationsDAO.insert(event.id, clientId, participantId, strEvent);
+
+                    // Send event via Socket
+                    boolean send = ServerEndpoint.send(clientId, event);
+                    Logger.debug("Websocket: message (%s) to user: %s, client: %s. Sent: %s",
+                            event.id,
+                            participantId,
+                            clientId,
+                            send);
                 }
             }
 
@@ -108,5 +114,20 @@ public class MessagesResource {
                     .status(500)
                     .build();
         }
+    }
+
+    private Event buildEvent(UUID convId, UUID from, Payload.Data data) {
+        Event event = new Event();
+        event.id = UUID.randomUUID();
+
+        Payload payload = new Payload();
+        payload.convId = convId;
+        payload.from = from;
+        payload.type = "conversation.otr-message-add";
+        payload.time = new Date().toString();
+        payload.data = data;
+
+        event.payload = new Payload[]{payload};
+        return event;
     }
 }

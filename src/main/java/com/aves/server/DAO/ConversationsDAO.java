@@ -8,7 +8,6 @@ import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
 
-import javax.annotation.Nullable;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.UUID;
@@ -26,7 +25,6 @@ public interface ConversationsDAO {
 
     class _Mapper implements ResultSetMapper<Conversation> {
         @Override
-        @Nullable
         public Conversation map(int i, ResultSet rs, StatementContext statementContext) throws SQLException {
             Conversation conv = new Conversation();
             conv.id = getUuid(rs, "conv_id");

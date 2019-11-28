@@ -1,6 +1,7 @@
 package com.aves.server.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import javax.validation.constraints.NotNull;
@@ -8,6 +9,7 @@ import java.util.List;
 import java.util.UUID;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Payload {
     @JsonProperty
     @NotNull
@@ -33,6 +35,7 @@ public class Payload {
     public User user;
 
     @JsonIgnoreProperties(ignoreUnknown = true)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class Data {
         @JsonProperty
         @NotNull
@@ -49,7 +52,7 @@ public class Payload {
 
         // User Mode
         @JsonProperty
-        public String id;
+        public UUID id;
         @JsonProperty
         public String key;
         @JsonProperty
@@ -58,10 +61,13 @@ public class Payload {
         public UUID creator;
         @JsonProperty
         public Members members;
+        @JsonProperty
+        public Integer type;
     }
 
     // User Mode
     @JsonIgnoreProperties(ignoreUnknown = true)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class Connection {
         @JsonProperty
         public String status;
@@ -78,6 +84,7 @@ public class Payload {
 
     // User Mode
     @JsonIgnoreProperties(ignoreUnknown = true)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class User {
         @JsonProperty
         public UUID id;
@@ -93,12 +100,5 @@ public class Payload {
 
         @JsonProperty
         public String email;
-    }
-
-    // User Mode
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class Members {
-        @JsonProperty
-        public List<Member> others;
     }
 }

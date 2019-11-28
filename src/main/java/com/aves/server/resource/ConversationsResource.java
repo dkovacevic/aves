@@ -1,13 +1,14 @@
 package com.aves.server.resource;
 
+import com.aves.server.DAO.ClientsDAO;
 import com.aves.server.DAO.ConversationsDAO;
+import com.aves.server.DAO.NotificationsDAO;
 import com.aves.server.DAO.ParticipantsDAO;
 import com.aves.server.Logger;
-import com.aves.server.model.Conversation;
-import com.aves.server.model.ErrorMessage;
-import com.aves.server.model.Member;
-import com.aves.server.model.NewConversation;
+import com.aves.server.model.*;
+import com.aves.server.websocket.ServerEndpoint;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -21,6 +22,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -29,6 +31,7 @@ import java.util.UUID;
 @Produces(MediaType.APPLICATION_JSON)
 public class ConversationsResource {
     private final DBI jdbi;
+    private ObjectMapper mapper = new ObjectMapper();
 
     public ConversationsResource(DBI jdbi) {
         this.jdbi = jdbi;
@@ -43,32 +46,45 @@ public class ConversationsResource {
         try {
             ConversationsDAO conversationsDAO = jdbi.onDemand(ConversationsDAO.class);
             ParticipantsDAO participantsDAO = jdbi.onDemand(ParticipantsDAO.class);
+            NotificationsDAO notificationsDAO = jdbi.onDemand(NotificationsDAO.class);
+            ClientsDAO clientsDAO = jdbi.onDemand(ClientsDAO.class);
 
             UUID userId = (UUID) context.getProperty("zuid");
             UUID convId = UUID.randomUUID();
 
-            ArrayList<Member> members = new ArrayList<>();
-
+            // persist conv
             conversationsDAO.insert(convId, conv.name, userId);
+            participantsDAO.insert(convId, userId);
             for (UUID participantId : conv.users) {
-                Member member = new Member();
-                member.id = participantId;
-                members.add(member);
-
                 participantsDAO.insert(convId, participantId);
             }
-            participantsDAO.insert(convId, userId);
 
-            Conversation result = new Conversation();
-            result.name = conv.name;
-            result.id = convId;
-            result.creator = userId;
-            result.members.others = members;
+            // build result
+            Conversation conversation = buildConversation(conv, userId, convId);
+
+            // Send new event to all participants
+            Event event = createEvent(userId, conversation);
+            String notification = mapper.writeValueAsString(event);
+            for (UUID participantId : conv.users) {
+                List<String> clientIds = clientsDAO.getClients(participantId);
+                for (String clientId : clientIds) {
+                    // persist to Notification stream
+                    notificationsDAO.insert(event.id, clientId, participantId, notification);
+
+                    //Send event via Socket
+                    boolean send = ServerEndpoint.send(clientId, event);
+                    Logger.debug("Websocket: message (%s) to user: %s, client: %s. Sent: %s",
+                            event.id,
+                            participantId,
+                            clientId,
+                            send);
+                }
+            }
 
             Logger.info("New conversation: %s", convId);
 
             return Response.
-                    ok(result).
+                    ok(conversation).
                     status(201).
                     header("location", convId.toString()).
                     build();
@@ -80,6 +96,21 @@ public class ConversationsResource {
                     .status(500)
                     .build();
         }
+    }
+
+    private Conversation buildConversation(@ApiParam @Valid NewConversation conv, UUID userId, UUID convId) {
+        Conversation conversation = new Conversation();
+        conversation.name = conv.name;
+        conversation.id = convId;
+        conversation.creator = userId;
+        conversation.members.self.id = userId;
+
+        for (UUID participantId : conv.users) {
+            Member member = new Member();
+            member.id = participantId;
+            conversation.members.others.add(member);
+        }
+        return conversation;
     }
 
     @GET
@@ -167,6 +198,27 @@ public class ConversationsResource {
         return Response.
                 ok(result).
                 build();
+    }
+
+    private Event createEvent(UUID userId, Conversation conv) {
+        Event event = new Event();
+        event.id = UUID.randomUUID();
+
+        Payload payload = new Payload();
+        payload.convId = conv.id;
+        payload.from = userId;
+        payload.type = "conversation.create";
+        payload.time = new Date().toString();
+        payload.data = new Payload.Data();
+        payload.data.id = conv.id;
+        payload.data.creator = conv.creator;
+        payload.data.name = conv.name;
+        payload.data.type = 3;  // conv type
+        payload.data.members = conv.members;
+
+        event.payload = new Payload[]{payload};
+
+        return event;
     }
 
     public static class _Result {
