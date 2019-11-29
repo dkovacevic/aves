@@ -80,4 +80,42 @@ public class NotificationsResource {
                     .build();
         }
     }
+
+    @GET
+    @Path("last")
+    @ApiOperation(value = "Fetch last notification")
+    @Authorization("Bearer")
+    public Response last(@Context ContainerRequestContext context,
+                         @QueryParam("client") @NotNull String clientId) {
+        try {
+            UUID userId = (UUID) context.getProperty("zuid");
+
+            NotificationsDAO notificationsDAO = jdbi.onDemand(NotificationsDAO.class);
+            ClientsDAO clientsDAO = jdbi.onDemand(ClientsDAO.class);
+
+            //check the clientId validity
+            UUID challenge = clientsDAO.getUserId(clientId);
+            if (!Objects.equals(userId, challenge)) {
+                return Response.
+                        ok(new ErrorMessage("Unknown clientId")).
+                        status(400).
+                        build();
+            }
+
+            String notification = notificationsDAO.last(clientId, userId);
+
+            Event last = mapper.readValue(notification, Event.class);
+
+            return Response.
+                    ok(last).
+                    build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Logger.error("NotificationsResource.last : %s", e);
+            return Response
+                    .ok(new ErrorMessage(e.getMessage()))
+                    .status(500)
+                    .build();
+        }
+    }
 }

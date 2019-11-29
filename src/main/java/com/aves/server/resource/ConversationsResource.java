@@ -122,7 +122,7 @@ public class ConversationsResource {
     @Authorization("Bearer")
     @ApiOperation(value = "Get Conversation by conv id")
     public Response get(@Context ContainerRequestContext context,
-                        @QueryParam("convId") UUID convId) {
+                        @PathParam("convId") UUID convId) {
 
         ConversationsDAO conversationsDAO = jdbi.onDemand(ConversationsDAO.class);
         ParticipantsDAO participantsDAO = jdbi.onDemand(ParticipantsDAO.class);

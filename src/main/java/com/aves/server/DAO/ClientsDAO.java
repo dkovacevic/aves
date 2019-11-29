@@ -28,6 +28,10 @@ public interface ClientsDAO {
     @RegisterMapper(_Mapper.class)
     List<Device> getDevices(@Bind("userId") UUID userId);
 
+    @SqlQuery("SELECT * FROM Clients WHERE user_id = :userId AND client_id = :clientId")
+    @RegisterMapper(_Mapper.class)
+    Device getDevice(@Bind("userId") UUID userId, @Bind("clientId") String clientId);
+
     @SqlQuery("SELECT user_id AS uuid FROM Clients WHERE client_id = :clientId")
     @RegisterMapper(UUIDMapper.class)
     UUID getUserId(@Bind("clientId") String clientId);

@@ -13,6 +13,7 @@ import io.swagger.annotations.*;
 import org.skife.jdbi.v2.DBI;
 
 import javax.validation.Valid;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -26,6 +27,7 @@ import java.util.concurrent.TimeUnit;
 @Api
 @Path("/login")
 @Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
 public class LoginResource {
     private final DBI jdbi;
     private final Configuration config;

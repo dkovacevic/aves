@@ -14,10 +14,7 @@ import io.swagger.annotations.Authorization;
 import org.skife.jdbi.v2.DBI;
 
 import javax.validation.Valid;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -84,7 +81,7 @@ public class ClientsResource {
     @GET
     @ApiOperation(value = "Get all devices")
     @Authorization("Bearer")
-    public Response get(@Context ContainerRequestContext context) {
+    public Response getAll(@Context ContainerRequestContext context) {
         try {
             UUID userId = (UUID) context.getProperty("zuid");
 
@@ -94,6 +91,32 @@ public class ClientsResource {
 
             return Response.
                     ok(devices).
+                    build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Logger.error("ClientResource.getAll : %s", e);
+            return Response
+                    .ok(new ErrorMessage(e.getMessage()))
+                    .status(500)
+                    .build();
+        }
+    }
+
+    @GET
+    @Path("{clientId}")
+    @ApiOperation(value = "Get device")
+    @Authorization("Bearer")
+    public Response get(@Context ContainerRequestContext context,
+                        @PathParam("clientId") String clientId) {
+        try {
+            UUID userId = (UUID) context.getProperty("zuid");
+
+            ClientsDAO clientsDAO = jdbi.onDemand(ClientsDAO.class);
+
+            Device device = clientsDAO.getDevice(userId, clientId);
+
+            return Response.
+                    ok(device).
                     build();
         } catch (Exception e) {
             e.printStackTrace();

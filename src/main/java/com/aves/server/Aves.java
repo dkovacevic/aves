@@ -5,6 +5,8 @@ import com.aves.server.filters.AuthenticationFeature;
 import com.aves.server.healthchecks.StatusHealthcheck;
 import com.aves.server.model.Configuration;
 import com.aves.server.resource.*;
+import com.aves.server.resource.dummy.PropertiesResource;
+import com.aves.server.resource.dummy.TeamsResource;
 import com.aves.server.websocket.MessageEncoder;
 import com.aves.server.websocket.ServerEndpoint;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
@@ -86,7 +88,7 @@ public class Aves extends Application<Configuration> {
 
         // Configure CORS parameters
         cors.setInitParameter("allowedOrigins", "*");
-        cors.setInitParameter("allowedHeaders", "X-Requested-With,Content-Type,Accept,Origin");
+        cors.setInitParameter("allowedHeaders", "*");
         cors.setInitParameter("allowedMethods", "OPTIONS,GET,PUT,POST,DELETE,HEAD");
 
         // Add URL mapping
@@ -117,5 +119,10 @@ public class Aves extends Application<Configuration> {
         environment.jersey().register(new InviteResource(jdbi));
         environment.jersey().register(new NotificationsResource(jdbi));
         environment.jersey().register(new SignatureResource(jdbi, swisscomClient));
+
+        // Dummies
+        environment.jersey().register(new TeamsResource());
+        environment.jersey().register(new PropertiesResource());
+
     }
 }
