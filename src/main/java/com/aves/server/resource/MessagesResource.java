@@ -1,7 +1,6 @@
 package com.aves.server.resource;
 
 import com.aves.server.DAO.ClientsDAO;
-import com.aves.server.DAO.NotificationsDAO;
 import com.aves.server.DAO.ParticipantsDAO;
 import com.aves.server.Logger;
 import com.aves.server.model.ErrorMessage;
@@ -9,7 +8,6 @@ import com.aves.server.model.Event;
 import com.aves.server.model.Payload;
 import com.aves.server.model.otr.ClientMismatch;
 import com.aves.server.model.otr.NewOtrMessage;
-import com.aves.server.websocket.ServerEndpoint;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -26,9 +24,11 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+
+import static com.aves.server.EventSender.conversationOtrMessageAddEvent;
+import static com.aves.server.EventSender.sendEvent;
 
 @Api
 @Path("/conversations/{convId}/otr/messages")
@@ -53,7 +53,6 @@ public class MessagesResource {
 
             ParticipantsDAO participantsDAO = jdbi.onDemand(ParticipantsDAO.class);
             ClientsDAO clientsDAO = jdbi.onDemand(ClientsDAO.class);
-            NotificationsDAO notificationsDAO = jdbi.onDemand(NotificationsDAO.class);
 
             ClientMismatch clientMismatch = new ClientMismatch();
 
@@ -87,19 +86,10 @@ public class MessagesResource {
                     data.recipient = clientId;
                     data.text = otrMessage.recipients.get(participantId, clientId);
 
-                    Event event = buildEvent(convId, userId, data);
+                    Event event = conversationOtrMessageAddEvent(convId, userId, data);
 
-                    // Persist event into Notification stream
-                    String strEvent = mapper.writeValueAsString(event);
-                    notificationsDAO.insert(event.id, clientId, participantId, strEvent);
-
-                    // Send event via Socket
-                    boolean send = ServerEndpoint.send(clientId, event);
-                    Logger.debug("Websocket: message (%s) to user: %s, client: %s. Sent: %s",
-                            event.id,
-                            participantId,
-                            clientId,
-                            send);
+                    // Send Event
+                    sendEvent(event, participantId, clientId, jdbi);
                 }
             }
 
@@ -114,20 +104,5 @@ public class MessagesResource {
                     .status(500)
                     .build();
         }
-    }
-
-    private Event buildEvent(UUID convId, UUID from, Payload.Data data) {
-        Event event = new Event();
-        event.id = UUID.randomUUID();
-
-        Payload payload = new Payload();
-        payload.convId = convId;
-        payload.from = from;
-        payload.type = "conversation.otr-message-add";
-        payload.time = new Date().toString();
-        payload.data = data;
-
-        event.payload = new Payload[]{payload};
-        return event;
     }
 }

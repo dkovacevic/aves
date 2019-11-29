@@ -1,14 +1,10 @@
 package com.aves.server.resource;
 
-import com.aves.server.DAO.ClientsDAO;
 import com.aves.server.DAO.ConversationsDAO;
-import com.aves.server.DAO.NotificationsDAO;
 import com.aves.server.DAO.ParticipantsDAO;
 import com.aves.server.Logger;
 import com.aves.server.model.*;
-import com.aves.server.websocket.ServerEndpoint;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -26,12 +22,14 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
+import static com.aves.server.EventSender.conversationCreateEvent;
+import static com.aves.server.EventSender.sendEvent;
+
 @Api
 @Path("/conversations")
 @Produces(MediaType.APPLICATION_JSON)
 public class ConversationsResource {
     private final DBI jdbi;
-    private ObjectMapper mapper = new ObjectMapper();
 
     public ConversationsResource(DBI jdbi) {
         this.jdbi = jdbi;
@@ -46,8 +44,6 @@ public class ConversationsResource {
         try {
             ConversationsDAO conversationsDAO = jdbi.onDemand(ConversationsDAO.class);
             ParticipantsDAO participantsDAO = jdbi.onDemand(ParticipantsDAO.class);
-            NotificationsDAO notificationsDAO = jdbi.onDemand(NotificationsDAO.class);
-            ClientsDAO clientsDAO = jdbi.onDemand(ClientsDAO.class);
 
             UUID userId = (UUID) context.getProperty("zuid");
             UUID convId = UUID.randomUUID();
@@ -63,23 +59,8 @@ public class ConversationsResource {
             Conversation conversation = buildConversation(conv, userId, convId);
 
             // Send new event to all participants
-            Event event = createEvent(userId, conversation);
-            String notification = mapper.writeValueAsString(event);
-            for (UUID participantId : conv.users) {
-                List<String> clientIds = clientsDAO.getClients(participantId);
-                for (String clientId : clientIds) {
-                    // persist to Notification stream
-                    notificationsDAO.insert(event.id, clientId, participantId, notification);
-
-                    //Send event via Socket
-                    boolean send = ServerEndpoint.send(clientId, event);
-                    Logger.debug("Websocket: message (%s) to user: %s, client: %s. Sent: %s",
-                            event.id,
-                            participantId,
-                            clientId,
-                            send);
-                }
-            }
+            Event event = conversationCreateEvent(userId, conversation);
+            sendEvent(event, conv.users, jdbi);
 
             Logger.info("New conversation: %s", convId);
 

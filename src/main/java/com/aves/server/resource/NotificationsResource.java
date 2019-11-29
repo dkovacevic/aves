@@ -105,8 +105,8 @@ public class NotificationsResource {
             String notification = notificationsDAO.last(clientId, userId);
             if (notification == null) {
                 return Response
-                        .ok(new ErrorMessage("Last is missing"))
-                        .status(404)
+                        .ok(new Event())
+                        .status(200)
                         .build();
             }
 
