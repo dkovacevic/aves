@@ -13,11 +13,18 @@ public class HealthCheckFilter implements FilterFactory<IAccessEvent> {
         return new Filter<IAccessEvent>() {
             @Override
             public FilterReply decide(IAccessEvent event) {
-                if (event.getRequestURI().equals("/healthcheck")) {
+                String requestURI = event.getRequestURI();
+
+                if (requestURI.contains("healthcheck")) {
                     return FilterReply.DENY;
-                } else {
-                    return FilterReply.NEUTRAL;
                 }
+
+                if (requestURI.contains("swagger")) {
+                    return FilterReply.DENY;
+                }
+
+                return FilterReply.NEUTRAL;
+
             }
         };
     }
