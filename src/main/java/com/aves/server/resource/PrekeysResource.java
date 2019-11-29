@@ -23,6 +23,7 @@ import java.util.UUID;
 @Path("/users")
 @Produces(MediaType.APPLICATION_JSON)
 public class PrekeysResource {
+    private static final int MAX_PREKEY_ID = 0xFFFE;
     private final DBI jdbi;
 
     public PrekeysResource(DBI jdbi) {
@@ -43,8 +44,12 @@ public class PrekeysResource {
             for (UUID id : missing.keySet()) {
                 HashMap<String, PreKey> map = new HashMap<>();
                 for (String client : missing.get(id)) {
-                    PreKey preKey = prekeysDAO.get(client);//todo get first free prekey
+                    PreKey preKey = prekeysDAO.get(client);
                     map.put(client, preKey);
+
+                    if (preKey.id != MAX_PREKEY_ID) {
+                        prekeysDAO.mark(client, preKey.id);
+                    }
                 }
                 preKeys.put(id, map);
             }
@@ -71,6 +76,9 @@ public class PrekeysResource {
         try {
             PrekeysDAO prekeysDAO = jdbi.onDemand(PrekeysDAO.class);
             PreKey preKey = prekeysDAO.get(clientId);
+            if (preKey.id != MAX_PREKEY_ID) {
+                prekeysDAO.mark(clientId, preKey.id);
+            } 
 
             ClientPrekey result = new ClientPrekey();
             result.client = clientId;

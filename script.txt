@@ -16,8 +16,10 @@ CREATE UNIQUE INDEX phone_index ON Users (phone);
 CREATE TABLE Prekeys (
  client_id VARCHAR NOT NULL,
  key_id INTEGER NOT NULL,
- key VARCHAR NOT NULL
+ key VARCHAR NOT NULL,
+ used BOOLEAN default FALSE
 );
+CREATE UNIQUE INDEX Prekeys_index ON Prekeys (client_id, key_id );
 
 CREATE TABLE Participants (
  conv_Id UUID NOT NULL,
