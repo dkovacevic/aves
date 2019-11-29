@@ -217,7 +217,7 @@ public class ConversationsResource {
         payload.data.id = conv.id;
         payload.data.creator = conv.creator;
         payload.data.name = conv.name;
-        payload.data.type = 3;  // conv type
+        payload.data.type = conv.type;
         payload.data.members = conv.members;
 
         event.payload = new Payload[]{payload};

@@ -10,9 +10,7 @@ import com.codahale.metrics.annotation.Timed;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 
-import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfig;
-import javax.websocket.Session;
+import javax.websocket.*;
 import java.io.IOException;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -45,6 +43,12 @@ public class ServerEndpoint extends Endpoint {
             Logger.error("session.close(): %s", e1);
         }
     }
+
+    @OnMessage
+    public void onPongMessage(Session session, PongMessage msg) {
+        session.getAsyncRemote().sendObject(msg);
+    }
+    
 
     @Override
     public void onOpen(Session session, EndpointConfig config) {

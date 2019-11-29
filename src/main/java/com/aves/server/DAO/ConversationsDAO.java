@@ -30,6 +30,7 @@ public interface ConversationsDAO {
             conv.id = getUuid(rs, "conv_id");
             conv.creator = getUuid(rs, "creator");
             conv.name = rs.getString("name");
+            conv.type = 2;
             return conv;
         }
 

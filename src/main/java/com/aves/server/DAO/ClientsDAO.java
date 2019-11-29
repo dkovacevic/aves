@@ -46,6 +46,7 @@ public interface ClientsDAO {
             device.clazz = "desktop";
             device.type = "permanent";
             device.label = "diggy";
+            device.lastKey = rs.getInt("lastkey");
             return device;
         }
 

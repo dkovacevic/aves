@@ -103,6 +103,12 @@ public class NotificationsResource {
             }
 
             String notification = notificationsDAO.last(clientId, userId);
+            if (notification == null) {
+                return Response
+                        .ok(new ErrorMessage("Last is missing"))
+                        .status(404)
+                        .build();
+            }
 
             Event last = mapper.readValue(notification, Event.class);
 

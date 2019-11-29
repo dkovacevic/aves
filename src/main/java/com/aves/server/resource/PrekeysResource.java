@@ -3,6 +3,7 @@ package com.aves.server.resource;
 import com.aves.server.DAO.ClientsDAO;
 import com.aves.server.DAO.PrekeysDAO;
 import com.aves.server.Logger;
+import com.aves.server.model.Device;
 import com.aves.server.model.ErrorMessage;
 import com.aves.server.model.otr.Missing;
 import com.aves.server.model.otr.PreKey;
@@ -17,16 +18,13 @@ import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Api
 @Path("/users")
 @Produces(MediaType.APPLICATION_JSON)
 public class PrekeysResource {
-    private static final int MAX_PREKEY_ID = 0xFFFE;
+    //private static final int MAX_PREKEY_ID = 0xFFFF;
     private final DBI jdbi;
 
     public PrekeysResource(DBI jdbi) {
@@ -41,20 +39,33 @@ public class PrekeysResource {
 
         try {
             PrekeysDAO prekeysDAO = jdbi.onDemand(PrekeysDAO.class);
+            ClientsDAO clientsDAO = jdbi.onDemand(ClientsDAO.class);
 
             PreKeys preKeys = new PreKeys();
 
-            for (UUID id : missing.keySet()) {
+            for (UUID userId : missing.keySet()) {
                 HashMap<String, PreKey> map = new HashMap<>();
-                for (String client : missing.get(id)) {
-                    PreKey preKey = prekeysDAO.get(client);
-                    map.put(client, preKey);
-
-                    if (preKey.id != MAX_PREKEY_ID) {
-                        prekeysDAO.mark(client, preKey.id);
+                for (String clientId : missing.get(userId)) {
+                    PreKey preKey = prekeysDAO.get(clientId);
+                    if (preKey == null) {
+                        Logger.error("PrekeysResource.post: No prekeys for client: %s", clientId);
+                        continue;
                     }
+
+                    Device device = clientsDAO.getDevice(userId, clientId);
+                    if (device == null) {
+                        Logger.error("PrekeysResource.post: User: %s does not have client: %s", userId, clientId);
+                        continue;
+                    }
+
+                    if (preKey.id != device.lastKey) {
+                        prekeysDAO.mark(clientId, preKey.id);
+                    }
+
+                    map.put(clientId, preKey);
+
                 }
-                preKeys.put(id, map);
+                preKeys.put(userId, map);
             }
 
             return Response.
@@ -78,8 +89,37 @@ public class PrekeysResource {
 
         try {
             PrekeysDAO prekeysDAO = jdbi.onDemand(PrekeysDAO.class);
+            ClientsDAO clientsDAO = jdbi.onDemand(ClientsDAO.class);
+
+            UUID challenge = clientsDAO.getUserId(clientId);
+            if (!Objects.equals(userId, challenge)) {
+                Logger.warning("PrekeysResource.getPrekey: User: %s does not have client: %s", userId, clientId);
+                return Response
+                        .ok(new ErrorMessage("Unknown client"))
+                        .status(404)
+                        .build();
+            }
+
             PreKey preKey = prekeysDAO.get(clientId);
-            if (preKey.id != MAX_PREKEY_ID) {
+
+            if (preKey == null) {
+                Logger.error("PrekeysResource.getPrekey: No prekeys for client: %s", clientId);
+                return Response
+                        .ok(new ErrorMessage("Prekeys missing"))
+                        .status(404)
+                        .build();
+            }
+
+            Device device = clientsDAO.getDevice(userId, clientId);
+            if (device == null) {
+                Logger.error("PrekeysResource.getPrekey: User: %s does not have client: %s", userId, clientId);
+                return Response
+                        .ok(new ErrorMessage("User does not have this client"))
+                        .status(500)
+                        .build();
+            }
+
+            if (preKey.id != device.lastKey) {
                 prekeysDAO.mark(clientId, preKey.id);
             }
 
@@ -115,8 +155,19 @@ public class PrekeysResource {
 
             List<String> clients = clientsDAO.getClients(userId);
             for (String clientId : clients) {
+                Device device = clientsDAO.getDevice(userId, clientId);
+                if (device == null) {
+                    Logger.error("PrekeysResource.getPrekeys: User: %s does not have client: %s", userId, clientId);
+                    continue;
+                }
+
                 PreKey preKey = prekeysDAO.get(clientId);
-                if (preKey.id != MAX_PREKEY_ID) {
+                if (preKey == null) {
+                    Logger.error("PrekeysResource.getPrekeys: No prekeys for client: %s", clientId);
+                    continue;
+                }
+
+                if (preKey.id != device.lastKey) {
                     prekeysDAO.mark(clientId, preKey.id);
                 }
 

@@ -48,7 +48,7 @@ public class ClientsResource {
             if (clientsDAO.getClients(userId).size() > 7) {
                 return Response.
                         ok(new ErrorMessage("Too many devices already")).
-                        status(409).
+                        status(403).
                         build();
             }
 
@@ -62,11 +62,13 @@ public class ClientsResource {
             }
             prekeysDAO.insert(clientId, lastkey.id, lastkey.key);
 
-            NewClient result = new NewClient();
-            result.id = clientId;
+            Logger.info("New Device: %s, Last key: %d", clientId, lastkey.id);
 
+            Device device = clientsDAO.getDevice(userId, clientId);
+            device.cookie = device.label;
+            
             return Response.
-                    ok(result).
+                    ok(device).
                     build();
         } catch (Exception e) {
             e.printStackTrace();

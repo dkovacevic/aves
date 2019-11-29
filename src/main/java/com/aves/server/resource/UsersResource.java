@@ -6,15 +6,15 @@ import com.aves.server.model.ErrorMessage;
 import com.aves.server.model.User;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.Authorization;
 import org.skife.jdbi.v2.DBI;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Api
@@ -49,6 +49,35 @@ public class UsersResource {
         } catch (Exception e) {
             e.printStackTrace();
             Logger.error("UsersResource.get : %s", e);
+            return Response
+                    .ok(new ErrorMessage(e.getMessage()))
+                    .status(500)
+                    .build();
+        }
+    }
+
+    @GET
+    @ApiOperation(value = "Get users by userId")
+    @Authorization("Bearer")
+    public Response getUsers(@ApiParam("List of userIds as UUID strings") @QueryParam("id") List<String> users) {
+        try {
+            UserDAO userDAO = jdbi.onDemand(UserDAO.class);
+
+            ArrayList<User> result = new ArrayList<>();
+            for (String id : users) {
+                UUID userId = UUID.fromString(id);
+                User user = userDAO.getUser(userId);
+
+                if (user != null)
+                    result.add(user);
+            }
+
+            return Response.
+                    ok(result).
+                    build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Logger.error("UsersResource.getUsers : %s", e);
             return Response
                     .ok(new ErrorMessage(e.getMessage()))
                     .status(500)
