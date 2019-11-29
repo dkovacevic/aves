@@ -98,14 +98,18 @@ public class ConversationsResource {
         }
     }
 
-    private Conversation buildConversation(@ApiParam @Valid NewConversation conv, UUID userId, UUID convId) {
+    private Conversation buildConversation(NewConversation conv, UUID userId, UUID convId) {
         Conversation conversation = new Conversation();
         conversation.name = conv.name;
         conversation.id = convId;
         conversation.creator = userId;
         conversation.members.self.id = userId;
+        conversation.type = 2;
 
         for (UUID participantId : conv.users) {
+            if (participantId.equals(userId)) {
+                continue;
+            }
             Member member = new Member();
             member.id = participantId;
             conversation.members.others.add(member);
