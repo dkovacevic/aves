@@ -10,6 +10,7 @@ import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.Provider;
+import java.util.Objects;
 import java.util.UUID;
 
 @Provider
@@ -21,8 +22,8 @@ public class AuthenticationFilter implements ContainerRequestFilter {
         String access_token = requestContext.getUriInfo().getQueryParameters(true).getFirst("access_token");
 
         if (auth == null && authCookie == null && access_token == null) {
-            Exception cause = new IllegalArgumentException("Authorization Header was not specified");
-            throw new WebApplicationException(cause, Response.Status.UNAUTHORIZED);
+            Exception cause = new IllegalArgumentException("Missing Authorization");
+            throw new WebApplicationException(cause, Response.Status.BAD_REQUEST);
         }
 
         if (authCookie != null)
@@ -35,16 +36,16 @@ public class AuthenticationFilter implements ContainerRequestFilter {
 
         if (split.length != 2) {
             Exception cause = new IllegalArgumentException("Bad Authorization");
-            throw new WebApplicationException(cause, Response.Status.UNAUTHORIZED);
+            throw new WebApplicationException(cause, Response.Status.BAD_REQUEST);
         }
 
         String type = split[0];
-        if (!type.equalsIgnoreCase("Bearer")) {
-            Exception cause = new IllegalArgumentException("Missing Bearer in the Authorization");
-            throw new WebApplicationException(cause, Response.Status.UNAUTHORIZED);
-        }
-
         String token = split[1];
+
+        if (!Objects.equals(type, "Bearer")) {
+            Exception cause = new IllegalArgumentException("Bad Authorization");
+            throw new WebApplicationException(cause, Response.Status.BAD_REQUEST);
+        }
 
         try {
             String subject = Jwts.parser()

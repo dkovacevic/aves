@@ -9,7 +9,10 @@ server:
       
   rootPath: /aves/*
   requestLog:
-    appenders: []
+    appenders:
+      - type: console
+        filterFactories:
+          - type: healthcheck-filter-factory
 
 logging:
   level: ${LOG_LEVEL:-INFO}
