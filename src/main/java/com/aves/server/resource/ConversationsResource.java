@@ -29,12 +29,6 @@ import static com.aves.server.EventSender.sendEvent;
 @Path("/conversations")
 @Produces(MediaType.APPLICATION_JSON)
 public class ConversationsResource {
-    private final DBI jdbi;
-
-    public ConversationsResource(DBI jdbi) {
-        this.jdbi = jdbi;
-    }
-
     @POST
     @ApiOperation(value = "Create a new conversation")
     @Authorization("Bearer")
@@ -49,14 +43,25 @@ public class ConversationsResource {
             UUID convId = UUID.randomUUID();
 
             // persist conv
-            conversationsDAO.insert(convId, conv.name, userId);
+            conversationsDAO.insert(convId, conv.name, userId, ConversationType.REGULAR.ordinal());
+
             participantsDAO.insert(convId, userId);
             for (UUID participantId : conv.users) {
                 participantsDAO.insert(convId, participantId);
             }
 
             // build result
-            Conversation conversation = buildConversation(conv, userId, convId);
+            Conversation conversation = conversationsDAO.get(convId);
+            conversation.members.self.id = userId;
+            List<UUID> others = participantsDAO.getUsers(convId);
+            for (UUID participant : others) {
+                if (participant.equals(userId)) {
+                    continue;
+                }
+                Member member = new Member();
+                member.id = participant;
+                conversation.members.others.add(member);
+            }
 
             // Send new event to all participants
             Event event = conversationCreateEvent(userId, conversation);
@@ -79,23 +84,17 @@ public class ConversationsResource {
         }
     }
 
-    private Conversation buildConversation(NewConversation conv, UUID userId, UUID convId) {
-        Conversation conversation = new Conversation();
-        conversation.name = conv.name;
-        conversation.id = convId;
-        conversation.creator = userId;
-        conversation.members.self.id = userId;
-        conversation.type = 2;
+    private final DBI jdbi;
 
-        for (UUID participantId : conv.users) {
-            if (participantId.equals(userId)) {
-                continue;
-            }
-            Member member = new Member();
-            member.id = participantId;
-            conversation.members.others.add(member);
-        }
-        return conversation;
+    public ConversationsResource(DBI jdbi) {
+        this.jdbi = jdbi;
+    }
+
+    public enum ConversationType {
+        REGULAR,
+        SELF,
+        ONE2ONE,
+        CONNECT
     }
 
     @GET

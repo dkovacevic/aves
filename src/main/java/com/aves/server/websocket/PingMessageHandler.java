@@ -36,7 +36,6 @@ public class PingMessageHandler implements MessageHandler.Whole<InputStream> {
                 Logger.info("Received String: session: %s, text: %s", session.getId(), text);
                 session.getBasicRemote().sendBinary(ByteBuffer.wrap("pong".getBytes("UTF-8")));
             }
-
         } catch (Exception e) {
             Logger.error("PingMessageHandler session: %s, %s", session.getId(), e);
         }

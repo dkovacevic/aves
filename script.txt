@@ -32,6 +32,7 @@ CREATE TABLE Conversations (
  conv_Id UUID PRIMARY KEY,
  creator UUID NOT NULL,
  name VARCHAR,
+ type INTEGER DEFAULT 0,
  time TIMESTAMP DEFAULT NOW()
 );
 

@@ -13,11 +13,12 @@ import java.sql.SQLException;
 import java.util.UUID;
 
 public interface ConversationsDAO {
-    @SqlUpdate("INSERT INTO Conversations (conv_Id, name, creator) " +
-            "VALUES (:convId, :name, :creator)")
+    @SqlUpdate("INSERT INTO Conversations (conv_Id, name, creator, type) " +
+            "VALUES (:convId, :name, :creator, :type)")
     int insert(@Bind("convId") UUID convId,
                @Bind("name") String name,
-               @Bind("creator") UUID creator);
+               @Bind("creator") UUID creator,
+               @Bind("type") int type);
 
     @SqlQuery("SELECT * from Conversations WHERE conv_id = :convId")
     @RegisterMapper(_Mapper.class)
@@ -30,7 +31,7 @@ public interface ConversationsDAO {
             conv.id = getUuid(rs, "conv_id");
             conv.creator = getUuid(rs, "creator");
             conv.name = rs.getString("name");
-            conv.type = 2;
+            conv.type = rs.getInt("type");
             return conv;
         }
 

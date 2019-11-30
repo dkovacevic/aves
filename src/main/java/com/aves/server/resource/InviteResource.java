@@ -50,7 +50,6 @@ public class InviteResource {
             ConversationsDAO conversationsDAO = jdbi.onDemand(ConversationsDAO.class);
             ParticipantsDAO participantsDAO = jdbi.onDemand(ParticipantsDAO.class);
 
-
             String password = next(8);
             String hash = SCryptUtil.scrypt(password, 16384, 8, 1);
             UUID userId = UUID.randomUUID();
@@ -66,26 +65,27 @@ public class InviteResource {
 
             // create new conv
             UUID convId = UUID.randomUUID();
-            conversationsDAO.insert(convId, invite.name, inviterId);
+            conversationsDAO.insert(convId, invite.name, inviterId, ConversationsResource.ConversationType.REGULAR.ordinal());
             participantsDAO.insert(convId, inviterId);
             participantsDAO.insert(convId, userId);
 
             Conversation conversation = conversationsDAO.get(convId);
-            conversation.type = 2;
+            conversation.members.self.id = userId;
 
             List<UUID> others = participantsDAO.getUsers(convId);
             conversation.members.others = new ArrayList<>();
             for (UUID participant : others) {
-                Member member = new Member();
-                member.id = participant;
-
-                conversation.members.others.add(member);
+                if (!participant.equals(userId)) {
+                    Member member = new Member();
+                    member.id = participant;
+                    conversation.members.others.add(member);
+                }
             }
 
             // Send new event to all participants
             Event event = conversationCreateEvent(userId, conversation);
             sendEvent(event, others, jdbi);
-            
+
             _InviteResult result = new _InviteResult();
             result.user = new _Invitee();
             result.user.id = userId;
