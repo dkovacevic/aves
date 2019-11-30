@@ -14,7 +14,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 @Api
@@ -36,7 +35,6 @@ public class UsersResource {
             UserDAO userDAO = jdbi.onDemand(UserDAO.class);
 
             User user = userDAO.getUser(userId);
-
             if (user == null) {
                 return Response.
                         status(404).
@@ -59,19 +57,17 @@ public class UsersResource {
     @GET
     @ApiOperation(value = "Get users by userId")
     @Authorization("Bearer")
-    public Response getUsers(@ApiParam("List of userIds as UUID strings") @QueryParam("id") List<String> users) {
+    public Response getUsers(@ApiParam("List of userIds as UUID strings") @QueryParam("ids") String users) {
         try {
             UserDAO userDAO = jdbi.onDemand(UserDAO.class);
 
             ArrayList<User> result = new ArrayList<>();
-            for (String id : users) {
-                UUID userId = UUID.fromString(id);
+            for (String id : users.split(",")) {
+                UUID userId = UUID.fromString(id.trim());
                 User user = userDAO.getUser(userId);
-
                 if (user != null)
                     result.add(user);
             }
-
             return Response.
                     ok(result).
                     build();
