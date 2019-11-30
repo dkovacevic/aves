@@ -12,8 +12,6 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.Authorization;
 import org.skife.jdbi.v2.DBI;
 
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ContainerRequestContext;
@@ -42,9 +40,11 @@ public class NotificationsResource {
     @Authorization("Bearer")
     public Response get(@Context ContainerRequestContext context,
                         @QueryParam("client") @NotNull String clientId,
-                        @QueryParam("size") @DefaultValue("30") @Min(1) @Max(100) int size,
+                        @QueryParam("size") @DefaultValue("30") int size,
                         @QueryParam("since") UUID since) {
         try {
+            UUID last = null;
+
             UUID userId = (UUID) context.getProperty("zuid");
 
             NotificationsDAO notificationsDAO = jdbi.onDemand(NotificationsDAO.class);
@@ -67,7 +67,11 @@ public class NotificationsResource {
             for (String notif : notifications) {
                 Event notification = mapper.readValue(notif, Event.class);
                 result.notifications.add(notification);
+                last = notification.id;
             }
+
+            clientsDAO.updateLast(clientId, last);
+
             return Response.
                     ok(result).
                     build();
@@ -102,7 +106,15 @@ public class NotificationsResource {
                         build();
             }
 
-            String notification = notificationsDAO.last(clientId, userId);
+            UUID last = clientsDAO.getLast(clientId);
+            if (last == null) {
+                return Response
+                        .ok(new Event())
+                        .status(200)
+                        .build();
+            }
+
+            String notification = notificationsDAO.getLast(last);
             if (notification == null) {
                 return Response
                         .ok(new Event())
@@ -110,10 +122,10 @@ public class NotificationsResource {
                         .build();
             }
 
-            Event last = mapper.readValue(notification, Event.class);
+            Event event = mapper.readValue(notification, Event.class);
 
             return Response.
-                    ok(last).
+                    ok(event).
                     build();
         } catch (Exception e) {
             e.printStackTrace();

@@ -24,6 +24,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import static com.aves.server.EventSender.conversationCreateEvent;
+import static com.aves.server.EventSender.sendEvent;
 import static com.aves.server.Util.next;
 
 @Api
@@ -47,6 +49,7 @@ public class InviteResource {
             UserDAO userDAO = jdbi.onDemand(UserDAO.class);
             ConversationsDAO conversationsDAO = jdbi.onDemand(ConversationsDAO.class);
             ParticipantsDAO participantsDAO = jdbi.onDemand(ParticipantsDAO.class);
+
 
             String password = next(8);
             String hash = SCryptUtil.scrypt(password, 16384, 8, 1);
@@ -79,6 +82,10 @@ public class InviteResource {
                 conversation.members.others.add(member);
             }
 
+            // Send new event to all participants
+            Event event = conversationCreateEvent(userId, conversation);
+            sendEvent(event, others, jdbi);
+            
             _InviteResult result = new _InviteResult();
             result.user = new _Invitee();
             result.user.id = userId;

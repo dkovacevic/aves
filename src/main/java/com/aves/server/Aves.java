@@ -8,8 +8,7 @@ import com.aves.server.resource.*;
 import com.aves.server.resource.dummy.CallsResource;
 import com.aves.server.resource.dummy.PropertiesResource;
 import com.aves.server.resource.dummy.TeamsResource;
-import com.aves.server.websocket.MessageEncoder;
-import com.aves.server.websocket.PongEncoder;
+import com.aves.server.websocket.EventEncoder;
 import com.aves.server.websocket.ServerEndpoint;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import com.github.mtakaki.dropwizard.admin.AdminResourceBundle;
@@ -69,8 +68,7 @@ public class Aves extends Application<Configuration> {
         bootstrap.addBundle(admin);
 
         ArrayList<Class<? extends Encoder>> encoders = new ArrayList<>();
-        encoders.add(MessageEncoder.class);
-        encoders.add(PongEncoder.class);
+        encoders.add(EventEncoder.class);
 
         final ServerEndpointConfig config = ServerEndpointConfig
                 .Builder

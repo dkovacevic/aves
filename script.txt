@@ -31,7 +31,7 @@ CREATE UNIQUE INDEX Participants_index ON Participants (conv_Id, user_Id );
 CREATE TABLE Conversations (
  conv_Id UUID PRIMARY KEY,
  creator UUID NOT NULL,
- name VARCHAR NOT NULL,
+ name VARCHAR,
  time TIMESTAMP DEFAULT NOW()
 );
 
@@ -39,6 +39,7 @@ CREATE TABLE Clients (
  client_Id VARCHAR PRIMARY KEY,
  user_id UUID NOT NULL,
  lastkey INTEGER NOT NULL,
+ last UUID,
  time TIMESTAMP DEFAULT NOW()
 );
 

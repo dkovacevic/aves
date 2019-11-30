@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @ServerEndpoint(
         value = "/aves/await/{token}/{clientId}",
-        encoders = MessageEncoder.class
+        encoders = EventEncoder.class
 )
 public class WebSocket {
     private final static ConcurrentHashMap<String, Session> sessions = new ConcurrentHashMap<>();// ClientID, Session,

@@ -36,6 +36,14 @@ public interface ClientsDAO {
     @RegisterMapper(UUIDMapper.class)
     UUID getUserId(@Bind("clientId") String clientId);
 
+    @SqlQuery("SELECT last AS uuid FROM Clients WHERE client_id = :clientId")
+    @RegisterMapper(UUIDMapper.class)
+    UUID getLast(@Bind("clientId") String clientId);
+
+    @SqlUpdate("UPDATE Clients SET last = :last WHERE client_id = :clientId")
+    int updateLast(@Bind("clientId") String clientId,
+                   @Bind("last") UUID last);
+
     class _Mapper implements ResultSetMapper<Device> {
         @Override
         @Nullable

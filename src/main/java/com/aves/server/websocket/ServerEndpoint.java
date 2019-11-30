@@ -10,7 +10,10 @@ import com.codahale.metrics.annotation.Timed;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 
-import javax.websocket.*;
+import javax.websocket.CloseReason;
+import javax.websocket.Endpoint;
+import javax.websocket.EndpointConfig;
+import javax.websocket.Session;
 import java.io.IOException;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -44,12 +47,6 @@ public class ServerEndpoint extends Endpoint {
         }
     }
 
-    @OnMessage
-    public void onPongMessage(Session session, PongMessage msg) {
-        session.getAsyncRemote().sendObject(msg);
-    }
-    
-
     @Override
     public void onOpen(Session session, EndpointConfig config) {
         try {
@@ -57,8 +54,7 @@ public class ServerEndpoint extends Endpoint {
             String token = Util.getQueryParam(session.getQueryString(), "access_token");
 
             if (token == null || clientId == null) {
-                Logger.debug("Session %s missing token or clientId", session.getId());
-                session.close();
+                Logger.warning("Session %s missing token or clientId", session.getId());
                 return;
             }
 
@@ -73,19 +69,25 @@ public class ServerEndpoint extends Endpoint {
             ClientsDAO clientsDAO = jdbi.onDemand(ClientsDAO.class);
             UUID challenge = clientsDAO.getUserId(clientId);
             if (!userId.equals(challenge)) {
-                Logger.debug("Session: %s, client: %s. Unknown clientId", session.getId(), clientId);
-                session.close();
+                Logger.warning("Session: %s, client: %s. Unknown clientId", session.getId(), clientId);
                 return;
             }
+
+            session.addMessageHandler(new PingMessageHandler(session));
+            session.getUserProperties().put("client", clientId);
 
             Logger.info("Session: %s connected. client: %s", session.getId(), clientId);
             sessions.put(clientId, session);
         } catch (ExpiredJwtException e) {
-            Logger.debug("onOpen: %s", e);
-            close(session);
+            Logger.warning("onOpen: %s", e);
         } catch (Exception e) {
             Logger.error("onOpen: %s", e);
-            close(session);
         }
+    }
+
+    @Override
+    public void onClose(Session session, CloseReason closeReason) {
+        Object client = session.getUserProperties().get("client");
+        Logger.info("Session: %s closed. client: %s, reason: %s", session.getId(), client, closeReason.getReasonPhrase());
     }
 }
