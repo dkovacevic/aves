@@ -2,12 +2,12 @@ package com.aves.server.resource;
 
 import com.aves.server.DAO.ClientsDAO;
 import com.aves.server.DAO.ParticipantsDAO;
-import com.aves.server.Logger;
 import com.aves.server.model.ErrorMessage;
 import com.aves.server.model.Event;
 import com.aves.server.model.Payload;
 import com.aves.server.model.otr.ClientMismatch;
 import com.aves.server.model.otr.NewOtrMessage;
+import com.aves.server.tools.Logger;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;

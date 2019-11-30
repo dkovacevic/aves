@@ -3,8 +3,8 @@ package com.aves.server.websocket;
 
 import com.aves.server.Aves;
 import com.aves.server.DAO.ClientsDAO;
-import com.aves.server.Logger;
 import com.aves.server.model.Event;
+import com.aves.server.tools.Logger;
 import io.jsonwebtoken.Jwts;
 
 import javax.websocket.*;

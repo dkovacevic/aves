@@ -1,4 +1,4 @@
-package com.aves.server;
+package com.aves.server.tools;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;

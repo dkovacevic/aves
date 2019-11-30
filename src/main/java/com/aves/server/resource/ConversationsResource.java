@@ -2,8 +2,8 @@ package com.aves.server.resource;
 
 import com.aves.server.DAO.ConversationsDAO;
 import com.aves.server.DAO.ParticipantsDAO;
-import com.aves.server.Logger;
 import com.aves.server.model.*;
+import com.aves.server.tools.Logger;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;

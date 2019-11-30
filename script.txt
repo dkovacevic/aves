@@ -8,6 +8,8 @@ CREATE TABLE Users (
  lastname VARCHAR NOT NULL,
  country VARCHAR NOT NULL,
  accent INTEGER DEFAULT 0,
+ complete UUID,
+ preview UUID,
  time TIMESTAMP DEFAULT NOW()
 );
 

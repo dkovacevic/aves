@@ -5,6 +5,7 @@ import com.aves.server.DAO.NotificationsDAO;
 import com.aves.server.model.Conversation;
 import com.aves.server.model.Event;
 import com.aves.server.model.Payload;
+import com.aves.server.tools.Logger;
 import com.aves.server.websocket.ServerEndpoint;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

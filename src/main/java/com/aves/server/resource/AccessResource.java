@@ -1,10 +1,10 @@
 package com.aves.server.resource;
 
 import com.aves.server.Aves;
-import com.aves.server.Logger;
 import com.aves.server.model.AccessToken;
 import com.aves.server.model.Configuration;
 import com.aves.server.model.ErrorMessage;
+import com.aves.server.tools.Logger;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.swagger.annotations.Api;

@@ -2,11 +2,11 @@ package com.aves.server.resource;
 
 import com.aves.server.DAO.ClientsDAO;
 import com.aves.server.DAO.PrekeysDAO;
-import com.aves.server.Logger;
 import com.aves.server.model.Device;
 import com.aves.server.model.ErrorMessage;
 import com.aves.server.model.NewClient;
 import com.aves.server.model.otr.PreKey;
+import com.aves.server.tools.Logger;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -22,7 +22,7 @@ import javax.ws.rs.core.Response;
 import java.util.List;
 import java.util.UUID;
 
-import static com.aves.server.Util.next;
+import static com.aves.server.tools.Util.next;
 
 @Api
 @Path("/clients")

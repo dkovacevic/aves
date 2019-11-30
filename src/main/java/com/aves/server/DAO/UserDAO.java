@@ -14,8 +14,8 @@ import java.sql.SQLException;
 import java.util.UUID;
 
 public interface UserDAO {
-    @SqlUpdate("INSERT INTO Users (user_id, name, firstname, lastname, country, email, phone, accent, hash) " +
-            "VALUES (:userId, :name, :firstname, :lastname, :country, :email, :phone, :accent, :hash)")
+    @SqlUpdate("INSERT INTO Users (user_id, name, firstname, lastname, country, email, phone, accent, complete, preview, hash) " +
+            "VALUES (:userId, :name, :firstname, :lastname, :country, :email, :phone, :accent, :complete, :preview, :hash)")
     int insert(@Bind("userId") UUID userId,
                @Bind("name") String name,
                @Bind("firstname") String firstname,
@@ -24,6 +24,8 @@ public interface UserDAO {
                @Bind("email") String email,
                @Bind("phone") String phone,
                @Bind("accent") int accent,
+               @Bind("complete") UUID complete,
+               @Bind("preview") UUID preview,
                @Bind("hash") String hash);
 
     @SqlQuery("SELECT hash FROM Users WHERE email = :email")
@@ -50,6 +52,22 @@ public interface UserDAO {
             user.phone = rs.getString("phone");
             user.email = rs.getString("email");
             user.accent = rs.getInt("accent");
+
+            UUID complete = getUuid(rs, "complete");
+            if (complete != null) {
+                User.UserAsset asset = new User.UserAsset();
+                asset.size = "complete";
+                asset.key = complete;
+                user.assets.add(asset);
+            }
+
+            UUID preview = getUuid(rs, "preview");
+            if (preview != null) {
+                User.UserAsset asset = new User.UserAsset();
+                asset.size = "preview";
+                asset.key = preview;
+                user.assets.add(asset);
+            }
             return user;
         }
 

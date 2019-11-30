@@ -1,10 +1,10 @@
 package com.aves.server.resource;
 
 import com.aves.server.DAO.UserDAO;
-import com.aves.server.Logger;
 import com.aves.server.model.ErrorMessage;
 import com.aves.server.model.NewUser;
 import com.aves.server.model.User;
+import com.aves.server.tools.Logger;
 import com.lambdaworks.crypto.SCryptUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -49,6 +49,8 @@ public class RegisterResource {
                     newUser.email,
                     newUser.phone,
                     new Random().nextInt(8),
+                    null,
+                    null,
                     hash);
 
             User user = userDAO.getUser(userId);

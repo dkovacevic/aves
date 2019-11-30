@@ -2,9 +2,9 @@ package com.aves.server.websocket;
 
 import com.aves.server.Aves;
 import com.aves.server.DAO.ClientsDAO;
-import com.aves.server.Logger;
-import com.aves.server.Util;
 import com.aves.server.model.Event;
+import com.aves.server.tools.Logger;
+import com.aves.server.tools.Util;
 import com.codahale.metrics.annotation.Metered;
 import com.codahale.metrics.annotation.Timed;
 import io.jsonwebtoken.ExpiredJwtException;

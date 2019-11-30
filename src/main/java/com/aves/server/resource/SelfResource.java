@@ -1,9 +1,9 @@
 package com.aves.server.resource;
 
 import com.aves.server.DAO.UserDAO;
-import com.aves.server.Logger;
 import com.aves.server.model.ErrorMessage;
 import com.aves.server.model.User;
+import com.aves.server.tools.Logger;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.Authorization;
