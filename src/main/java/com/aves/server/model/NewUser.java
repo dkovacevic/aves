@@ -1,5 +1,6 @@
 package com.aves.server.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.validation.constraints.NotNull;
@@ -27,4 +28,6 @@ public class NewUser {
 
     public String country;
 
+    @JsonProperty("accent_id")
+    public int accent;
 }

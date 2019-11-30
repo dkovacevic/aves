@@ -22,6 +22,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.UUID;
 
 import static com.aves.server.EventSender.conversationCreateEvent;
@@ -61,11 +62,12 @@ public class InviteResource {
                     invite.country,
                     invite.email,
                     invite.phone,
+                    new Random().nextInt(8),
                     hash);
 
             // create new conv
             UUID convId = UUID.randomUUID();
-            conversationsDAO.insert(convId, invite.name, inviterId, ConversationsResource.ConversationType.REGULAR.ordinal());
+            conversationsDAO.insert(convId, null, inviterId, ConversationsResource.ConversationType.ONE2ONE.ordinal());
             participantsDAO.insert(convId, inviterId);
             participantsDAO.insert(convId, userId);
 

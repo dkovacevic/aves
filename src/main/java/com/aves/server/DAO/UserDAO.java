@@ -14,8 +14,8 @@ import java.sql.SQLException;
 import java.util.UUID;
 
 public interface UserDAO {
-    @SqlUpdate("INSERT INTO Users (user_id, name, firstname, lastname, country, email, phone, hash) " +
-            "VALUES (:userId, :name, :firstname, :lastname, :country, :email, :phone, :hash)")
+    @SqlUpdate("INSERT INTO Users (user_id, name, firstname, lastname, country, email, phone, accent, hash) " +
+            "VALUES (:userId, :name, :firstname, :lastname, :country, :email, :phone, :accent, :hash)")
     int insert(@Bind("userId") UUID userId,
                @Bind("name") String name,
                @Bind("firstname") String firstname,
@@ -23,6 +23,7 @@ public interface UserDAO {
                @Bind("country") String country,
                @Bind("email") String email,
                @Bind("phone") String phone,
+               @Bind("accent") int accent,
                @Bind("hash") String hash);
 
     @SqlQuery("SELECT hash FROM Users WHERE email = :email")
@@ -48,6 +49,7 @@ public interface UserDAO {
             user.country = rs.getString("country");
             user.phone = rs.getString("phone");
             user.email = rs.getString("email");
+            user.accent = rs.getInt("accent");
             return user;
         }
 

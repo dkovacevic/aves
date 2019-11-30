@@ -7,6 +7,7 @@ CREATE TABLE Users (
  firstname VARCHAR NOT NULL,
  lastname VARCHAR NOT NULL,
  country VARCHAR NOT NULL,
+ accent INTEGER DEFAULT 0,
  time TIMESTAMP DEFAULT NOW()
 );
 
