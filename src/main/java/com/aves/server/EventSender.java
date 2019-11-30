@@ -18,6 +18,7 @@ import java.util.UUID;
 public class EventSender {
     private static ObjectMapper mapper = new ObjectMapper();
 
+    @Deprecated
     public static void sendEvent(Event event, List<UUID> recipients, DBI jdbi) throws JsonProcessingException {
         NotificationsDAO notificationsDAO = jdbi.onDemand(NotificationsDAO.class);
         ClientsDAO clientsDAO = jdbi.onDemand(ClientsDAO.class);
@@ -40,6 +41,25 @@ public class EventSender {
         }
     }
 
+    public static void sendEvent(Event event, UUID to, DBI jdbi) throws JsonProcessingException {
+        NotificationsDAO notificationsDAO = jdbi.onDemand(NotificationsDAO.class);
+        ClientsDAO clientsDAO = jdbi.onDemand(ClientsDAO.class);
+
+        for (String clientId : clientsDAO.getClients(to)) {
+            // persist to Notification stream
+            String notification = mapper.writeValueAsString(event);
+            notificationsDAO.insert(UUID.randomUUID(), clientId, to, notification);
+
+            //Send event via Socket
+            boolean send = ServerEndpoint.send(clientId, event);
+            Logger.debug("Websocket: message (%s) to user: %s, client: %s. Sent: %s",
+                    event.id,
+                    to,
+                    clientId,
+                    send);
+        }
+    }
+
     public static void sendEvent(Event event, UUID recipient, String clientId, DBI jdbi) throws JsonProcessingException {
         NotificationsDAO notificationsDAO = jdbi.onDemand(NotificationsDAO.class);
 
@@ -56,13 +76,13 @@ public class EventSender {
                 send);
     }
 
-    public static Event conversationCreateEvent(UUID userId, Conversation conv) {
+    public static Event conversationCreateEvent(UUID from, Conversation conv) {
         Event event = new Event();
         event.id = UUID.randomUUID();
 
         Payload payload = new Payload();
         payload.convId = conv.id;
-        payload.from = userId;
+        payload.from = from;
         payload.type = "conversation.create";
         payload.time = new Date().toString();
         payload.data = new Payload.Data();

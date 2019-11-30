@@ -191,6 +191,29 @@ public class PrekeysResource {
         }
     }
 
+    @GET
+    @Path("{userId}/clients")
+    @ApiOperation(value = "Get all devices for the user")
+    @Authorization("Bearer")
+    public Response getClients(@PathParam("userId") UUID userId) {
+        try {
+            ClientsDAO clientsDAO = jdbi.onDemand(ClientsDAO.class);
+
+            List<Device> devices = clientsDAO.getDevices(userId);
+
+            return Response.
+                    ok(devices).
+                    build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Logger.error("PrekeysResource.getClients : %s", e);
+            return Response
+                    .ok(new ErrorMessage(e.getMessage()))
+                    .status(500)
+                    .build();
+        }
+    }
+
     public static class ClientPrekey {
         public PreKey prekey;
         public String client;

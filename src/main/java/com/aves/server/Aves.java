@@ -23,8 +23,6 @@ import io.dropwizard.websockets.WebsocketBundle;
 import io.federecio.dropwizard.swagger.SwaggerBundle;
 import io.federecio.dropwizard.swagger.SwaggerBundleConfiguration;
 import io.jsonwebtoken.security.Keys;
-import io.minio.errors.InvalidEndpointException;
-import io.minio.errors.InvalidPortException;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.skife.jdbi.v2.DBI;
 
@@ -80,7 +78,7 @@ public class Aves extends Application<Configuration> {
         bootstrap.addBundle(bundle);
     }
 
-    public void run(Configuration config, Environment environment) throws InvalidPortException, InvalidEndpointException {
+    public void run(Configuration config, Environment environment) {
         Aves.key = Keys.hmacShaKeyFor(config.key.getBytes());
         jdbi = new DBIFactory().build(environment, config.database, "postgresql");
 
@@ -125,6 +123,5 @@ public class Aves extends Application<Configuration> {
         environment.jersey().register(new TeamsResource());
         environment.jersey().register(new PropertiesResource());
         environment.jersey().register(new CallsResource());
-
     }
 }

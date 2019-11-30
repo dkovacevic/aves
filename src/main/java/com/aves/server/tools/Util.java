@@ -1,5 +1,9 @@
 package com.aves.server.tools;
 
+import io.minio.MinioClient;
+import io.minio.errors.InvalidEndpointException;
+import io.minio.errors.InvalidPortException;
+
 import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -11,9 +15,44 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Base64;
+import java.util.Random;
+import java.util.UUID;
 
 public class Util {
     private static final SecureRandom random = new SecureRandom();
+    private static final String BUCKET_NAME = "aves-bucket";
+
+    private static MinioClient minioClient;
+
+    static {
+        try {
+            minioClient = new MinioClient("http://play.min.io",
+                    "Q3AM3UQ867SPQQA43P2F",
+                    "zuf+tfteSlswRu7BJ86wekitnifILbZam1KYY3TG");
+        } catch (InvalidEndpointException | InvalidPortException e) {
+            e.printStackTrace();
+            minioClient = null;
+        }
+    }
+
+    public static UUID s3UploadFile(byte[] bytes) throws Exception {
+        UUID key = UUID.randomUUID();
+        try (ByteArrayInputStream bais = new ByteArrayInputStream(bytes)) {
+            minioClient.putObject(
+                    BUCKET_NAME,
+                    key.toString(),
+                    bais,
+                    (long) bytes.length,
+                    null,
+                    null,
+                    "application/octet-stream");
+        }
+        return key;
+    }
+
+    public static InputStream s3DownloadFIle(UUID assetId) throws Exception {
+        return minioClient.getObject(BUCKET_NAME, assetId.toString());
+    }
 
     private static String next() {
         return new BigInteger(130, random).toString(32);
@@ -21,6 +60,10 @@ public class Util {
 
     public static String next(int length) {
         return next().substring(0, length);
+    }
+
+    public static int random(int bound) {
+        return random.nextInt(bound);
     }
 
     @Nullable
@@ -47,7 +90,7 @@ public class Util {
         }
     }
 
-    public static String extractMimeType(byte[] imageData) throws IOException {
+    static String extractMimeType(byte[] imageData) throws IOException {
         try (ByteArrayInputStream input = new ByteArrayInputStream(imageData)) {
             String contentType = URLConnection.guessContentTypeFromStream(input);
             return contentType != null ? contentType : "image/xyz";
@@ -60,5 +103,12 @@ public class Util {
         byte[] hash = md.digest();
         byte[] byteArray = Base64.getEncoder().encode(hash);
         return new String(byteArray);
+    }
+
+    public static Picture getProfilePicture() throws Exception {
+        String filename = String.format("profiles/%d.png", new Random().nextInt(8));
+        InputStream is = Util.class.getClassLoader().getResourceAsStream(filename);
+        byte[] image = toByteArray(is);
+        return ImageProcessor.getMediumImage(new Picture(image));
     }
 }

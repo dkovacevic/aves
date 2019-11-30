@@ -5,6 +5,7 @@ import com.aves.server.model.ErrorMessage;
 import com.aves.server.model.NewUser;
 import com.aves.server.model.User;
 import com.aves.server.tools.Logger;
+import com.aves.server.tools.Picture;
 import com.lambdaworks.crypto.SCryptUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -19,6 +20,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.Random;
 import java.util.UUID;
+
+import static com.aves.server.tools.Util.getProfilePicture;
+import static com.aves.server.tools.Util.s3UploadFile;
 
 @Api
 @Path("/register")
@@ -40,6 +44,9 @@ public class RegisterResource {
 
             UUID userId = UUID.randomUUID();
 
+            Picture profile = getProfilePicture();
+            UUID preview = s3UploadFile(profile.getImageData());
+
             userDAO.insert(
                     userId,
                     newUser.name,
@@ -49,8 +56,8 @@ public class RegisterResource {
                     newUser.email,
                     newUser.phone,
                     new Random().nextInt(8),
-                    null,
-                    null,
+                    preview,
+                    preview,
                     hash);
 
             User user = userDAO.getUser(userId);

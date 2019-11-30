@@ -14,11 +14,16 @@ public interface ParticipantsDAO {
     int insert(@Bind("convId") UUID convId,
                @Bind("userId") UUID userId);
 
-    @SqlQuery("SELECT user_Id AS uuid FROM Participants WHERE conv_Id = :convId ")
+    @SqlQuery("SELECT user_Id AS uuid FROM Participants WHERE conv_Id = :convId")
     @RegisterMapper(UUIDMapper.class)
     List<UUID> getUsers(@Bind("convId") UUID convId);
 
-    @SqlQuery("SELECT conv_Id AS uuid FROM Participants WHERE user_Id = :userId ")
+    @SqlQuery("SELECT conv_Id AS uuid FROM Participants WHERE user_Id = :userId")
     @RegisterMapper(UUIDMapper.class)
     List<UUID> getConversations(@Bind("userId") UUID userId);
+
+    @SqlQuery("SELECT conv_Id AS uuid FROM Participants WHERE user_Id = :userId AND conv_Id = :convId")
+    @RegisterMapper(UUIDMapper.class)
+    UUID isParticipant(@Bind("userId") UUID userId,
+                       @Bind("convId") UUID convId);
 }

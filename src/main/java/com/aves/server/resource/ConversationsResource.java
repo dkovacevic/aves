@@ -18,7 +18,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -29,6 +28,12 @@ import static com.aves.server.EventSender.sendEvent;
 @Path("/conversations")
 @Produces(MediaType.APPLICATION_JSON)
 public class ConversationsResource {
+    private final DBI jdbi;
+
+    public ConversationsResource(DBI jdbi) {
+        this.jdbi = jdbi;
+    }
+
     @POST
     @ApiOperation(value = "Create a new conversation")
     @Authorization("Bearer")
@@ -50,24 +55,21 @@ public class ConversationsResource {
                 participantsDAO.insert(convId, participantId);
             }
 
-            // build result
             Conversation conversation = conversationsDAO.get(convId);
-            conversation.members.self.id = userId;
+
+            // build result
             List<UUID> others = participantsDAO.getUsers(convId);
-            for (UUID participant : others) {
-                if (participant.equals(userId)) {
-                    continue;
-                }
-                Member member = new Member();
-                member.id = participant;
-                conversation.members.others.add(member);
+            for (UUID selfId : others) {
+                conversation = buildConversation(conversation, selfId, others);
+
+                // Send event
+                Event event = conversationCreateEvent(userId, conversation);
+                sendEvent(event, selfId, jdbi);
             }
 
-            // Send new event to all participants
-            Event event = conversationCreateEvent(userId, conversation);
-            sendEvent(event, conv.users, jdbi);
-
             Logger.info("New conversation: %s", convId);
+
+            conversation = buildConversation(conversation, userId, others);
 
             return Response.
                     ok(conversation).
@@ -84,17 +86,17 @@ public class ConversationsResource {
         }
     }
 
-    private final DBI jdbi;
-
-    public ConversationsResource(DBI jdbi) {
-        this.jdbi = jdbi;
-    }
-
-    public enum ConversationType {
-        REGULAR,
-        SELF,
-        ONE2ONE,
-        CONNECT
+    private Conversation buildConversation(Conversation conversation, UUID selfId, List<UUID> others) {
+        conversation.members = new Members();
+        conversation.members.self.id = selfId;
+        for (UUID memberId : others) {
+            if (!memberId.equals(selfId)) {
+                Member member = new Member();
+                member.id = memberId;
+                conversation.members.others.add(member);
+            }
+        }
+        return conversation;
     }
 
     @GET
@@ -109,8 +111,14 @@ public class ConversationsResource {
 
         UUID userId = (UUID) context.getProperty("zuid");
 
-        Conversation conversation = conversationsDAO.get(convId);
+        UUID challenge = participantsDAO.isParticipant(userId, convId);
+        if (challenge == null) {
+            return Response.
+                    status(404).
+                    build();
+        }
 
+        Conversation conversation = conversationsDAO.get(convId);
         if (conversation == null) {
             return Response.
                     status(404).
@@ -119,31 +127,25 @@ public class ConversationsResource {
 
         conversation.members.self.id = userId;
 
-        boolean valid = false;
-
         List<UUID> others = participantsDAO.getUsers(convId);
-
         for (UUID participant : others) {
-            if (participant.equals(userId)) {
-                valid = true;
-                continue;
+            if (!participant.equals(userId)) {
+                Member member = new Member();
+                member.id = participant;
+                conversation.members.others.add(member);
             }
-
-            Member member = new Member();
-            member.id = participant;
-
-            conversation.members.others.add(member);
-        }
-
-        if (!valid) {
-            return Response.
-                    status(403).
-                    build();
         }
 
         return Response.
                 ok(conversation).
                 build();
+    }
+
+    public enum ConversationType {
+        REGULAR,
+        SELF,
+        ONE2ONE,
+        CONNECT
     }
 
     @GET
@@ -182,27 +184,6 @@ public class ConversationsResource {
         return Response.
                 ok(result).
                 build();
-    }
-
-    private Event createEvent(UUID userId, Conversation conv) {
-        Event event = new Event();
-        event.id = UUID.randomUUID();
-
-        Payload payload = new Payload();
-        payload.convId = conv.id;
-        payload.from = userId;
-        payload.type = "conversation.create";
-        payload.time = new Date().toString();
-        payload.data = new Payload.Data();
-        payload.data.id = conv.id;
-        payload.data.creator = conv.creator;
-        payload.data.name = conv.name;
-        payload.data.type = conv.type;
-        payload.data.members = conv.members;
-
-        event.payload = new Payload[]{payload};
-
-        return event;
     }
 
     public static class _Result {
