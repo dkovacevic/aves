@@ -94,13 +94,14 @@ public class AssetsResource {
                     ok(object).
                     build();
         } catch (ErrorResponseException e) {
-            Logger.warning("AssetsResource.get : %s", e);
+            Logger.warning("AssetsResource.get : %s", e.errorResponse().code());
+            Logger.debug("AssetsResource.get : %s", e);
             return Response
-                    .ok(new ErrorMessage(e.getMessage()))
+                    .ok(new ErrorMessage(e.errorResponse().code()))
                     .status(404)
                     .build();
         } catch (Exception e) {
-            //e.printStackTrace();
+            e.printStackTrace();
             Logger.error("AssetsResource.get : %s", e);
             return Response
                     .ok(new ErrorMessage(e.getMessage()))

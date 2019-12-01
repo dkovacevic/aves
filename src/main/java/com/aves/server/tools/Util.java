@@ -1,5 +1,7 @@
 package com.aves.server.tools;
 
+import com.sendgrid.SendGrid;
+import com.sendgrid.SendGridException;
 import io.minio.MinioClient;
 import io.minio.errors.InvalidEndpointException;
 import io.minio.errors.InvalidPortException;
@@ -21,8 +23,10 @@ import java.util.UUID;
 public class Util {
     private static final SecureRandom random = new SecureRandom();
     private static final String BUCKET_NAME = "aves-bucket";
+    private static final String SENDGRID_API_KEY = "";
 
     private static MinioClient minioClient;
+    private static SendGrid sendgrid;
 
     static {
         try {
@@ -31,7 +35,11 @@ public class Util {
                     "zuf+tfteSlswRu7BJ86wekitnifILbZam1KYY3TG");
         } catch (InvalidEndpointException | InvalidPortException e) {
             e.printStackTrace();
-            minioClient = null;
+        }
+        try {
+            sendgrid = new SendGrid(SENDGRID_API_KEY);
+        } catch (Exception e) {
+            Logger.error("SendGrid: %s", e);
         }
     }
 
@@ -113,5 +121,23 @@ public class Util {
         InputStream is = Util.class.getClassLoader().getResourceAsStream(filename);
         byte[] image = toByteArray(is);
         return ImageProcessor.getMediumImage(new Picture(image));
+    }
+
+    public static boolean sendEmail(String subject, String body, String from, String to) throws SendGridException {
+        SendGrid.Email email = new SendGrid.Email();
+        email.addTo(to);
+        email.setFrom(from);
+        email.setSubject(subject);
+        email.setText(body);
+
+        if (sendgrid != null) {
+            SendGrid.Response response = sendgrid.send(email);
+            if (response.getCode() != 200) {
+                Logger.error("An error occurred when sending email: %s", response.getMessage());
+                return false;
+            }
+            return true;
+        }
+        return false;
     }
 }

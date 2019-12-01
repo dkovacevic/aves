@@ -6,6 +6,7 @@ import com.aves.server.DAO.UserDAO;
 import com.aves.server.model.*;
 import com.aves.server.tools.Logger;
 import com.aves.server.tools.Picture;
+import com.aves.server.tools.Util;
 import com.lambdaworks.crypto.SCryptUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -59,13 +60,15 @@ public class InviteResource {
 
             int accent = random(8);
 
+            String email = invite.email.toLowerCase();
+
             userDAO.insert(
                     userId,
                     invite.name,
                     invite.firstname,
                     invite.lastname,
                     invite.country,
-                    invite.email,
+                    email,
                     invite.phone,
                     accent,
                     preview,
@@ -105,10 +108,19 @@ public class InviteResource {
             result.user.lastname = invite.lastname;
             result.user.name = invite.name;
             result.user.phone = invite.phone;
-            result.user.email = invite.email;
+            result.user.email = email;
             result.user.country = invite.country;
             result.user.password = password;
             result.conversation = conversation;
+
+            String body = String.format("Hi %s,\nYou have been invited to join [NAME] Messenger.\n\nTo login go to:\n" +
+                            "https://wire-pwa-staging.zinfra.io\n\nEmail: %s\nPassword: %s\n\nBest regards,\n[NAME]",
+                    invite.name,
+                    email,
+                    password);
+
+            if (Util.sendEmail("[NAME] Messenger", body, "dejan@wire.com", email))
+                Logger.info("Invite email sent to: %s", email);
 
             return Response.
                     ok(result).

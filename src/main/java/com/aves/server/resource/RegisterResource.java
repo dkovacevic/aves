@@ -53,7 +53,7 @@ public class RegisterResource {
                     newUser.firstname,
                     newUser.lastname,
                     newUser.country,
-                    newUser.email,
+                    newUser.email.toLowerCase(),
                     newUser.phone,
                     new Random().nextInt(8),
                     preview,
