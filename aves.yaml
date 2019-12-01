@@ -16,7 +16,7 @@ server:
           - type: healthcheck-filter-factory
 
 logging:
-  level: ${LOG_LEVEL:-INFO}
+  level: INFO
   loggers:
     "com.aves.logger": ${LOG_LEVEL:-INFO}
 

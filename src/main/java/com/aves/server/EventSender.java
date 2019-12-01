@@ -12,43 +12,20 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.skife.jdbi.v2.DBI;
 
 import java.util.Date;
-import java.util.List;
 import java.util.UUID;
 
 public class EventSender {
     private static ObjectMapper mapper = new ObjectMapper();
 
-    @Deprecated
-    public static void sendEvent(Event event, List<UUID> recipients, DBI jdbi) throws JsonProcessingException {
+    public static String sendEvent(Event event, UUID to, DBI jdbi) throws JsonProcessingException {
         NotificationsDAO notificationsDAO = jdbi.onDemand(NotificationsDAO.class);
         ClientsDAO clientsDAO = jdbi.onDemand(ClientsDAO.class);
 
-        String notification = mapper.writeValueAsString(event);
-        for (UUID participantId : recipients) {
-            List<String> clientIds = clientsDAO.getClients(participantId);
-            for (String clientId : clientIds) {
-                // persist to Notification stream
-                notificationsDAO.insert(UUID.randomUUID(), clientId, participantId, notification);
-
-                //Send event via Socket
-                boolean send = ServerEndpoint.send(clientId, event);
-                Logger.debug("Websocket: message (%s) to user: %s, client: %s. Sent: %s",
-                        event.id,
-                        participantId,
-                        clientId,
-                        send);
-            }
-        }
-    }
-
-    public static void sendEvent(Event event, UUID to, DBI jdbi) throws JsonProcessingException {
-        NotificationsDAO notificationsDAO = jdbi.onDemand(NotificationsDAO.class);
-        ClientsDAO clientsDAO = jdbi.onDemand(ClientsDAO.class);
+        String strEvent = mapper.writeValueAsString(event);
 
         for (String clientId : clientsDAO.getClients(to)) {
             // persist to Notification stream
-            String notification = mapper.writeValueAsString(event);
-            notificationsDAO.insert(UUID.randomUUID(), clientId, to, notification);
+            notificationsDAO.insert(UUID.randomUUID(), clientId, to, strEvent);
 
             //Send event via Socket
             boolean send = ServerEndpoint.send(clientId, event);
@@ -57,23 +34,31 @@ public class EventSender {
                     to,
                     clientId,
                     send);
+
+            Logger.debug("sendEvent: to: %s:%s %s", to, clientId, strEvent);
         }
+
+        return strEvent;
     }
 
-    public static void sendEvent(Event event, UUID recipient, String clientId, DBI jdbi) throws JsonProcessingException {
+    public static String sendEvent(Event event, UUID to, String clientId, DBI jdbi) throws JsonProcessingException {
         NotificationsDAO notificationsDAO = jdbi.onDemand(NotificationsDAO.class);
 
         // Persist event into Notification stream
         String strEvent = mapper.writeValueAsString(event);
-        notificationsDAO.insert(UUID.randomUUID(), clientId, recipient, strEvent);
+        notificationsDAO.insert(UUID.randomUUID(), clientId, to, strEvent);
 
         // Send event via Socket
         boolean send = ServerEndpoint.send(clientId, event);
         Logger.debug("Websocket: message (%s) to user: %s, client: %s. Sent: %s",
                 event.id,
-                recipient,
+                to,
                 clientId,
                 send);
+
+        Logger.debug("sendEvent: to: %s:%s %s", to, clientId, strEvent);
+
+        return strEvent;
     }
 
     public static Event conversationCreateEvent(UUID from, Conversation conv) {
@@ -94,6 +79,9 @@ public class EventSender {
 
         event.payload = new Payload[]{payload};
 
+        if (conv.members == null)
+            Logger.error("conversationCreateEvent: conv.members is NULL");
+        
         return event;
     }
 

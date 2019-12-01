@@ -74,7 +74,7 @@ public class InviteResource {
 
             // create new conv
             UUID convId = UUID.randomUUID();
-            conversationsDAO.insert(convId, null, inviterId, ConversationsResource.ConversationType.ONE2ONE.ordinal());
+            conversationsDAO.insert(convId, null, inviterId, Enums.Conversation.ONE2ONE.ordinal());
             participantsDAO.insert(convId, inviterId);
             participantsDAO.insert(convId, userId);
 

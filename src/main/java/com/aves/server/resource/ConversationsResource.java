@@ -28,6 +28,7 @@ import static com.aves.server.EventSender.sendEvent;
 @Path("/conversations")
 @Produces(MediaType.APPLICATION_JSON)
 public class ConversationsResource {
+
     private final DBI jdbi;
 
     public ConversationsResource(DBI jdbi) {
@@ -37,8 +38,7 @@ public class ConversationsResource {
     @POST
     @ApiOperation(value = "Create a new conversation")
     @Authorization("Bearer")
-    public Response create(@Context ContainerRequestContext context,
-                           @ApiParam @Valid NewConversation conv) {
+    public Response create(@Context ContainerRequestContext context, @ApiParam @Valid NewConversation conv) {
 
         try {
             ConversationsDAO conversationsDAO = jdbi.onDemand(ConversationsDAO.class);
@@ -48,7 +48,7 @@ public class ConversationsResource {
             UUID convId = UUID.randomUUID();
 
             // persist conv
-            conversationsDAO.insert(convId, conv.name, userId, ConversationType.REGULAR.ordinal());
+            conversationsDAO.insert(convId, conv.name, userId, Enums.Conversation.REGULAR.ordinal());
 
             participantsDAO.insert(convId, userId);
             for (UUID participantId : conv.users) {
@@ -67,10 +67,13 @@ public class ConversationsResource {
                 sendEvent(event, selfId, jdbi);
             }
 
-            Logger.info("New conversation: %s", convId);
+            Logger.debug("New conversation: %s", convId);
 
             conversation = buildConversation(conversation, userId, others);
 
+            if (conversation.members == null || conversation.members.self == null)
+                Logger.error("conversationCreateEvent: conv.members is NULL");
+            
             return Response.
                     ok(conversation).
                     status(201).
@@ -86,25 +89,11 @@ public class ConversationsResource {
         }
     }
 
-    private Conversation buildConversation(Conversation conversation, UUID selfId, List<UUID> others) {
-        conversation.members = new Members();
-        conversation.members.self.id = selfId;
-        for (UUID memberId : others) {
-            if (!memberId.equals(selfId)) {
-                Member member = new Member();
-                member.id = memberId;
-                conversation.members.others.add(member);
-            }
-        }
-        return conversation;
-    }
-
     @GET
     @Path("{convId}")
     @Authorization("Bearer")
     @ApiOperation(value = "Get Conversation by conv id")
-    public Response get(@Context ContainerRequestContext context,
-                        @PathParam("convId") UUID convId) {
+    public Response get(@Context ContainerRequestContext context, @PathParam("convId") UUID convId) {
 
         ConversationsDAO conversationsDAO = jdbi.onDemand(ConversationsDAO.class);
         ParticipantsDAO participantsDAO = jdbi.onDemand(ParticipantsDAO.class);
@@ -125,60 +114,40 @@ public class ConversationsResource {
                     build();
         }
 
-        conversation.members.self.id = userId;
-
         List<UUID> others = participantsDAO.getUsers(convId);
-        for (UUID participant : others) {
-            if (!participant.equals(userId)) {
-                Member member = new Member();
-                member.id = participant;
-                conversation.members.others.add(member);
-            }
-        }
+
+        conversation = buildConversation(conversation, userId, others);
+
+        if (conversation.members == null || conversation.members.self == null)
+            Logger.error("conversationCreateEvent: conv.members is NULL");
 
         return Response.
                 ok(conversation).
                 build();
     }
 
-    public enum ConversationType {
-        REGULAR,
-        SELF,
-        ONE2ONE,
-        CONNECT
-    }
-
     @GET
     @Authorization("Bearer")
     @ApiOperation(value = "Get all conversations")
     public Response getAll(@Context ContainerRequestContext context) {
-
         ConversationsDAO conversationsDAO = jdbi.onDemand(ConversationsDAO.class);
         ParticipantsDAO participantsDAO = jdbi.onDemand(ParticipantsDAO.class);
 
         UUID userId = (UUID) context.getProperty("zuid");
 
         _Result result = new _Result();
-        result.conversations = new ArrayList<>();
 
         List<UUID> convIds = participantsDAO.getConversations(userId);
 
         for (UUID convId : convIds) {
             Conversation conversation = conversationsDAO.get(convId);
-            conversation.members.self.id = userId;
-
             List<UUID> others = participantsDAO.getUsers(convId);
-            for (UUID participant : others) {
-                if (participant.equals(userId)) {
-                    continue;
-                }
-                Member member = new Member();
-                member.id = participant;
-
-                conversation.members.others.add(member);
-            }
+            conversation = buildConversation(conversation, userId, others);
 
             result.conversations.add(conversation);
+
+            if (conversation.members == null || conversation.members.self == null)
+                Logger.error("conversationCreateEvent: conv.members is NULL");
         }
 
         return Response.
@@ -186,9 +155,22 @@ public class ConversationsResource {
                 build();
     }
 
+    private Conversation buildConversation(Conversation conversation, UUID selfId, List<UUID> others) {
+        conversation.members = new Members();
+        conversation.members.self.id = selfId;
+        for (UUID memberId : others) {
+            if (!memberId.equals(selfId)) {
+                Member member = new Member();
+                member.id = memberId;
+                conversation.members.others.add(member);
+            }
+        }
+        return conversation;
+    }
+
     public static class _Result {
         @JsonProperty("has_more")
         public boolean hasMore;
-        public List<Conversation> conversations;
+        public List<Conversation> conversations = new ArrayList<>();
     }
 }

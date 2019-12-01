@@ -7,6 +7,7 @@ import com.aves.server.tools.Logger;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Jwts;
+import io.minio.errors.ErrorResponseException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -87,14 +88,19 @@ public class AssetsResource {
     @Authorization("Bearer")
     public Response get(@PathParam("assetId") UUID assetId) {
         try {
-
             InputStream object = s3DownloadFIle(assetId);
 
             return Response.
                     ok(object).
                     build();
+        } catch (ErrorResponseException e) {
+            Logger.warning("AssetsResource.get : %s", e);
+            return Response
+                    .ok(new ErrorMessage(e.getMessage()))
+                    .status(404)
+                    .build();
         } catch (Exception e) {
-            e.printStackTrace();
+            //e.printStackTrace();
             Logger.error("AssetsResource.get : %s", e);
             return Response
                     .ok(new ErrorMessage(e.getMessage()))

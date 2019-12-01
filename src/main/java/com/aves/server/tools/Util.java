@@ -36,6 +36,9 @@ public class Util {
     }
 
     public static UUID s3UploadFile(byte[] bytes) throws Exception {
+        if (!minioClient.bucketExists(BUCKET_NAME))
+            minioClient.makeBucket(BUCKET_NAME);
+
         UUID key = UUID.randomUUID();
         try (ByteArrayInputStream bais = new ByteArrayInputStream(bytes)) {
             minioClient.putObject(
