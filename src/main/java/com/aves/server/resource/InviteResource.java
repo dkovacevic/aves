@@ -119,9 +119,6 @@ public class InviteResource {
                     email,
                     password);
 
-            if (Util.sendEmail("[NAME] Messenger", body, "dejan@wire.com", email))
-                Logger.info("Invite email sent to: %s", email);
-
             return Response.
                     ok(result).
                     build();

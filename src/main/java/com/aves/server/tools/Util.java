@@ -1,7 +1,6 @@
 package com.aves.server.tools;
 
-import com.sendgrid.SendGrid;
-import com.sendgrid.SendGridException;
+//import com.sendgrid.SendGridException;
 import io.minio.MinioClient;
 import io.minio.errors.InvalidEndpointException;
 import io.minio.errors.InvalidPortException;
@@ -26,7 +25,7 @@ public class Util {
     private static final String SENDGRID_API_KEY = "";
 
     private static MinioClient minioClient;
-    private static SendGrid sendgrid;
+   // private static SendGrid sendgrid;
 
     static {
         try {
@@ -37,7 +36,7 @@ public class Util {
             e.printStackTrace();
         }
         try {
-            sendgrid = new SendGrid(SENDGRID_API_KEY);
+            //sendgrid = new SendGrid(SENDGRID_API_KEY);
         } catch (Exception e) {
             Logger.error("SendGrid: %s", e);
         }
@@ -123,21 +122,21 @@ public class Util {
         return ImageProcessor.getMediumImage(new Picture(image));
     }
 
-    public static boolean sendEmail(String subject, String body, String from, String to) throws SendGridException {
-        SendGrid.Email email = new SendGrid.Email();
-        email.addTo(to);
-        email.setFrom(from);
-        email.setSubject(subject);
-        email.setText(body);
-
-        if (sendgrid != null) {
-            SendGrid.Response response = sendgrid.send(email);
-            if (response.getCode() != 200) {
-                Logger.error("An error occurred when sending email: %s", response.getMessage());
-                return false;
-            }
-            return true;
-        }
+    public static boolean sendEmail(String subject, String body, String from, String to) {
+//        SendGrid.Email email = new SendGrid.Email();
+//        email.addTo(to);
+//        email.setFrom(from);
+//        email.setSubject(subject);
+//        email.setText(body);
+//
+//        if (sendgrid != null) {
+//            SendGrid.Response response = sendgrid.send(email);
+//            if (response.getCode() != 200) {
+//                Logger.error("An error occurred when sending email: %s", response.getMessage());
+//                return false;
+//            }
+//            return true;
+//        }
         return false;
     }
 }

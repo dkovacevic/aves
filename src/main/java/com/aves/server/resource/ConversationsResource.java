@@ -71,9 +71,6 @@ public class ConversationsResource {
 
             conversation = buildConversation(conversation, userId, others);
 
-            if (conversation.members == null || conversation.members.self == null)
-                Logger.error("conversationCreateEvent: conv.members is NULL");
-            
             return Response.
                     ok(conversation).
                     status(201).
@@ -118,9 +115,6 @@ public class ConversationsResource {
 
         conversation = buildConversation(conversation, userId, others);
 
-        if (conversation.members == null || conversation.members.self == null)
-            Logger.error("conversationCreateEvent: conv.members is NULL");
-
         return Response.
                 ok(conversation).
                 build();
@@ -145,9 +139,6 @@ public class ConversationsResource {
             conversation = buildConversation(conversation, userId, others);
 
             result.conversations.add(conversation);
-
-            if (conversation.members == null || conversation.members.self == null)
-                Logger.error("conversationCreateEvent: conv.members is NULL");
         }
 
         return Response.
