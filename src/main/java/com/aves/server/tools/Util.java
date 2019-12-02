@@ -1,6 +1,12 @@
 package com.aves.server.tools;
 
-//import com.sendgrid.SendGridException;
+import com.sendgrid.Method;
+import com.sendgrid.Request;
+import com.sendgrid.Response;
+import com.sendgrid.SendGrid;
+import com.sendgrid.helpers.mail.Mail;
+import com.sendgrid.helpers.mail.objects.Content;
+import com.sendgrid.helpers.mail.objects.Email;
 import io.minio.MinioClient;
 import io.minio.errors.InvalidEndpointException;
 import io.minio.errors.InvalidPortException;
@@ -22,10 +28,9 @@ import java.util.UUID;
 public class Util {
     private static final SecureRandom random = new SecureRandom();
     private static final String BUCKET_NAME = "aves-bucket";
-    private static final String SENDGRID_API_KEY = "";
 
     private static MinioClient minioClient;
-   // private static SendGrid sendgrid;
+    private static SendGrid sendgrid;
 
     static {
         try {
@@ -36,7 +41,9 @@ public class Util {
             e.printStackTrace();
         }
         try {
-            //sendgrid = new SendGrid(SENDGRID_API_KEY);
+            String key = System.getenv("SENDGRID_API_KEY");
+            sendgrid = new SendGrid(key);
+            sendgrid.addRequestHeader("X-Mock", "true");
         } catch (Exception e) {
             Logger.error("SendGrid: %s", e);
         }
@@ -122,21 +129,22 @@ public class Util {
         return ImageProcessor.getMediumImage(new Picture(image));
     }
 
+    public static Mail createMail(String subject, String body, String from, String to) {
+        return new Mail(new Email(from), subject, new Email(to), new Content("text/HTML", body));
+    }
+
     public static boolean sendEmail(String subject, String body, String from, String to) {
-//        SendGrid.Email email = new SendGrid.Email();
-//        email.addTo(to);
-//        email.setFrom(from);
-//        email.setSubject(subject);
-//        email.setText(body);
-//
-//        if (sendgrid != null) {
-//            SendGrid.Response response = sendgrid.send(email);
-//            if (response.getCode() != 200) {
-//                Logger.error("An error occurred when sending email: %s", response.getMessage());
-//                return false;
-//            }
-//            return true;
-//        }
-        return false;
+        try {
+            Mail mail = createMail(subject, body, from, to);
+            Request request = new Request();
+            request.setMethod(Method.POST);
+            request.setEndpoint("mail/send");
+            request.setBody(mail.build());
+            Response response = sendgrid.api(request);
+            return response.getStatusCode() < 300;
+        } catch (Exception e) {
+            Logger.error("sendEmail: %s", e);
+            return false;
+        }
     }
 }

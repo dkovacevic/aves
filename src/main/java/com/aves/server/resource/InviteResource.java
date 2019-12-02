@@ -22,6 +22,7 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.InputStream;
 import java.util.UUID;
 
 import static com.aves.server.EventSender.conversationCreateEvent;
@@ -113,11 +114,13 @@ public class InviteResource {
             result.user.password = password;
             result.conversation = conversation;
 
-            String body = String.format("Hi %s,\nYou have been invited to join [NAME] Messenger.\n\nTo login go to:\n" +
-                            "https://wire-pwa-staging.zinfra.io\n\nEmail: %s\nPassword: %s\n\nBest regards,\n[NAME]",
-                    invite.name,
-                    email,
-                    password);
+            InputStream resourceAsStream = InviteResource.class.getClassLoader().getResourceAsStream("template.html");
+            String template = new String(Util.toByteArray(resourceAsStream));
+            String body = template.replace("[USER]", invite.name)
+                    .replace("[EMAIL]", email)
+                    .replace("[PASSWORD]", password);
+
+            Util.sendEmail("Your New Account", body, "aves@wire.com", email);
 
             return Response.
                     ok(result).
