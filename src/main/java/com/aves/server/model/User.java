@@ -32,6 +32,13 @@ public class User {
     @JsonProperty("accent_id")
     public int accent;
 
+    public String locale = "en-US";
+
+    @JsonProperty
+    public String getHandle() {
+        return name.toLowerCase().replace(" ", "");
+    }
+
     public ArrayList<UserAsset> assets = new ArrayList<>();
 
     public static class UserAsset {

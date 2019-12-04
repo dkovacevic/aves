@@ -10,6 +10,7 @@ import io.swagger.annotations.Authorization;
 import org.skife.jdbi.v2.DBI;
 
 import javax.ws.rs.GET;
+import javax.ws.rs.HEAD;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.container.ContainerRequestContext;
@@ -51,6 +52,24 @@ public class SelfResource {
         } catch (Exception e) {
             e.printStackTrace();
             Logger.error("SelfResource.get : %s", e);
+            return Response
+                    .ok(new ErrorMessage(e.getMessage()))
+                    .status(500)
+                    .build();
+        }
+    }
+
+    @HEAD
+    @Path("password")
+    @ApiOperation(value = "Checks for password")
+    public Response getPassword() {
+        try {
+            return Response.
+                    ok().
+                    build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Logger.error("SelfResource.getPassword : %s", e);
             return Response
                     .ok(new ErrorMessage(e.getMessage()))
                     .status(500)

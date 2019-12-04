@@ -76,7 +76,7 @@ public class ServerEndpoint extends Endpoint {
             session.addMessageHandler(new PingMessageHandler(session));
             session.getUserProperties().put("client", clientId);
 
-            Logger.info("Session: %s connected. client: %s", session.getId(), clientId);
+            Logger.debug("Session: %s connected. client: %s", session.getId(), clientId);
             sessions.put(clientId, session);
         } catch (ExpiredJwtException e) {
             Logger.warning("onOpen: %s", e);
@@ -88,6 +88,6 @@ public class ServerEndpoint extends Endpoint {
     @Override
     public void onClose(Session session, CloseReason closeReason) {
         Object client = session.getUserProperties().get("client");
-        Logger.info("Session: %s closed. client: %s, reason: %s", session.getId(), client, closeReason.getReasonPhrase());
+        Logger.debug("Session: %s closed. client: %s, reason: %s", session.getId(), client, closeReason.getReasonPhrase());
     }
 }

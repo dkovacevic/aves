@@ -23,6 +23,14 @@ public class HealthCheckFilter implements FilterFactory<IAccessEvent> {
                     return FilterReply.DENY;
                 }
 
+                if (requestURI.contains("await")) {
+                    return FilterReply.DENY;
+                }
+
+                if (requestURI.contains("notifications")) {
+                    return FilterReply.DENY;
+                }
+
                 return FilterReply.NEUTRAL;
 
             }

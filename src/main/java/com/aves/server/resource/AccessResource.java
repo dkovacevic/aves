@@ -83,4 +83,14 @@ public class AccessResource {
                     .build();
         }
     }
+
+    @POST
+    @Path("logout")
+    @ApiOperation(value = "Calling this endpoint will effectively revoke the given cookie and subsequent calls to " +
+            "/access with the same cookie will result in a 403.")
+    public Response post(@CookieParam("zuid") String cookie) {
+        return Response.
+                ok().
+                build();
+    }
 }
