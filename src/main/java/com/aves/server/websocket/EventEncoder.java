@@ -10,9 +10,7 @@ import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 
 public class EventEncoder implements Encoder.Binary<Event> {
-
     private final static ObjectMapper mapper = new ObjectMapper();
-
 
     @Override
     public void init(EndpointConfig endpointConfig) {
@@ -23,7 +21,6 @@ public class EventEncoder implements Encoder.Binary<Event> {
     public void destroy() {
         // Close resources
     }
-
 
     @Override
     public ByteBuffer encode(Event event) throws EncodeException {
