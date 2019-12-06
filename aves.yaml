@@ -13,7 +13,7 @@ server:
     appenders:
       - type: console
         filterFactories:
-          - type: healthcheck-filter-factory
+          - type: log-filter-factory
 
 logging:
   level: INFO

@@ -15,6 +15,7 @@ import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfig;
 import javax.websocket.Session;
 import java.io.IOException;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -41,6 +42,7 @@ public class ServerEndpoint extends Endpoint {
 
     private static void close(Session session) {
         try {
+            Logger.debug("Closing session: %s", session.getId());
             session.close();
         } catch (IOException e1) {
             Logger.error("session.close(): %s", e1);
@@ -53,8 +55,8 @@ public class ServerEndpoint extends Endpoint {
             String clientId = Util.getQueryParam(session.getQueryString(), "client");
             String token = Util.getQueryParam(session.getQueryString(), "access_token");
 
-            if (token == null || clientId == null) {
-                Logger.warning("Session %s missing token or clientId", session.getId());
+            if (token == null) {
+                Logger.warning("Session %s, missing access token: %s", session.getId(), session.getQueryString());
                 return;
             }
 
@@ -67,17 +69,19 @@ public class ServerEndpoint extends Endpoint {
             UUID userId = UUID.fromString(subject);
 
             ClientsDAO clientsDAO = jdbi.onDemand(ClientsDAO.class);
-            UUID challenge = clientsDAO.getUserId(clientId);
-            if (!userId.equals(challenge)) {
-                Logger.warning("Session: %s, client: %s. Unknown clientId", session.getId(), clientId);
-                return;
-            }
 
             session.addMessageHandler(new PingMessageHandler(session));
-            session.getUserProperties().put("client", clientId);
 
-            Logger.debug("Session: %s connected. client: %s", session.getId(), clientId);
-            sessions.put(clientId, session);
+            for (String client : clientsDAO.getClients(userId)) {
+                //session.getUserProperties().put("client", client);
+                sessions.put(client, session);
+
+                if (Objects.equals(client, clientId)) {
+                    break;
+                }
+            }
+
+            Logger.debug("Session: %s connected. zuid: %s", session.getId(), session.getUserProperties().get("zuid"));
         } catch (ExpiredJwtException e) {
             Logger.warning("onOpen: %s", e);
         } catch (Exception e) {
@@ -88,6 +92,6 @@ public class ServerEndpoint extends Endpoint {
     @Override
     public void onClose(Session session, CloseReason closeReason) {
         Object client = session.getUserProperties().get("client");
-        Logger.debug("Session: %s closed. client: %s, reason: %s", session.getId(), client, closeReason.getReasonPhrase());
+        Logger.debug("Session: %s closed. client: %s, reason: %s", session.getId(), client, closeReason);
     }
 }

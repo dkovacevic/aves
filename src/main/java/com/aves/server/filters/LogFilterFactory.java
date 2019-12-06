@@ -6,8 +6,8 @@ import ch.qos.logback.core.spi.FilterReply;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import io.dropwizard.logging.filter.FilterFactory;
 
-@JsonTypeName("healthcheck-filter-factory")
-public class HealthCheckFilter implements FilterFactory<IAccessEvent> {
+@JsonTypeName("log-filter-factory")
+public class LogFilterFactory implements FilterFactory<IAccessEvent> {
     @Override
     public Filter<IAccessEvent> build() {
         return new Filter<IAccessEvent>() {
@@ -31,8 +31,11 @@ public class HealthCheckFilter implements FilterFactory<IAccessEvent> {
                     return FilterReply.DENY;
                 }
 
-                return FilterReply.NEUTRAL;
+                if (requestURI.contains("access")) {
+                    return FilterReply.DENY;
+                }
 
+                return FilterReply.NEUTRAL;
             }
         };
     }

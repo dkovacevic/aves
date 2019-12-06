@@ -1,0 +1,11 @@
+apiVersion: skaffold/v1
+kind: Config
+metadata:
+  name: aves
+build:
+  artifacts:
+    - image: dejankovacevic/aves
+deploy:
+  kubectl:
+    manifests:
+      - kubernetes-manifests/aves.yaml
