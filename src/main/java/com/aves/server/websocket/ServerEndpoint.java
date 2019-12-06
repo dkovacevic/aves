@@ -10,12 +10,9 @@ import com.codahale.metrics.annotation.Timed;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 
-import javax.websocket.CloseReason;
-import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfig;
-import javax.websocket.Session;
+import javax.websocket.*;
 import java.io.IOException;
-import java.util.Objects;
+import java.nio.ByteBuffer;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -52,7 +49,6 @@ public class ServerEndpoint extends Endpoint {
     @Override
     public void onOpen(Session session, EndpointConfig config) {
         try {
-            String clientId = Util.getQueryParam(session.getQueryString(), "client");
             String token = Util.getQueryParam(session.getQueryString(), "access_token");
 
             if (token == null) {
@@ -68,20 +64,40 @@ public class ServerEndpoint extends Endpoint {
 
             UUID userId = UUID.fromString(subject);
 
-            ClientsDAO clientsDAO = jdbi.onDemand(ClientsDAO.class);
+            session.getUserProperties().put("zuid", userId);
 
             session.addMessageHandler(new PingMessageHandler(session));
+            session.addMessageHandler(new MessageHandler.Whole<PongMessage>() {
+                @Override
+                public void onMessage(PongMessage message) {
+                    byte[] array = message.getApplicationData().array();
+                    Logger.debug("PongMessage: session: %s, data: %s", session.getId(), new String(array));
 
-            for (String client : clientsDAO.getClients(userId)) {
-                //session.getUserProperties().put("client", client);
-                sessions.put(client, session);
+                    try {
+                        Thread.sleep(20 * 1000);
+                        session.getBasicRemote().sendPing(ByteBuffer.wrap("ping from Aves".getBytes()));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
 
-                if (Objects.equals(client, clientId)) {
-                    break;
+            String clientId = Util.getQueryParam(session.getQueryString(), "client");
+            if (clientId != null) {
+                sessions.put(clientId, session);
+                session.getUserProperties().put("client", clientId);
+            } else {
+                // use this session to channel events for ALL clients
+                ClientsDAO clientsDAO = jdbi.onDemand(ClientsDAO.class);
+                for (String client : clientsDAO.getClients(userId)) {
+                    sessions.put(client, session);
                 }
             }
 
-            Logger.debug("Session: %s connected. zuid: %s", session.getId(), session.getUserProperties().get("zuid"));
+            String zuid = (String) config.getUserProperties().get("zuid");
+            Logger.debug("Session: %s connected. zuid: %s/%s, client: %s", session.getId(), zuid, userId, clientId);
+
+            session.getBasicRemote().sendPing(ByteBuffer.wrap("ping from Aves".getBytes()));
         } catch (ExpiredJwtException e) {
             Logger.warning("onOpen: %s", e);
         } catch (Exception e) {
@@ -92,6 +108,16 @@ public class ServerEndpoint extends Endpoint {
     @Override
     public void onClose(Session session, CloseReason closeReason) {
         Object client = session.getUserProperties().get("client");
-        Logger.debug("Session: %s closed. client: %s, reason: %s", session.getId(), client, closeReason);
+        Object userId = session.getUserProperties().get("zuid");
+
+        Logger.debug("Session: %s closed. zuid:%s, client: %s, %s", session.getId(), userId, client, closeReason);
+    }
+
+    @Override
+    public void onError(Session session, Throwable thr) {
+        Object client = session.getUserProperties().get("client");
+        Object userId = session.getUserProperties().get("zuid");
+
+        Logger.debug("Session: %s failed. zuid:%s, client: %s, %s", session.getId(), userId, client, thr.getMessage());
     }
 }

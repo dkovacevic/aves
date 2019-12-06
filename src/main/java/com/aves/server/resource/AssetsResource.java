@@ -95,7 +95,7 @@ public class AssetsResource {
                     build();
         } catch (ErrorResponseException e) {
             Logger.warning("AssetsResource.get : %s", e.errorResponse().code());
-            Logger.debug("AssetsResource.get : %s", e);
+            // Logger.debug("AssetsResource.get : %s", e);
             return Response
                     .ok(new ErrorMessage(e.errorResponse().code()))
                     .status(404)
