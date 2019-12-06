@@ -10,7 +10,10 @@ import com.codahale.metrics.annotation.Timed;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 
-import javax.websocket.*;
+import javax.websocket.CloseReason;
+import javax.websocket.Endpoint;
+import javax.websocket.EndpointConfig;
+import javax.websocket.Session;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.UUID;
@@ -31,10 +34,25 @@ public class ServerEndpoint extends Endpoint {
                 return true;
             } else {
                 sessions.remove(clientId);
-                close(session);
             }
         }
         return false;
+    }
+
+    public static void ping() {
+        for (Session session : sessions.values()) {
+            Object client = session.getUserProperties().get("client");
+            Object zuid = session.getUserProperties().get("zuid");
+
+            if (session.isOpen()) {
+                try {
+                    Logger.debug("Sending ping: session: %s,  zuid: %s, client: %s", session.getId(), zuid, client);
+                    session.getBasicRemote().sendPing(ByteBuffer.wrap("ping from Aves".getBytes()));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
     private static void close(Session session) {
@@ -67,20 +85,6 @@ public class ServerEndpoint extends Endpoint {
             session.getUserProperties().put("zuid", userId);
 
             session.addMessageHandler(new PingMessageHandler(session));
-            session.addMessageHandler(new MessageHandler.Whole<PongMessage>() {
-                @Override
-                public void onMessage(PongMessage message) {
-                    byte[] array = message.getApplicationData().array();
-                    Logger.debug("PongMessage: session: %s, data: %s", session.getId(), new String(array));
-
-                    try {
-                        Thread.sleep(20 * 1000);
-                        session.getBasicRemote().sendPing(ByteBuffer.wrap("ping from Aves".getBytes()));
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
 
             String clientId = Util.getQueryParam(session.getQueryString(), "client");
             if (clientId != null) {
@@ -94,13 +98,11 @@ public class ServerEndpoint extends Endpoint {
                 }
             }
 
-            String zuid = (String) config.getUserProperties().get("zuid");
-            Logger.debug("Session: %s connected. zuid: %s/%s, client: %s", session.getId(), zuid, userId, clientId);
-
-            session.getBasicRemote().sendPing(ByteBuffer.wrap("ping from Aves".getBytes()));
+            Logger.debug("Session: %s connected. zuid: %s, client: %s", session.getId(), userId, clientId);
         } catch (ExpiredJwtException e) {
             Logger.warning("onOpen: %s", e);
         } catch (Exception e) {
+            e.printStackTrace();
             Logger.error("onOpen: %s", e);
         }
     }

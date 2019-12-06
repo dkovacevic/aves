@@ -34,6 +34,8 @@ import javax.websocket.server.ServerEndpointConfig;
 import javax.ws.rs.client.Client;
 import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class Aves extends Application<Configuration> {
     private final AdminResourceBundle admin = new AdminResourceBundle();
@@ -123,5 +125,16 @@ public class Aves extends Application<Configuration> {
         environment.jersey().register(new TeamsResource());
         environment.jersey().register(new PropertiesResource());
         environment.jersey().register(new CallsResource());
+
+        ScheduledExecutorService pinger = environment.lifecycle()
+                .scheduledExecutorService("Socket pinger")
+                .build();
+
+        pinger.scheduleAtFixedRate(new Runnable() {
+            @Override
+            public void run() {
+                ServerEndpoint.ping();
+            }
+        }, 10, 10, TimeUnit.SECONDS);
     }
 }
