@@ -1,7 +1,6 @@
 package com.aves.server.filters;
 
 import com.aves.server.Aves;
-import com.aves.server.tools.Logger;
 import io.jsonwebtoken.Jwts;
 
 import javax.ws.rs.WebApplicationException;
@@ -62,7 +61,7 @@ public class AuthenticationFilter implements ContainerRequestFilter {
             UUID userId = UUID.fromString(subject);
             requestContext.setProperty("zuid", userId);
 
-            Logger.debug("AuthenticationFilter: zuid: %s", userId);
+            //Logger.debug("AuthenticationFilter: zuid: %s", userId);
         } catch (Exception e) {
             Exception cause = new IllegalArgumentException(e.getMessage());
             throw new WebApplicationException(cause, Response.Status.UNAUTHORIZED);

@@ -51,16 +51,10 @@ public class ServerEndpoint extends Endpoint {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+            } else {
+                if (client != null)
+                    sessions.remove(client);
             }
-        }
-    }
-
-    private static void close(Session session) {
-        try {
-            Logger.debug("Closing session: %s", session.getId());
-            session.close();
-        } catch (IOException e1) {
-            Logger.error("session.close(): %s", e1);
         }
     }
 

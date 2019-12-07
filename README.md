@@ -2,6 +2,5 @@
 OTR Chat Server
 
 ## API Documentation
-https://services.wire.com/aves/swagger#/default
-
+https://services.zinfra.io/aves/swagger#!/default
 
