@@ -62,7 +62,7 @@ jerseyClient:
     protocol: TLSv1.2
     provider: SunJSSE
     verifyHostname: false
-    keyStorePath: ./swisscom.jks
+    keyStorePath: ./keystore.jks
     keyStorePassword: ${KEYSTORE_PASSWORD:-}
     keyStoreType: JKS
     trustSelfSignedCertificates: true
