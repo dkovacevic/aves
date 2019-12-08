@@ -1,0 +1,88 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: aves
+  namespace: staging
+spec:
+  replicas: 1
+  template:
+    metadata:
+      name: aves
+      labels:
+        name: aves
+        role: aves
+        env: staging
+    spec:
+      containers:
+        - name: aves
+          image: dejankovacevic/aves
+
+          resources:
+            requests:
+              memory: "50Mi"
+            limits:
+              memory: "500Mi"
+
+          env:
+            - name: LOG_LEVEL
+              value: INFO
+
+            - name: SENDGRID_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: aves
+                  key: send_grid
+
+            - name: AVES_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: aves
+                  key: key
+
+            - name: KEYSTORE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: aves
+                  key: keystore_password
+
+            - name: AVES_DB_URL
+              value: jdbc:postgresql://elephant-postgresql.staging.svc.cluster.local:5432/aves
+
+            - name: AVES_DB_USER
+              value: postgres
+
+            - name: AVES_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: elephant-postgresql
+                  key: postgresql-password
+
+            # This environment variable enables debugging support for the container.
+            # Remove this to disable the debug build.
+            - name: JAVA_TOOL_OPTIONS
+              value: -agentlib:jdwp=transport=dt_socket,server=y,address=5005,suspend=n,quiet=y
+
+          ports:
+            - containerPort: 8090
+              protocol: TCP
+            - containerPort: 8091
+              protocol: TCP
+
+          livenessProbe:
+            httpGet:
+              path: /aves/healthcheck
+              port: 8090
+            initialDelaySeconds: 10
+            timeoutSeconds: 10
+            periodSeconds: 10
+
+          # for L7 LB
+          readinessProbe:
+            httpGet:
+              path: /aves/healthcheck
+              port: 8090
+            initialDelaySeconds: 10
+            timeoutSeconds: 11
+            periodSeconds: 10
+

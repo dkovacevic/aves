@@ -1,11 +1,21 @@
-FROM dejankovacevic/bots.runtime:2.10.3
+FROM docker.io/maven AS build-env
 
-COPY target/aves.jar     /opt/aves/
+WORKDIR /app
+
+COPY pom.xml ./
+
+RUN mvn verify --fail-never
+
+COPY . ./
+
+RUN mvn -Dmaven.test.skip=true package
+
+FROM docker.io/openjdk:8-jdk-alpine
+
+COPY --from=build-env /app/target /opt/aves/
 COPY swisscom.jks        /opt/aves/
-COPY aves.yaml           /etc/aves/
+COPY aves.yaml           /opt/aves/
 
 WORKDIR /opt/aves
 
-EXPOSE  8090 8091 8082
-
-CMD ["sh", "-c", "/usr/bin/java -jar aves.jar server /etc/aves/aves.yaml"]
+ENTRYPOINT ["java", "-jar", "aves.jar", "server", "aves.yaml"]
