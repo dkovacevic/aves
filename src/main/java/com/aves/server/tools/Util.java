@@ -67,7 +67,7 @@ public class Util {
         return key;
     }
 
-    public static InputStream s3DownloadFIle(UUID assetId) throws Exception {
+    public static InputStream s3DownloadFile(UUID assetId) throws Exception {
         return minioClient.getObject(BUCKET_NAME, assetId.toString());
     }
 
@@ -127,6 +127,11 @@ public class Util {
         InputStream is = Util.class.getClassLoader().getResourceAsStream(filename);
         byte[] image = toByteArray(is);
         return ImageProcessor.getMediumImage(new Picture(image));
+    }
+
+    public static InputStream getErrorImage() {
+        String filename = "assets/img/error.png";
+        return Util.class.getClassLoader().getResourceAsStream(filename);
     }
 
     public static Mail createMail(String subject, String body, String from, String to) {

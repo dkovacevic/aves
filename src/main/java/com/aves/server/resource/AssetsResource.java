@@ -88,7 +88,7 @@ public class AssetsResource {
     @Authorization("Bearer")
     public Response get(@PathParam("assetId") UUID assetId) {
         try {
-            InputStream object = s3DownloadFIle(assetId);
+            InputStream object = s3DownloadFile(assetId);
 
             return Response.
                     ok(object).
@@ -96,9 +96,12 @@ public class AssetsResource {
         } catch (ErrorResponseException e) {
             Logger.warning("AssetsResource.get : %s", e.errorResponse().code());
             // Logger.debug("AssetsResource.get : %s", e);
+//            return Response
+//                    .ok(new ErrorMessage(e.errorResponse().code()))
+//                    .status(404)
+//                    .build();
             return Response
-                    .ok(new ErrorMessage(e.errorResponse().code()))
-                    .status(404)
+                    .ok(getErrorImage())
                     .build();
         } catch (Exception e) {
             e.printStackTrace();

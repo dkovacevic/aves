@@ -44,7 +44,9 @@ public class LoginResource {
         try {
             UserDAO userDAO = jdbi.onDemand(UserDAO.class);
 
-            String hashed = userDAO.getHash(signIn.email);
+            String email = signIn.email.toLowerCase().trim();
+
+            String hashed = userDAO.getHash(email);
             if (hashed == null || !SCryptUtil.check(signIn.password, hashed)) {
                 return Response
                         .ok(new ErrorMessage("Wrong email or password"))
@@ -55,7 +57,7 @@ public class LoginResource {
             long mills = TimeUnit.SECONDS.toMillis(config.tokenExpiration);
             Date exp = new Date(new Date().getTime() + mills);
 
-            UUID userId = userDAO.getUserId(signIn.email);
+            UUID userId = userDAO.getUserId(email);
             if (userId == null) {
                 return Response
                         .ok(new ErrorMessage("Wrong email or password"))

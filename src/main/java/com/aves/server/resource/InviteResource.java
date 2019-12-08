@@ -61,7 +61,7 @@ public class InviteResource {
 
             int accent = random(8);
 
-            String email = invite.email.toLowerCase();
+            String email = invite.email.toLowerCase().trim();
 
             userDAO.insert(
                     userId,

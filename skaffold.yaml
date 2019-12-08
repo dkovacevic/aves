@@ -8,7 +8,7 @@ build:
 deploy:
   kubectl:
     manifests:
-      - kubernetes-manifests/aves.yaml
+      - kubernetes-manifests/*
 
 profiles:
   # use the dockerfile profile to build images using Docker instead of Jib

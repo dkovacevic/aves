@@ -1,6 +1,5 @@
 target/
 data/
-kubernetes-manifests/
 .idea/
 *.iml
 *.log
