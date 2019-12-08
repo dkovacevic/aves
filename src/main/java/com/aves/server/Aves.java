@@ -16,6 +16,7 @@ import io.dropwizard.Application;
 import io.dropwizard.client.JerseyClientBuilder;
 import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
 import io.dropwizard.configuration.SubstitutingSourceProvider;
+import io.dropwizard.db.DataSourceFactory;
 import io.dropwizard.jdbi.DBIFactory;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
@@ -24,6 +25,7 @@ import io.federecio.dropwizard.swagger.SwaggerBundle;
 import io.federecio.dropwizard.swagger.SwaggerBundleConfiguration;
 import io.jsonwebtoken.security.Keys;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
+import org.flywaydb.core.Flyway;
 import org.skife.jdbi.v2.DBI;
 
 import javax.crypto.SecretKey;
@@ -34,7 +36,6 @@ import javax.websocket.server.ServerEndpointConfig;
 import javax.ws.rs.client.Client;
 import java.util.ArrayList;
 import java.util.EnumSet;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class Aves extends Application<Configuration> {
@@ -81,8 +82,18 @@ public class Aves extends Application<Configuration> {
     }
 
     public void run(Configuration config, Environment environment) {
+        DataSourceFactory database = config.database;
+
+        // Migrate DB if needed
+        Flyway flyway = Flyway
+                .configure()
+                .dataSource(database.getUrl(), database.getUser(), database.getPassword())
+                .baselineOnMigrate(true)
+                .load();
+        flyway.migrate();
+
         Aves.key = Keys.hmacShaKeyFor(config.key.getBytes());
-        jdbi = new DBIFactory().build(environment, config.database, "postgresql");
+        jdbi = new DBIFactory().build(environment, database, "aves");
 
         // Enable CORS headers
         final FilterRegistration.Dynamic cors = environment.servlets().addFilter("CORS", CrossOriginFilter.class);
@@ -126,15 +137,9 @@ public class Aves extends Application<Configuration> {
         environment.jersey().register(new PropertiesResource());
         environment.jersey().register(new CallsResource());
 
-        ScheduledExecutorService pinger = environment.lifecycle()
+        environment.lifecycle()
                 .scheduledExecutorService("Socket pinger")
-                .build();
-
-        pinger.scheduleAtFixedRate(new Runnable() {
-            @Override
-            public void run() {
-                ServerEndpoint.ping();
-            }
-        }, 10, 10, TimeUnit.SECONDS);
+                .build()
+                .scheduleAtFixedRate(ServerEndpoint::ping, 10, 10, TimeUnit.SECONDS);
     }
 }
