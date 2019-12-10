@@ -1,6 +1,5 @@
 package com.aves.server.resource;
 
-import com.aves.server.DAO.ClientsDAO;
 import com.aves.server.DAO.NotificationsDAO;
 import com.aves.server.model.ErrorMessage;
 import com.aves.server.model.Event;
@@ -21,7 +20,6 @@ import javax.ws.rs.core.Response;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 @Api
@@ -46,16 +44,15 @@ public class NotificationsResource {
             UUID userId = (UUID) context.getProperty("zuid");
 
             NotificationsDAO notificationsDAO = jdbi.onDemand(NotificationsDAO.class);
-            ClientsDAO clientsDAO = jdbi.onDemand(ClientsDAO.class);
+//            ClientsDAO clientsDAO = jdbi.onDemand(ClientsDAO.class);
 
-            //check the clientId validity
-            UUID challenge = clientsDAO.getUserId(clientId);
-            if (!Objects.equals(userId, challenge)) {
-                return Response.
-                        ok(new ErrorMessage("Unknown clientId")).
-                        status(400).
-                        build();
-            }
+//            UUID challenge = clientsDAO.getUserId(clientId);
+//            if (!Objects.equals(userId, challenge)) {
+//                return Response.
+//                        ok(new ErrorMessage("Unknown clientId")).
+//                        status(400).
+//                        build();
+//            }
 
             Timestamp time = since != null ? notificationsDAO.getTime(since) : new Timestamp(0);
             List<String> notifications = notificationsDAO.get(clientId, userId, time, size);

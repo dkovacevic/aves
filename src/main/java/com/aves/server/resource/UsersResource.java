@@ -112,9 +112,25 @@ public class UsersResource {
         }
     }
 
+    @GET
+    @Path("{userId}/rich-info")
+    @ApiOperation(value = "Get user's rich info'")
+    @Authorization("Bearer")
+    public Response getRichInfo(@PathParam("userId") UUID userId) {
+        return Response.
+                ok(new RichInfo()).
+                build();
+    }
+
     static class CheckHandles {
         @JsonProperty("return")
         public int ret;
         public ArrayList<String> handles;
+    }
+
+    static class RichInfo {
+        @JsonProperty
+        public int version = 1;
+        public ArrayList<String> fields;
     }
 }

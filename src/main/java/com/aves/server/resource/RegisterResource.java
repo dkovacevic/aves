@@ -47,6 +47,8 @@ public class RegisterResource {
             Picture profile = getProfilePicture();
             UUID preview = s3UploadFile(profile.getImageData());
 
+            int accent = new Random().nextInt(8);
+            
             userDAO.insert(
                     userId,
                     newUser.name,
@@ -55,7 +57,7 @@ public class RegisterResource {
                     newUser.country,
                     newUser.email.toLowerCase(),
                     newUser.phone,
-                    new Random().nextInt(8),
+                    accent,
                     preview,
                     preview,
                     hash);

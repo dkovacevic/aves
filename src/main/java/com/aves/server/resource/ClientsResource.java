@@ -2,11 +2,9 @@ package com.aves.server.resource;
 
 import com.aves.server.DAO.ClientsDAO;
 import com.aves.server.DAO.PrekeysDAO;
+import com.aves.server.DAO.UserDAO;
 import com.aves.server.EventSender;
-import com.aves.server.model.Device;
-import com.aves.server.model.ErrorMessage;
-import com.aves.server.model.Event;
-import com.aves.server.model.NewClient;
+import com.aves.server.model.*;
 import com.aves.server.model.otr.PreKey;
 import com.aves.server.tools.Logger;
 import io.swagger.annotations.Api;
@@ -24,6 +22,7 @@ import javax.ws.rs.core.Response;
 import java.util.List;
 import java.util.UUID;
 
+import static com.aves.server.EventSender.sendEvent;
 import static com.aves.server.tools.Util.next;
 
 @Api
@@ -70,7 +69,13 @@ public class ClientsResource {
             device.cookie = device.label;
 
             Event event = EventSender.userClientAdd(device);
-            EventSender.sendEvent(event, userId, jdbi);
+            sendEvent(event, userId, clientId, jdbi);
+
+            // Send user update event
+            UserDAO userDAO = jdbi.onDemand(UserDAO.class);
+            User user = userDAO.getUser(userId);
+            Event userUpdate = EventSender.userUpdate(user);
+            sendEvent(userUpdate, userId, clientId, jdbi);
 
             return Response.
                     ok(device).

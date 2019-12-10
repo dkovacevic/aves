@@ -24,6 +24,8 @@ public class Payload {
     @JsonProperty("client")
     public Device device;
 
+    public User user;
+
     @JsonIgnoreProperties(ignoreUnknown = true)
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class Data {

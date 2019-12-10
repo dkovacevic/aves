@@ -4,6 +4,7 @@ import com.aves.server.Aves;
 import com.aves.server.model.AssetKey;
 import com.aves.server.model.ErrorMessage;
 import com.aves.server.tools.Logger;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Jwts;
@@ -20,6 +21,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Objects;
 import java.util.UUID;
@@ -31,6 +33,7 @@ import static com.aves.server.tools.Util.*;
 @Path("/assets/v3")
 @Produces(MediaType.APPLICATION_JSON)
 public class AssetsResource {
+    private static SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @POST
@@ -58,7 +61,7 @@ public class AssetsResource {
             AssetKey assetKey = new AssetKey();
             assetKey.key = s3UploadFile(bytes);
 
-            _Metadata metadata = objectMapper.readValue(bodyPart1.getInputStream(), _Metadata.class);
+            Metadata metadata = objectMapper.readValue(bodyPart1.getInputStream(), Metadata.class);
             if (!metadata.visible) {
                 Date exp = new Date(new Date().getTime() + TimeUnit.DAYS.toMillis(30));
                 assetKey.token = Jwts.builder()
@@ -66,7 +69,7 @@ public class AssetsResource {
                         .setExpiration(exp)
                         .signWith(Aves.getKey())
                         .compact();
-                assetKey.expires = data.toString();
+                assetKey.expires = formatter.format(exp);
             }
 
             return Response.
@@ -113,7 +116,8 @@ public class AssetsResource {
         }
     }
 
-    public static class _Metadata {
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class Metadata {
         @JsonProperty("public")
         public boolean visible;
         @JsonProperty("retention")

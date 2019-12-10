@@ -2,10 +2,7 @@ package com.aves.server;
 
 import com.aves.server.DAO.ClientsDAO;
 import com.aves.server.DAO.NotificationsDAO;
-import com.aves.server.model.Conversation;
-import com.aves.server.model.Device;
-import com.aves.server.model.Event;
-import com.aves.server.model.Payload;
+import com.aves.server.model.*;
 import com.aves.server.tools.Logger;
 import com.aves.server.websocket.ServerEndpoint;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -13,7 +10,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.skife.jdbi.v2.DBI;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.UUID;
 
@@ -72,8 +68,18 @@ public class EventSender {
         Payload payload = new Payload();
         payload.type = "user.client-add";
         payload.device = device;
+        event.payload.add(payload);
 
-        event.payload = new ArrayList<>();
+        return event;
+    }
+
+    public static Event userUpdate(User user) {
+        Event event = new Event();
+        event.id = UUID.randomUUID();
+
+        Payload payload = new Payload();
+        payload.type = "user.update";
+        payload.user = user;
         event.payload.add(payload);
 
         return event;
@@ -95,7 +101,6 @@ public class EventSender {
         payload.data.type = conv.type;
         payload.data.members = conv.members;
 
-        event.payload = new ArrayList<>();
         event.payload.add(payload);
 
         if (conv.members == null)
@@ -115,7 +120,6 @@ public class EventSender {
         payload.time = formatter.format(new Date());
         payload.data = data;
 
-        event.payload = new ArrayList<>();
         event.payload.add(payload);
 
         return event;
