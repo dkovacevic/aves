@@ -10,10 +10,10 @@ import javax.validation.constraints.NotNull;
 
 public class Configuration extends io.dropwizard.Configuration {
     @JsonProperty("swagger")
+    @NotNull
     public SwaggerBundleConfiguration swagger;
 
     @Valid
-    @NotNull
     @JsonProperty("jerseyClient")
     public JerseyClientConfiguration jerseyConfig = new JerseyClientConfiguration();
 
@@ -28,5 +28,5 @@ public class Configuration extends io.dropwizard.Configuration {
     public String key;
 
     @JsonProperty
-    public long tokenExpiration = 30;
+    public long tokenExpiration = 900;
 }

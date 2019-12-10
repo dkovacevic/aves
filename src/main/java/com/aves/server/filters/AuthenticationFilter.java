@@ -17,6 +17,10 @@ import java.util.UUID;
 public class AuthenticationFilter implements ContainerRequestFilter {
     @Override
     public void filter(ContainerRequestContext requestContext) {
+        String method = requestContext.getMethod();
+        if (method.equalsIgnoreCase("OPTIONS"))
+            return;
+
         String auth = requestContext.getHeaderString(HttpHeaders.AUTHORIZATION);
         Cookie authCookie = requestContext.getCookies().get("zuid");
         String access_token = requestContext.getUriInfo().getQueryParameters(true).getFirst("access_token");

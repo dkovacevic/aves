@@ -34,6 +34,9 @@ public class User {
 
     public String locale = "en-US";
 
+    @JsonProperty("managed_by")
+    public String managed = "scim";
+    
     @JsonProperty
     public String getHandle() {
         return name.toLowerCase().replace(" ", "");
@@ -41,6 +44,9 @@ public class User {
 
     public ArrayList<UserAsset> assets = new ArrayList<>();
 
+    @JsonProperty("picture")
+    public ArrayList<String> dummy = new ArrayList<>();
+    
     public static class UserAsset {
         public String size;
         public UUID key;

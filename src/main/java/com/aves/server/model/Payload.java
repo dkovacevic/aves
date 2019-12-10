@@ -20,8 +20,9 @@ public class Payload {
     public String time;
     @JsonProperty
     public Data data;
-    @JsonProperty
-    public UUID team;
+
+    @JsonProperty("client")
+    public Device device;
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     @JsonInclude(JsonInclude.Include.NON_NULL)

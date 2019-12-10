@@ -11,10 +11,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.skife.jdbi.v2.DBI;
 
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.UUID;
 
 public class EventSender {
+    private static SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
     private static ObjectMapper mapper = new ObjectMapper();
 
     public static String sendEvent(Event event, UUID to, DBI jdbi) throws JsonProcessingException {
@@ -69,7 +72,7 @@ public class EventSender {
         payload.convId = conv.id;
         payload.from = from;
         payload.type = "conversation.create";
-        payload.time = new Date().toString();
+        payload.time = formatter.format(new Date());
         payload.data = new Payload.Data();
         payload.data.id = conv.id;
         payload.data.creator = conv.creator;
@@ -77,11 +80,12 @@ public class EventSender {
         payload.data.type = conv.type;
         payload.data.members = conv.members;
 
-        event.payload = new Payload[]{payload};
+        event.payload = new ArrayList<>();
+        event.payload.add(payload);
 
         if (conv.members == null)
             Logger.error("conversationCreateEvent: conv.members is NULL");
-        
+
         return event;
     }
 
@@ -93,10 +97,12 @@ public class EventSender {
         payload.convId = convId;
         payload.from = from;
         payload.type = "conversation.otr-message-add";
-        payload.time = new Date().toString();
+        payload.time = formatter.format(new Date());
         payload.data = data;
 
-        event.payload = new Payload[]{payload};
+        event.payload = new ArrayList<>();
+        event.payload.add(payload);
+        
         return event;
     }
 }

@@ -2,10 +2,12 @@ package com.aves.server.resource.dummy;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.Authorization;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -19,7 +21,7 @@ public class PropertiesResource {
     @Path("{key}")
     @ApiOperation(value = "Get properties")
     @Authorization("Bearer")
-    public Response get() {
+    public Response get(@ApiParam @PathParam("key") String key) {
         return Response.ok(new _Result()).build();
     }
 

@@ -32,7 +32,7 @@ public class SelfResource {
     @GET
     @ApiOperation(value = "Get your details")
     @Authorization("Bearer")
-    public Response get(@Context ContainerRequestContext context) {
+    public Response getSelf(@Context ContainerRequestContext context) {
         try {
             UUID userId = (UUID) context.getProperty("zuid");
 
@@ -51,7 +51,7 @@ public class SelfResource {
                     build();
         } catch (Exception e) {
             e.printStackTrace();
-            Logger.error("SelfResource.get : %s", e);
+            Logger.error("SelfResource.getSelf : %s", e);
             return Response
                     .ok(new ErrorMessage(e.getMessage()))
                     .status(500)
@@ -62,6 +62,7 @@ public class SelfResource {
     @HEAD
     @Path("password")
     @ApiOperation(value = "Checks for password")
+    @Authorization("Bearer")
     public Response getPassword() {
         try {
             return Response.
@@ -70,6 +71,25 @@ public class SelfResource {
         } catch (Exception e) {
             e.printStackTrace();
             Logger.error("SelfResource.getPassword : %s", e);
+            return Response
+                    .ok(new ErrorMessage(e.getMessage()))
+                    .status(500)
+                    .build();
+        }
+    }
+
+    @HEAD
+    @Path("consent")
+    @ApiOperation(value = "Checks for consent")
+    @Authorization("Bearer")
+    public Response getConsent() {
+        try {
+            return Response.
+                    ok().
+                    build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Logger.error("SelfResource.getConsent : %s", e);
             return Response
                     .ok(new ErrorMessage(e.getMessage()))
                     .status(500)

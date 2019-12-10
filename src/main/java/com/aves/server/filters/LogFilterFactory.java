@@ -27,14 +27,13 @@ public class LogFilterFactory implements FilterFactory<IAccessEvent> {
                     return FilterReply.DENY;
                 }
 
-                if (requestURI.contains("notifications")) {
-                    return FilterReply.DENY;
-                }
-
                 if (requestURI.contains("access")) {
                     return FilterReply.DENY;
                 }
 
+//                if (requestURI.contains("notifications")) {
+//                    return FilterReply.DENY;
+//                }
                 return FilterReply.NEUTRAL;
             }
         };

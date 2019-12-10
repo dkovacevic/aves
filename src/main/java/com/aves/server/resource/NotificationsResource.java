@@ -117,8 +117,7 @@ public class NotificationsResource {
             String notification = notificationsDAO.getLast(last);
             if (notification == null) {
                 return Response
-                        .ok(new Event())
-                        .status(200)
+                        .status(404)
                         .build();
             }
 

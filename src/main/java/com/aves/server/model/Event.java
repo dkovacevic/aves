@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.ArrayList;
 import java.util.UUID;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -12,7 +13,7 @@ public class Event {
     @JsonProperty
     public UUID id;
     @JsonProperty
-    public Payload[] payload;
+    public ArrayList<Payload> payload = new ArrayList<>();
     @JsonProperty("transient")
     public Boolean trans;
 }

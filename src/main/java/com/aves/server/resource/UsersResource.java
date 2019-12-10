@@ -4,6 +4,7 @@ import com.aves.server.DAO.UserDAO;
 import com.aves.server.model.ErrorMessage;
 import com.aves.server.model.User;
 import com.aves.server.tools.Logger;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -11,6 +12,8 @@ import io.swagger.annotations.Authorization;
 import org.skife.jdbi.v2.DBI;
 
 import javax.ws.rs.*;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
@@ -79,5 +82,39 @@ public class UsersResource {
                     .status(500)
                     .build();
         }
+    }
+
+    @POST
+    @Path("handles")
+    @ApiOperation(value = "Check availability of user handles")
+    @Authorization("Bearer")
+    public Response handles(@Context ContainerRequestContext context,
+                            @ApiParam CheckHandles checkHandles) {
+        try {
+            UUID userId = (UUID) context.getProperty("zuid");
+
+            UserDAO userDAO = jdbi.onDemand(UserDAO.class);
+
+            User user = userDAO.getUser(userId);
+
+            checkHandles.handles.remove(user.getHandle());
+
+            return Response.
+                    ok(checkHandles.handles).
+                    build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Logger.error("UsersResource.handles : %s", e);
+            return Response
+                    .ok(new ErrorMessage(e.getMessage()))
+                    .status(500)
+                    .build();
+        }
+    }
+
+    static class CheckHandles {
+        @JsonProperty("return")
+        public int ret;
+        public ArrayList<String> handles;
     }
 }
