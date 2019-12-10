@@ -29,8 +29,10 @@ public interface NotificationsDAO {
                      @Bind("time") Timestamp since,
                      @Bind("size") int size);
 
-    @SqlQuery("SELECT notification FROM Notifications WHERE id = :last")
-    String getLast(@Bind("last") UUID last);
+    @SqlQuery("SELECT notification FROM Notifications WHERE client_id = :clientId AND user_id = :userId " +
+            "AND time = (select max(N.time) FROM Notifications N WHERE N.client_id = :clientId)")
+    String getLast(@Bind("clientId") String clientId,
+                   @Bind("userId") UUID userId);
 
     @SqlQuery("SELECT time from Notifications WHERE id = :id")
     @RegisterMapper(_Mapper.class)

@@ -43,8 +43,6 @@ public class NotificationsResource {
                         @QueryParam("size") @DefaultValue("30") int size,
                         @QueryParam("since") UUID since) {
         try {
-            UUID last = null;
-
             UUID userId = (UUID) context.getProperty("zuid");
 
             NotificationsDAO notificationsDAO = jdbi.onDemand(NotificationsDAO.class);
@@ -67,10 +65,7 @@ public class NotificationsResource {
             for (String notif : notifications) {
                 Event notification = mapper.readValue(notif, Event.class);
                 result.notifications.add(notification);
-                last = notification.id;
             }
-
-            clientsDAO.updateLast(clientId, last);
 
             return Response.
                     ok(result).
@@ -95,32 +90,9 @@ public class NotificationsResource {
             UUID userId = (UUID) context.getProperty("zuid");
 
             NotificationsDAO notificationsDAO = jdbi.onDemand(NotificationsDAO.class);
-            ClientsDAO clientsDAO = jdbi.onDemand(ClientsDAO.class);
 
-            //check the clientId validity
-            UUID challenge = clientsDAO.getUserId(clientId);
-            if (!Objects.equals(userId, challenge)) {
-                return Response.
-                        ok(new ErrorMessage("Unknown clientId")).
-                        status(400).
-                        build();
-            }
-
-            UUID last = clientsDAO.getLast(clientId);
-            if (last == null) {
-                return Response
-                        .ok(new Event())
-                        .status(200)
-                        .build();
-            }
-
-            String notification = notificationsDAO.getLast(last);
-            if (notification == null) {
-                return Response
-                        .status(404)
-                        .build();
-            }
-
+            String notification = notificationsDAO.getLast(clientId, userId);
+            
             Event event = mapper.readValue(notification, Event.class);
 
             return Response.

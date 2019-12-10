@@ -3,6 +3,7 @@ package com.aves.server;
 import com.aves.server.DAO.ClientsDAO;
 import com.aves.server.DAO.NotificationsDAO;
 import com.aves.server.model.Conversation;
+import com.aves.server.model.Device;
 import com.aves.server.model.Event;
 import com.aves.server.model.Payload;
 import com.aves.server.tools.Logger;
@@ -64,6 +65,20 @@ public class EventSender {
         return strEvent;
     }
 
+    public static Event userClientAdd(Device device) {
+        Event event = new Event();
+        event.id = UUID.randomUUID();
+
+        Payload payload = new Payload();
+        payload.type = "user.client-add";
+        payload.device = device;
+
+        event.payload = new ArrayList<>();
+        event.payload.add(payload);
+
+        return event;
+    }
+
     public static Event conversationCreateEvent(UUID from, Conversation conv) {
         Event event = new Event();
         event.id = UUID.randomUUID();
@@ -102,7 +117,7 @@ public class EventSender {
 
         event.payload = new ArrayList<>();
         event.payload.add(payload);
-        
+
         return event;
     }
 }

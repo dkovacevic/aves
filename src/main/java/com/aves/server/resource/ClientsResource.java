@@ -2,8 +2,10 @@ package com.aves.server.resource;
 
 import com.aves.server.DAO.ClientsDAO;
 import com.aves.server.DAO.PrekeysDAO;
+import com.aves.server.EventSender;
 import com.aves.server.model.Device;
 import com.aves.server.model.ErrorMessage;
+import com.aves.server.model.Event;
 import com.aves.server.model.NewClient;
 import com.aves.server.model.otr.PreKey;
 import com.aves.server.tools.Logger;
@@ -66,13 +68,57 @@ public class ClientsResource {
 
             Device device = clientsDAO.getDevice(userId, clientId);
             device.cookie = device.label;
-            
+
+            Event event = EventSender.userClientAdd(device);
+            EventSender.sendEvent(event, userId, jdbi);
+
             return Response.
                     ok(device).
                     build();
         } catch (Exception e) {
             e.printStackTrace();
             Logger.error("ClientResource.post : %s", e);
+            return Response
+                    .ok(new ErrorMessage(e.getMessage()))
+                    .status(500)
+                    .build();
+        }
+    }
+
+    @PUT
+    @Path("{client}")
+    @ApiOperation(value = "Update a registered client")
+    @Authorization("Bearer")
+    public Response put(@Context ContainerRequestContext context,
+                        @PathParam("client") String clientId,
+                        @ApiParam @Valid NewClient newClient) {
+        try {
+            UUID userId = (UUID) context.getProperty("zuid");
+
+            ClientsDAO clientsDAO = jdbi.onDemand(ClientsDAO.class);
+            PrekeysDAO prekeysDAO = jdbi.onDemand(PrekeysDAO.class);
+
+            if (newClient.lastkey != null) {
+                PreKey lastkey = newClient.lastkey;
+                clientsDAO.insert(clientId, userId, lastkey.id);
+                prekeysDAO.insert(clientId, lastkey.id, lastkey.key);
+            }
+
+            if (newClient.prekeys != null) {
+                for (PreKey preKey : newClient.prekeys) {
+                    prekeysDAO.insert(clientId, preKey.id, preKey.key);
+                }
+            }
+
+            Device device = clientsDAO.getDevice(userId, clientId);
+            device.cookie = device.label;
+
+            return Response.
+                    ok(device).
+                    build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Logger.error("ClientResource.put : %s", e);
             return Response
                     .ok(new ErrorMessage(e.getMessage()))
                     .status(500)

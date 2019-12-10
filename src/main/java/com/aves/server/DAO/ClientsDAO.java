@@ -16,7 +16,8 @@ import java.util.UUID;
 
 public interface ClientsDAO {
     @SqlUpdate("INSERT INTO Clients (client_Id, user_id, lastkey) " +
-            "VALUES (:clientId, :userId, :lastKeyId)")
+            "VALUES (:clientId, :userId, :lastKeyId) " +
+            "ON CONFLICT (client_Id) DO UPDATE SET lastkey = EXCLUDED.lastkey")
     int insert(@Bind("clientId") String clientId,
                @Bind("userId") UUID userId,
                @Bind("lastKeyId") int lastKeyId);

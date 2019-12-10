@@ -13,7 +13,8 @@ import java.sql.SQLException;
 
 public interface PrekeysDAO {
     @SqlUpdate("INSERT INTO Prekeys (client_id, key_id, key) " +
-            "VALUES (:clientId, :keyId, :key)")
+            "VALUES (:clientId, :keyId, :key) " +
+            "ON CONFLICT (client_Id, key_id) DO UPDATE SET key = EXCLUDED.key")
     int insert(@Bind("clientId") String clientId,
                @Bind("keyId") int keyId,
                @Bind("key") String key);
