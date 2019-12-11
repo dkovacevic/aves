@@ -23,10 +23,10 @@ public class EventSender {
 
         String strEvent = mapper.writeValueAsString(event);
 
-        for (String clientId : clientsDAO.getClients(to)) {
-            // persist to Notification stream
-            notificationsDAO.insert(UUID.randomUUID(), clientId, to, strEvent);
+        // persist to Notification stream
+        notificationsDAO.insert(UUID.randomUUID(), null, to, strEvent);
 
+        for (String clientId : clientsDAO.getClients(to)) {
             //Send event via Socket
             boolean send = ServerEndpoint.send(clientId, event);
             Logger.debug("Websocket: message (%s) to user: %s, client: %s. Sent: %s",

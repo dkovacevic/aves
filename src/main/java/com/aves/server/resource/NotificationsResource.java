@@ -57,6 +57,7 @@ public class NotificationsResource {
             if (time == null) {
                 time = new Timestamp(0);
             }
+
             List<String> notifications = notificationsDAO.get(clientId, userId, time, size);
 
             NotificationList result = new NotificationList();

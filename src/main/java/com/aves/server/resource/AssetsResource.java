@@ -72,6 +72,7 @@ public class AssetsResource {
                 assetKey.expires = formatter.format(exp);
             }
 
+            data.close();
             return Response.
                     ok(assetKey).
                     build();

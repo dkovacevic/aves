@@ -1,5 +1,6 @@
 package com.aves.server.tools;
 
+import com.aves.server.resource.InviteResource;
 import com.sendgrid.Method;
 import com.sendgrid.Request;
 import com.sendgrid.Response;
@@ -151,5 +152,14 @@ public class Util {
             Logger.error("sendEmail: %s", e);
             return false;
         }
+    }
+
+    public static String getEmailTemplate() throws IOException {
+        String filename = "template.html";
+        InputStream resourceAsStream = InviteResource.class.getClassLoader().getResourceAsStream(filename);
+        if (resourceAsStream == null)
+            throw new IOException("File not found: " + filename);
+
+        return new String(Util.toByteArray(resourceAsStream));
     }
 }

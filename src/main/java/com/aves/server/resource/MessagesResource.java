@@ -8,7 +8,6 @@ import com.aves.server.model.Payload;
 import com.aves.server.model.otr.ClientMismatch;
 import com.aves.server.model.otr.NewOtrMessage;
 import com.aves.server.tools.Logger;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -16,15 +15,15 @@ import io.swagger.annotations.Authorization;
 import org.skife.jdbi.v2.DBI;
 
 import javax.validation.Valid;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 import static com.aves.server.EventSender.conversationOtrMessageAddEvent;
@@ -35,7 +34,7 @@ import static com.aves.server.EventSender.sendEvent;
 @Produces(MediaType.APPLICATION_JSON)
 public class MessagesResource {
     private final DBI jdbi;
-    private ObjectMapper mapper = new ObjectMapper();
+    private static SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
 
     public MessagesResource(DBI jdbi) {
         this.jdbi = jdbi;
@@ -46,6 +45,7 @@ public class MessagesResource {
     @Authorization("Bearer")
     public Response post(@Context ContainerRequestContext context,
                          @PathParam("convId") UUID convId,
+                         @QueryParam("report_missing") UUID missing,
                          @ApiParam @Valid NewOtrMessage otrMessage) {
 
         try {
@@ -54,7 +54,16 @@ public class MessagesResource {
             ParticipantsDAO participantsDAO = jdbi.onDemand(ParticipantsDAO.class);
             ClientsDAO clientsDAO = jdbi.onDemand(ClientsDAO.class);
 
+            UUID challenge = clientsDAO.getUserId(otrMessage.sender);
+            if (!Objects.equals(challenge, userId)) {
+                Logger.warning("%s -> Unknown sender: %s %s", userId, challenge, otrMessage.sender);
+                return Response.
+                        status(403).
+                        build();
+            }
+
             ClientMismatch clientMismatch = new ClientMismatch();
+            clientMismatch.time = formatter.format(new Date());
 
             List<UUID> participants = participantsDAO.getUsers(convId);
             for (UUID participantId : participants) {
@@ -64,8 +73,10 @@ public class MessagesResource {
                     if (clientId.equals(otrMessage.sender))
                         continue;
 
-                    if (!otrMessage.recipients.contains(participantId, clientId))
+                    if (!otrMessage.recipients.contains(participantId, clientId)) {
+                        Logger.info("Missing: %s %s", participantId, clientId);
                         clientMismatch.missing.add(participantId, clientId);
+                    }
                 }
             }
 

@@ -7,6 +7,7 @@ import com.aves.server.model.*;
 import com.aves.server.tools.Logger;
 import com.aves.server.tools.Picture;
 import com.aves.server.tools.Util;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.lambdaworks.crypto.SCryptUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -22,7 +23,6 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.io.InputStream;
 import java.util.UUID;
 
 import static com.aves.server.EventSender.conversationCreateEvent;
@@ -33,9 +33,15 @@ import static com.aves.server.tools.Util.*;
 @Path("/invite")
 @Produces(MediaType.APPLICATION_JSON)
 public class InviteResource {
+    private final ConversationsDAO conversationsDAO;
+    private final ParticipantsDAO participantsDAO;
     private final DBI jdbi;
+    private final UserDAO userDAO;
 
     public InviteResource(DBI jdbi) {
+        userDAO = jdbi.onDemand(UserDAO.class);
+        conversationsDAO = jdbi.onDemand(ConversationsDAO.class);
+        participantsDAO = jdbi.onDemand(ParticipantsDAO.class);
         this.jdbi = jdbi;
     }
 
@@ -46,10 +52,6 @@ public class InviteResource {
                          @ApiParam @Valid Invite invite) {
         try {
             UUID inviterId = (UUID) context.getProperty("zuid");
-
-            UserDAO userDAO = jdbi.onDemand(UserDAO.class);
-            ConversationsDAO conversationsDAO = jdbi.onDemand(ConversationsDAO.class);
-            ParticipantsDAO participantsDAO = jdbi.onDemand(ParticipantsDAO.class);
 
             String password = next(8);
             String hash = SCryptUtil.scrypt(password, 16384, 8, 1);
@@ -75,6 +77,9 @@ public class InviteResource {
                     preview,
                     preview,
                     hash);
+
+            //create self conv for this user
+            createSelfConv(userId);
 
             // create new conv
             UUID convId = UUID.randomUUID();
@@ -114,8 +119,7 @@ public class InviteResource {
             result.user.password = password;
             result.conversation = conversation;
 
-            InputStream resourceAsStream = InviteResource.class.getClassLoader().getResourceAsStream("template.html");
-            String template = new String(Util.toByteArray(resourceAsStream));
+            String template = getEmailTemplate();
             String body = template.replace("[USER]", invite.name)
                     .replace("[EMAIL]", email)
                     .replace("[PASSWORD]", password);
@@ -133,6 +137,20 @@ public class InviteResource {
                     .status(500)
                     .build();
         }
+    }
+
+    private void createSelfConv(UUID userId) throws JsonProcessingException {
+        // create new conv
+        UUID convId = UUID.randomUUID();
+        conversationsDAO.insert(convId, null, userId, Enums.Conversation.SELF.ordinal());
+        participantsDAO.insert(convId, userId);
+
+        // send to inviter
+        Conversation conversation = conversationsDAO.get(convId);
+        conversation.members.self.id = userId;
+
+        Event event = conversationCreateEvent(userId, conversation);
+        sendEvent(event, userId, jdbi);
     }
 
     public static class _InviteResult {

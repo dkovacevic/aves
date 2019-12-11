@@ -22,19 +22,26 @@ public interface NotificationsDAO {
                @Bind("notification") String notification);
 
     @SqlQuery("SELECT notification from Notifications " +
-            "WHERE user_id = :userId AND client_id = :clientId AND time > :time " +
+            "WHERE user_id = :userId " +
+            "AND coalesce(client_id, :clientId) = :clientId " +
+            "AND time > :since " +
             "ORDER by Time LIMIT :size")
     List<String> get(@Bind("clientId") String clientId,
                      @Bind("userId") UUID userId,
-                     @Bind("time") Timestamp since,
+                     @Bind("since") Timestamp since,
                      @Bind("size") int size);
 
-    @SqlQuery("SELECT notification FROM Notifications WHERE client_id = :clientId AND user_id = :userId " +
-            "AND time = (select max(N.time) FROM Notifications N WHERE N.client_id = :clientId)")
+    @SqlQuery("SELECT notification FROM Notifications " +
+            "WHERE user_id = :userId " +
+            "AND coalesce(client_id, :clientId) = :clientId " +
+            "AND time = ( SELECT MAX(N.time) " +
+            "             FROM Notifications N " +
+            "             WHERE N.user_id = :userId " +
+            "             AND coalesce(N.client_id, :clientId) = :clientId )")
     String getLast(@Bind("clientId") String clientId,
                    @Bind("userId") UUID userId);
 
-    @SqlQuery("SELECT time from Notifications WHERE id = :id")
+    @SqlQuery("SELECT time FROM Notifications WHERE id = :id")
     @RegisterMapper(_Mapper.class)
     Timestamp getTime(@Bind("id") UUID id);
 
