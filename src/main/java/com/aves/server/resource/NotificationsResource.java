@@ -18,7 +18,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -28,9 +27,11 @@ import java.util.UUID;
 public class NotificationsResource {
     private final DBI jdbi;
     private ObjectMapper mapper = new ObjectMapper();
+    private final NotificationsDAO notificationsDAO;
 
     public NotificationsResource(DBI jdbi) {
         this.jdbi = jdbi;
+        this.notificationsDAO = jdbi.onDemand(NotificationsDAO.class);
     }
 
     @GET
@@ -43,29 +44,31 @@ public class NotificationsResource {
         try {
             UUID userId = (UUID) context.getProperty("zuid");
 
-            NotificationsDAO notificationsDAO = jdbi.onDemand(NotificationsDAO.class);
-//            ClientsDAO clientsDAO = jdbi.onDemand(ClientsDAO.class);
+            int status = 200;
 
-//            UUID challenge = clientsDAO.getUserId(clientId);
-//            if (!Objects.equals(userId, challenge)) {
-//                return Response.
-//                        ok(new ErrorMessage("Unknown clientId")).
-//                        status(400).
-//                        build();
-//            }
+            Timestamp time = null;
+            if (since != null) {
+                time = notificationsDAO.getTime(since);
+                if (time == null) {
+                    status = 404;
+                }
+            }
 
-            Timestamp time = since != null ? notificationsDAO.getTime(since) : new Timestamp(0);
+            if (time == null) {
+                time = new Timestamp(0);
+            }
             List<String> notifications = notificationsDAO.get(clientId, userId, time, size);
 
             NotificationList result = new NotificationList();
-            result.notifications = new ArrayList<>();
             for (String notif : notifications) {
                 Event notification = mapper.readValue(notif, Event.class);
                 result.notifications.add(notification);
             }
 
+            Logger.debug("NotificationsResource::get: %s %s size: %d", userId, clientId, result.notifications.size());
             return Response.
                     ok(result).
+                    status(status).
                     build();
         } catch (Exception e) {
             e.printStackTrace();
@@ -89,7 +92,7 @@ public class NotificationsResource {
             NotificationsDAO notificationsDAO = jdbi.onDemand(NotificationsDAO.class);
 
             String notification = notificationsDAO.getLast(clientId, userId);
-            
+
             Event event = mapper.readValue(notification, Event.class);
 
             return Response.

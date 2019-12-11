@@ -14,5 +14,5 @@ public class NotificationList {
 
     @JsonProperty
     @NotNull
-    public ArrayList<Event> notifications;
+    public ArrayList<Event> notifications = new ArrayList<>();
 }

@@ -61,24 +61,26 @@ public class EventSender {
         return strEvent;
     }
 
-    public static Event userClientAdd(Device device) {
+    public static Event userClientAddEvent(Device device) {
         Event event = new Event();
         event.id = UUID.randomUUID();
 
         Payload payload = new Payload();
         payload.type = "user.client-add";
+        payload.time = formatter.format(new Date());
         payload.device = device;
         event.payload.add(payload);
 
         return event;
     }
 
-    public static Event userUpdate(User user) {
+    public static Event userUpdateEvent(User user) {
         Event event = new Event();
         event.id = UUID.randomUUID();
 
         Payload payload = new Payload();
         payload.type = "user.update";
+        payload.time = formatter.format(new Date());
         payload.user = user;
         event.payload.add(payload);
 
@@ -100,11 +102,7 @@ public class EventSender {
         payload.data.name = conv.name;
         payload.data.type = conv.type;
         payload.data.members = conv.members;
-
         event.payload.add(payload);
-
-        if (conv.members == null)
-            Logger.error("conversationCreateEvent: conv.members is NULL");
 
         return event;
     }
@@ -119,7 +117,6 @@ public class EventSender {
         payload.type = "conversation.otr-message-add";
         payload.time = formatter.format(new Date());
         payload.data = data;
-
         event.payload.add(payload);
 
         return event;

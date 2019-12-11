@@ -68,13 +68,13 @@ public class ClientsResource {
             Device device = clientsDAO.getDevice(userId, clientId);
             device.cookie = device.label;
 
-            Event event = EventSender.userClientAdd(device);
+            Event event = EventSender.userClientAddEvent(device);
             sendEvent(event, userId, clientId, jdbi);
 
             // Send user update event
             UserDAO userDAO = jdbi.onDemand(UserDAO.class);
             User user = userDAO.getUser(userId);
-            Event userUpdate = EventSender.userUpdate(user);
+            Event userUpdate = EventSender.userUpdateEvent(user);
             sendEvent(userUpdate, userId, clientId, jdbi);
 
             return Response.
