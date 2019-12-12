@@ -1,6 +1,5 @@
 package com.aves.server.websocket;
 
-import com.aves.server.Aves;
 import com.aves.server.DAO.ClientsDAO;
 import com.aves.server.model.Event;
 import com.aves.server.tools.Logger;
@@ -8,7 +7,6 @@ import com.aves.server.tools.Util;
 import com.codahale.metrics.annotation.Metered;
 import com.codahale.metrics.annotation.Timed;
 import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.Jwts;
 
 import javax.websocket.CloseReason;
 import javax.websocket.Endpoint;
@@ -61,24 +59,9 @@ public class ServerEndpoint extends Endpoint {
     @Override
     public void onOpen(Session session, EndpointConfig config) {
         try {
-            String token = Util.getQueryParam(session.getQueryString(), "access_token");
-
-            if (token == null) {
-                Logger.warning("Session %s, missing access token: %s", session.getId(), session.getQueryString());
-                return;
-            }
-
-            String subject = Jwts.parser()
-                    .setSigningKey(Aves.getKey())
-                    .parseClaimsJws(token)
-                    .getBody()
-                    .getSubject();
-
-            UUID userId = UUID.fromString(subject);
+            UUID userId = (UUID) config.getUserProperties().get("zuid");
 
             session.getUserProperties().put("zuid", userId);
-
-            session.addMessageHandler(new PingMessageHandler(session));
 
             String clientId = Util.getQueryParam(session.getQueryString(), "client");
             if (clientId != null) {
@@ -92,7 +75,15 @@ public class ServerEndpoint extends Endpoint {
                 }
             }
 
-            Logger.debug("Session: %s connected. zuid: %s, client: %s", session.getId(), userId, clientId);
+            session.addMessageHandler(new PingMessageHandler(session));
+
+            session.setMaxIdleTimeout(0);
+
+            Logger.info("Session: %s connected. zuid: %s, client: %s, size: %d",
+                    session.getId(),
+                    userId,
+                    clientId,
+                    sessions.size());
         } catch (ExpiredJwtException e) {
             Logger.warning("onOpen: %s", e);
         } catch (Exception e) {

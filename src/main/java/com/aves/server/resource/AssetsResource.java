@@ -33,7 +33,7 @@ import static com.aves.server.tools.Util.*;
 @Path("/assets/v3")
 @Produces(MediaType.APPLICATION_JSON)
 public class AssetsResource {
-    private static SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+    private static SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @POST
@@ -72,7 +72,6 @@ public class AssetsResource {
                 assetKey.expires = formatter.format(exp);
             }
 
-            data.close();
             return Response.
                     ok(assetKey).
                     build();

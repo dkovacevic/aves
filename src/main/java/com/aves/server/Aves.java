@@ -9,6 +9,7 @@ import com.aves.server.resource.dummy.CallsResource;
 import com.aves.server.resource.dummy.ConnectionsResource;
 import com.aves.server.resource.dummy.PropertiesResource;
 import com.aves.server.resource.dummy.TeamsResource;
+import com.aves.server.websocket.Configurator;
 import com.aves.server.websocket.EventEncoder;
 import com.aves.server.websocket.ServerEndpoint;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
@@ -72,9 +73,10 @@ public class Aves extends Application<Configuration> {
         ArrayList<Class<? extends Encoder>> encoders = new ArrayList<>();
         encoders.add(EventEncoder.class);
 
-        final ServerEndpointConfig config = ServerEndpointConfig
+        ServerEndpointConfig config = ServerEndpointConfig
                 .Builder
                 .create(ServerEndpoint.class, "/aves/await")
+                .configurator(new Configurator())
                 .encoders(encoders)
                 .build();
 
