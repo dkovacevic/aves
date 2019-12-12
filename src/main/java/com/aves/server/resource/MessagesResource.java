@@ -5,8 +5,10 @@ import com.aves.server.DAO.ParticipantsDAO;
 import com.aves.server.model.ErrorMessage;
 import com.aves.server.model.Event;
 import com.aves.server.model.Payload;
+import com.aves.server.model.otr.ClientCipher;
 import com.aves.server.model.otr.ClientMismatch;
 import com.aves.server.model.otr.NewOtrMessage;
+import com.aves.server.model.otr.Recipients;
 import com.aves.server.tools.Logger;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -35,8 +37,12 @@ import static com.aves.server.EventSender.sendEvent;
 public class MessagesResource {
     private final DBI jdbi;
     private static SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+    private final ParticipantsDAO participantsDAO;
+    private final ClientsDAO clientsDAO;
 
     public MessagesResource(DBI jdbi) {
+        participantsDAO = jdbi.onDemand(ParticipantsDAO.class);
+        clientsDAO = jdbi.onDemand(ClientsDAO.class);
         this.jdbi = jdbi;
     }
 
@@ -45,57 +51,39 @@ public class MessagesResource {
     @Authorization("Bearer")
     public Response post(@Context ContainerRequestContext context,
                          @PathParam("convId") UUID convId,
-                         @QueryParam("report_missing") UUID missing,
+                         @QueryParam("report_missing") UUID reportMissing,
+                         @QueryParam("ignore_missing") boolean ignoreMissing,
                          @ApiParam @Valid NewOtrMessage otrMessage) {
 
         try {
             UUID userId = (UUID) context.getProperty("zuid");
 
-            ParticipantsDAO participantsDAO = jdbi.onDemand(ParticipantsDAO.class);
-            ClientsDAO clientsDAO = jdbi.onDemand(ClientsDAO.class);
-
-            UUID challenge = clientsDAO.getUserId(otrMessage.sender);
+            String sender = otrMessage.sender;
+            UUID challenge = clientsDAO.getUserId(sender);
             if (!Objects.equals(challenge, userId)) {
-                Logger.warning("%s -> Unknown sender: %s %s", userId, challenge, otrMessage.sender);
+                Logger.warning("%s -> Unknown sender: %s %s", userId, challenge, sender);
                 return Response.
                         status(403).
                         build();
             }
-
-            ClientMismatch clientMismatch = new ClientMismatch();
-            clientMismatch.time = formatter.format(new Date());
-
+            Recipients recipients = otrMessage.recipients;
             List<UUID> participants = participantsDAO.getUsers(convId);
-            for (UUID participantId : participants) {
-                List<String> clientIds = clientsDAO.getClients(participantId);
 
-                for (String clientId : clientIds) {
-                    if (clientId.equals(otrMessage.sender))
-                        continue;
+            ClientMismatch clientMismatch = checkMissing(reportMissing, sender, recipients, participants);
 
-                    if (!otrMessage.recipients.contains(participantId, clientId)) {
-                        Logger.info("Missing: %s %s", participantId, clientId);
-                        clientMismatch.missing.add(participantId, clientId);
-                    }
-                }
-            }
-
-            if (!clientMismatch.missing.isEmpty())
+            if (!ignoreMissing && !clientMismatch.missing.isEmpty())
                 return Response.
                         ok(clientMismatch).
                         status(412).
                         build();
 
-            for (UUID participantId : participants) {
-                List<String> clientIds = clientsDAO.getClients(participantId);
-                for (String clientId : clientIds) {
-                    if (clientId.equals(otrMessage.sender))
-                        continue;
-
+            for (UUID participantId : recipients.keySet()) {
+                ClientCipher clientCipher = recipients.get(participantId);
+                for (String clientId : clientCipher.keySet()) {
                     Payload.Data data = new Payload.Data();
-                    data.sender = otrMessage.sender;
+                    data.sender = sender;
                     data.recipient = clientId;
-                    data.text = otrMessage.recipients.get(participantId, clientId);
+                    data.text = clientCipher.get(clientId);
 
                     Event event = conversationOtrMessageAddEvent(convId, userId, data);
 
@@ -115,5 +103,25 @@ public class MessagesResource {
                     .status(500)
                     .build();
         }
+    }
+
+    private ClientMismatch checkMissing(UUID ignore, String sender, Recipients recipients, List<UUID> participants) {
+        ClientMismatch clientMismatch = new ClientMismatch();
+        clientMismatch.time = formatter.format(new Date());
+
+        for (UUID participantId : participants) {
+            if (Objects.equals(ignore, participantId))
+                continue;
+
+            for (String clientId : clientsDAO.getClients(participantId)) {
+                if (Objects.equals(clientId, sender))
+                    continue;
+
+                if (!recipients.contains(participantId, clientId)) {
+                    clientMismatch.missing.add(participantId, clientId);
+                }
+            }
+        }
+        return clientMismatch;
     }
 }

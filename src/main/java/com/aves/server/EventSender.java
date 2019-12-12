@@ -14,7 +14,7 @@ import java.util.Date;
 import java.util.UUID;
 
 public class EventSender {
-    private static SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+    private static SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
     private static ObjectMapper mapper = new ObjectMapper();
 
     public static String sendEvent(Event event, UUID to, DBI jdbi) throws JsonProcessingException {
