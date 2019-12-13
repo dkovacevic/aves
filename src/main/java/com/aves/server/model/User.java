@@ -57,7 +57,7 @@ public class User {
 
     public static class UserAsset {
         public String size;
-        public UUID key;
+        public String key;
         public String type = "image";
     }
 }

@@ -24,8 +24,8 @@ public interface UserDAO {
                @Bind("email") String email,
                @Bind("phone") String phone,
                @Bind("accent") int accent,
-               @Bind("complete") UUID complete,
-               @Bind("preview") UUID preview,
+               @Bind("complete") String complete,
+               @Bind("preview") String preview,
                @Bind("hash") String hash);
 
     @SqlQuery("SELECT hash FROM Users WHERE email = :email")
@@ -53,7 +53,7 @@ public interface UserDAO {
             user.email = rs.getString("email");
             user.accent = rs.getInt("accent");
 
-            UUID complete = getUuid(rs, "complete");
+            String complete = rs.getString("complete");
             if (complete != null) {
                 User.UserAsset asset = new User.UserAsset();
                 asset.size = "complete";
@@ -61,7 +61,7 @@ public interface UserDAO {
                 user.assets.add(asset);
             }
 
-            UUID preview = getUuid(rs, "preview");
+            String preview = rs.getString("preview");
             if (preview != null) {
                 User.UserAsset asset = new User.UserAsset();
                 asset.size = "preview";

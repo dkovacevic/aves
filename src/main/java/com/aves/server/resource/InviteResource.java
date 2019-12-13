@@ -57,7 +57,7 @@ public class InviteResource {
             String hash = SCryptUtil.scrypt(password, 16384, 8, 1);
 
             Picture profile = getProfilePicture();
-            UUID preview = s3UploadFile(profile.getImageData());
+            String preview = s3UploadFile(profile.getImageData());
 
             UUID userId = UUID.randomUUID();
 

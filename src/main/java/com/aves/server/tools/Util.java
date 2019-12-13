@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
 import java.net.URLConnection;
-import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -51,16 +50,15 @@ public class Util {
         }
     }
 
-    public static UUID s3UploadFile(byte[] bytes) throws Exception {
+    public static String s3UploadFile(byte[] bytes) throws Exception {
         if (!minioClient.bucketExists(BUCKET_NAME))
             minioClient.makeBucket(BUCKET_NAME);
 
-        String source = "aves" + next();
-        UUID key = UUID.nameUUIDFromBytes(source.getBytes(StandardCharsets.UTF_8));
+        String key = String.format("3-5-%s", UUID.randomUUID());
         try (ByteArrayInputStream bais = new ByteArrayInputStream(bytes)) {
             minioClient.putObject(
                     BUCKET_NAME,
-                    key.toString(),
+                    key,
                     bais,
                     (long) bytes.length,
                     null,
@@ -70,8 +68,8 @@ public class Util {
         return key;
     }
 
-    public static InputStream s3DownloadFile(UUID assetId) throws Exception {
-        return minioClient.getObject(BUCKET_NAME, assetId.toString());
+    public static InputStream s3DownloadFile(String assetId) throws Exception {
+        return minioClient.getObject(BUCKET_NAME, assetId);
     }
 
     private static String next() {

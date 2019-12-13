@@ -45,7 +45,7 @@ public class RegisterResource {
             UUID userId = UUID.randomUUID();
 
             Picture profile = getProfilePicture();
-            UUID preview = s3UploadFile(profile.getImageData());
+            String preview = s3UploadFile(profile.getImageData());
 
             int accent = new Random().nextInt(8);
             

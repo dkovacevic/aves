@@ -24,7 +24,6 @@ import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Objects;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static com.aves.server.tools.Util.*;
@@ -74,6 +73,7 @@ public class AssetsResource {
 
             return Response.
                     ok(assetKey).
+                    status(201).
                     build();
         } catch (Exception e) {
             e.printStackTrace();
@@ -89,7 +89,7 @@ public class AssetsResource {
     @Path("/{assetId}")
     @ApiOperation(value = "Fetch asset from S3")
     @Authorization("Bearer")
-    public Response get(@PathParam("assetId") UUID assetId) {
+    public Response get(@PathParam("assetId") String assetId) {
         try {
             InputStream object = s3DownloadFile(assetId);
 
