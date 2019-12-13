@@ -92,7 +92,7 @@ public class ClientsResource {
     @Authorization("Bearer")
     public Response put(@Context ContainerRequestContext context,
                         @PathParam("client") String clientId,
-                        @ApiParam @Valid NewClient newClient) {
+                        @ApiParam NewClient newClient) {
         try {
             UUID userId = (UUID) context.getProperty("zuid");
 

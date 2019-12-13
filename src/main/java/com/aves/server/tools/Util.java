@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
 import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -54,7 +55,8 @@ public class Util {
         if (!minioClient.bucketExists(BUCKET_NAME))
             minioClient.makeBucket(BUCKET_NAME);
 
-        UUID key = UUID.randomUUID();
+        String source = "aves" + next();
+        UUID key = UUID.nameUUIDFromBytes(source.getBytes(StandardCharsets.UTF_8));
         try (ByteArrayInputStream bais = new ByteArrayInputStream(bytes)) {
             minioClient.putObject(
                     BUCKET_NAME,

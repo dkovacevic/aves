@@ -12,8 +12,6 @@ import javax.websocket.CloseReason;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfig;
 import javax.websocket.Session;
-import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -37,25 +35,6 @@ public class ServerEndpoint extends Endpoint {
         return false;
     }
 
-    public static void ping() {
-        for (Session session : sessions.values()) {
-            Object client = session.getUserProperties().get("client");
-            Object zuid = session.getUserProperties().get("zuid");
-
-            if (session.isOpen()) {
-                try {
-                    Logger.debug("Sending ping: session: %s,  zuid: %s, client: %s", session.getId(), zuid, client);
-                    session.getBasicRemote().sendPing(ByteBuffer.wrap("ping from Aves".getBytes()));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            } else {
-                if (client != null)
-                    sessions.remove(client);
-            }
-        }
-    }
-
     @Override
     public void onOpen(Session session, EndpointConfig config) {
         try {
@@ -77,8 +56,6 @@ public class ServerEndpoint extends Endpoint {
 
             session.addMessageHandler(new PingMessageHandler(session));
 
-            session.setMaxIdleTimeout(0);
-
             Logger.info("Session: %s connected. zuid: %s, client: %s, size: %d",
                     session.getId(),
                     userId,
@@ -97,7 +74,7 @@ public class ServerEndpoint extends Endpoint {
         Object client = session.getUserProperties().get("client");
         Object userId = session.getUserProperties().get("zuid");
 
-        Logger.debug("Session: %s closed. zuid:%s, client: %s, %s", session.getId(), userId, client, closeReason);
+        Logger.info("Session: %s closed. zuid:%s, client: %s, %s", session.getId(), userId, client, closeReason);
     }
 
     @Override
@@ -105,6 +82,6 @@ public class ServerEndpoint extends Endpoint {
         Object client = session.getUserProperties().get("client");
         Object userId = session.getUserProperties().get("zuid");
 
-        Logger.debug("Session: %s failed. zuid:%s, client: %s, %s", session.getId(), userId, client, thr.getMessage());
+        Logger.error("Session: %s failed. zuid:%s, client: %s, %s", session.getId(), userId, client, thr.getMessage());
     }
 }

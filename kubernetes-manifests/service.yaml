@@ -4,6 +4,8 @@ kind: Service
 metadata:
   name: aves
   namespace: staging
+  annotations:
+    beta.cloud.google.com/backend-config: '{"ports": {"80":"aves-backendconfig"}}'
 spec:
   selector:
     name: aves
