@@ -24,9 +24,11 @@ import java.util.UUID;
 @Produces(MediaType.APPLICATION_JSON)
 public class UsersResource {
     private final DBI jdbi;
+    private final UserDAO userDAO;
 
     public UsersResource(DBI jdbi) {
         this.jdbi = jdbi;
+        this.userDAO = jdbi.onDemand(UserDAO.class);
     }
 
     @GET
@@ -35,8 +37,6 @@ public class UsersResource {
     @Authorization("Bearer")
     public Response get(@PathParam("userId") UUID userId) {
         try {
-            UserDAO userDAO = jdbi.onDemand(UserDAO.class);
-
             User user = userDAO.getUser(userId);
             if (user == null) {
                 return Response.
@@ -62,8 +62,6 @@ public class UsersResource {
     @Authorization("Bearer")
     public Response getUsers(@ApiParam("List of userIds as UUID strings") @QueryParam("ids") String users) {
         try {
-            UserDAO userDAO = jdbi.onDemand(UserDAO.class);
-
             ArrayList<User> result = new ArrayList<>();
             for (String id : users.split(",")) {
                 UUID userId = UUID.fromString(id.trim());
@@ -93,8 +91,6 @@ public class UsersResource {
         try {
             UUID userId = (UUID) context.getProperty("zuid");
 
-            UserDAO userDAO = jdbi.onDemand(UserDAO.class);
-
             User user = userDAO.getUser(userId);
 
             checkHandles.handles.remove(user.getHandle());
@@ -117,8 +113,37 @@ public class UsersResource {
     @ApiOperation(value = "Get user's rich info'")
     @Authorization("Bearer")
     public Response getRichInfo(@PathParam("userId") UUID userId) {
+        User user = userDAO.getUser(userId);
+
+        RichInfo richInfo = new RichInfo();
+
+        RichField field = new RichField();
+        field.type = "Firstname";
+        field.value = user.firstname;
+        richInfo.fields.add(field);
+
+        field = new RichField();
+        field.type = "Lastname";
+        field.value = user.lastname;
+        richInfo.fields.add(field);
+
+        field = new RichField();
+        field.type = "Country";
+        field.value = user.country;
+        richInfo.fields.add(field);
+
+        field = new RichField();
+        field.type = "Phone";
+        field.value = user.phone;
+        richInfo.fields.add(field);
+
+        field = new RichField();
+        field.type = "Email";
+        field.value = user.email;
+        richInfo.fields.add(field);
+
         return Response.
-                ok(new RichInfo()).
+                ok(richInfo).
                 build();
     }
 
@@ -131,6 +156,11 @@ public class UsersResource {
     static class RichInfo {
         @JsonProperty
         public int version = 1;
-        public ArrayList<String> fields;
+        public ArrayList<RichField> fields = new ArrayList<>();
+    }
+
+    static class RichField {
+        public String value;
+        public String type;
     }
 }
