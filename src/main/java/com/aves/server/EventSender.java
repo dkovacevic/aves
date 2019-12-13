@@ -23,7 +23,7 @@ public class EventSender {
         String strEvent = mapper.writeValueAsString(event);
 
         // persist to Notification stream
-        notificationsDAO.insert(UUID.randomUUID(), null, to, strEvent);
+        notificationsDAO.insert(event.id, null, to, strEvent);
 
         for (String clientId : clientsDAO.getClients(to)) {
             //Send event via Socket
@@ -45,7 +45,7 @@ public class EventSender {
 
         // Persist event into Notification stream
         String strEvent = mapper.writeValueAsString(event);
-        notificationsDAO.insert(UUID.randomUUID(), clientId, to, strEvent);
+        notificationsDAO.insert(event.id, clientId, to, strEvent);
 
         // Send event via Socket
         boolean send = ServerEndpoint.send(clientId, event);

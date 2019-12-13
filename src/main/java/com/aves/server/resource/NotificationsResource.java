@@ -5,6 +5,7 @@ import com.aves.server.model.ErrorMessage;
 import com.aves.server.model.Event;
 import com.aves.server.model.NotificationList;
 import com.aves.server.tools.Logger;
+import com.aves.server.tools.Util;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -44,6 +45,9 @@ public class NotificationsResource {
         try {
             UUID userId = (UUID) context.getProperty("zuid");
 
+            NotificationList result = new NotificationList();
+            result.time = Util.time();
+
             int status = 200;
             Timestamp time = null;
             if (since != null) {
@@ -59,7 +63,6 @@ public class NotificationsResource {
 
             List<String> notifications = notificationsDAO.get(clientId, userId, time, size);
 
-            NotificationList result = new NotificationList();
             for (String notif : notifications) {
                 Event notification = mapper.readValue(notif, Event.class);
                 result.notifications.add(notification);
