@@ -22,13 +22,16 @@ import java.net.URLConnection;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.text.SimpleDateFormat;
 import java.util.Base64;
+import java.util.Date;
 import java.util.Random;
 import java.util.UUID;
 
 public class Util {
     private static final SecureRandom random = new SecureRandom();
     private static final String BUCKET_NAME = "aves-bucket";
+    private static SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 
     private static MinioClient minioClient;
     private static SendGrid sendgrid;
@@ -161,5 +164,9 @@ public class Util {
             throw new IOException("File not found: " + filename);
 
         return new String(Util.toByteArray(resourceAsStream));
+    }
+
+    public static String time() {
+        return formatter.format(new Date());
     }
 }

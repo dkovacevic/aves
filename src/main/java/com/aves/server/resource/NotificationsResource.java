@@ -45,7 +45,6 @@ public class NotificationsResource {
             UUID userId = (UUID) context.getProperty("zuid");
 
             int status = 200;
-
             Timestamp time = null;
             if (since != null) {
                 time = notificationsDAO.getTime(since);

@@ -56,7 +56,7 @@ public class ServerEndpoint extends Endpoint {
 
             session.addMessageHandler(new PingMessageHandler(session));
 
-            Logger.info("Session: %s connected. zuid: %s, client: %s, size: %d",
+            Logger.debug("Session: %s connected. zuid: %s, client: %s, size: %d",
                     session.getId(),
                     userId,
                     clientId,
@@ -74,7 +74,7 @@ public class ServerEndpoint extends Endpoint {
         Object client = session.getUserProperties().get("client");
         Object userId = session.getUserProperties().get("zuid");
 
-        Logger.info("Session: %s closed. zuid:%s, client: %s, %s", session.getId(), userId, client, closeReason);
+        Logger.debug("Session: %s closed. zuid:%s, client: %s, %s", session.getId(), userId, client, closeReason);
     }
 
     @Override

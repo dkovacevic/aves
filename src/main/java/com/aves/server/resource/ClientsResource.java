@@ -26,6 +26,7 @@ import java.util.UUID;
 
 import static com.aves.server.EventSender.sendEvent;
 import static com.aves.server.tools.Util.next;
+import static com.aves.server.tools.Util.time;
 
 @Api
 @Path("/clients")
@@ -69,6 +70,7 @@ public class ClientsResource {
 
             Device device = clientsDAO.getDevice(userId, clientId);
             device.cookie = device.label;
+            device.time = time();
 
             Event event = EventSender.userClientAddEvent(device);
             sendEvent(event, userId, jdbi);

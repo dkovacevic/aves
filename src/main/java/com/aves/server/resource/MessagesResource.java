@@ -22,21 +22,19 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
 import static com.aves.server.EventSender.conversationOtrMessageAddEvent;
 import static com.aves.server.EventSender.sendEvent;
+import static com.aves.server.tools.Util.time;
 
 @Api
 @Path("/conversations/{convId}/otr/messages")
 @Produces(MediaType.APPLICATION_JSON)
 public class MessagesResource {
     private final DBI jdbi;
-    private static SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
     private final ParticipantsDAO participantsDAO;
     private final ClientsDAO clientsDAO;
 
@@ -80,15 +78,17 @@ public class MessagesResource {
             for (UUID participantId : recipients.keySet()) {
                 ClientCipher clientCipher = recipients.get(participantId);
                 for (String clientId : clientCipher.keySet()) {
-                    Payload.Data data = new Payload.Data();
-                    data.sender = sender;
-                    data.recipient = clientId;
-                    data.text = clientCipher.get(clientId);
+                    if (!Objects.equals(sender, clientId)) {
+                        Payload.Data data = new Payload.Data();
+                        data.sender = sender;
+                        data.recipient = clientId;
+                        data.text = clientCipher.get(clientId);
 
-                    Event event = conversationOtrMessageAddEvent(convId, userId, data);
+                        Event event = conversationOtrMessageAddEvent(convId, userId, data);
 
-                    // Send Event
-                    sendEvent(event, participantId, clientId, jdbi);
+                        // Send Event
+                        sendEvent(event, participantId, clientId, jdbi);
+                    }
                 }
             }
 
@@ -107,7 +107,7 @@ public class MessagesResource {
 
     private ClientMismatch checkMissing(UUID ignore, String sender, Recipients recipients, List<UUID> participants) {
         ClientMismatch clientMismatch = new ClientMismatch();
-        clientMismatch.time = formatter.format(new Date());
+        clientMismatch.time = time();
 
         for (UUID participantId : participants) {
             if (Objects.equals(ignore, participantId))

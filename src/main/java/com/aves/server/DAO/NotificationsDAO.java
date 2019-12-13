@@ -34,7 +34,7 @@ public interface NotificationsDAO {
     @SqlQuery("SELECT notification FROM Notifications " +
             "WHERE user_id = :userId " +
             "AND coalesce(client_id, :clientId) = :clientId " +
-            "AND time = ( SELECT MAX(N.time) " +
+            "AND time = ( SELECT MIN(N.time) " +
             "             FROM Notifications N " +
             "             WHERE N.user_id = :userId " +
             "             AND coalesce(N.client_id, :clientId) = :clientId )")

@@ -21,7 +21,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -32,7 +31,6 @@ import static com.aves.server.tools.Util.*;
 @Path("/assets/v3")
 @Produces(MediaType.APPLICATION_JSON)
 public class AssetsResource {
-    private static SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @POST
@@ -68,7 +66,7 @@ public class AssetsResource {
                         .setExpiration(exp)
                         .signWith(Aves.getKey())
                         .compact();
-                assetKey.expires = formatter.format(exp);
+                assetKey.expires = time();
             }
 
             return Response.

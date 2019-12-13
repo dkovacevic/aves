@@ -9,12 +9,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.skife.jdbi.v2.DBI;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.UUID;
 
+import static com.aves.server.tools.Util.time;
+
 public class EventSender {
-    private static SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
     private static ObjectMapper mapper = new ObjectMapper();
 
     public static String sendEvent(Event event, UUID to, DBI jdbi) throws JsonProcessingException {
@@ -67,7 +66,7 @@ public class EventSender {
 
         Payload payload = new Payload();
         payload.type = "user.client-add";
-        payload.time = formatter.format(new Date());
+        payload.time = time();
         payload.device = device;
         event.payload.add(payload);
 
@@ -80,7 +79,7 @@ public class EventSender {
 
         Payload payload = new Payload();
         payload.type = "user.update";
-        payload.time = formatter.format(new Date());
+        payload.time = time();
         payload.user = user;
         event.payload.add(payload);
 
@@ -95,7 +94,7 @@ public class EventSender {
         payload.convId = conv.id;
         payload.from = from;
         payload.type = "conversation.create";
-        payload.time = formatter.format(new Date());
+        payload.time = time();
         payload.data = new Payload.Data();
         payload.data.id = conv.id;
         payload.data.creator = conv.creator;
@@ -115,7 +114,7 @@ public class EventSender {
         payload.convId = convId;
         payload.from = from;
         payload.type = "conversation.otr-message-add";
-        payload.time = formatter.format(new Date());
+        payload.time = time();
         payload.data = data;
         event.payload.add(payload);
 
