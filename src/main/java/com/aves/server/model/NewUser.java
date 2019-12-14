@@ -1,13 +1,14 @@
 package com.aves.server.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.validation.constraints.NotNull;
 
 public class NewUser {
     @NotNull
-    @NotEmpty
+    @Length(min = 6, max = 1024)
     public String email;
 
     @NotNull
@@ -15,7 +16,7 @@ public class NewUser {
     public String name;
 
     @NotNull
-    @NotEmpty
+    @Length(min = 6, max = 1024)
     public String password;
 
     @NotNull

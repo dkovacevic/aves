@@ -1,0 +1,1 @@
+ALTER TABLE Users ALTER COLUMN password_reset SET DEFAULT TRUE;

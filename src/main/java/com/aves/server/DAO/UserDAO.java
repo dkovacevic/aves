@@ -31,6 +31,9 @@ public interface UserDAO {
     @SqlQuery("SELECT hash FROM Users WHERE email = :email")
     String getHash(@Bind("email") String email);
 
+    @SqlQuery("SELECT hash FROM Users WHERE user_id = :userId")
+    String getHash(@Bind("userId") UUID userId);
+
     @SqlQuery("SELECT user_id AS uuid FROM Users WHERE email = :email")
     @RegisterMapper(UUIDMapper.class)
     UUID getUserId(@Bind("email") String email);
@@ -38,6 +41,13 @@ public interface UserDAO {
     @SqlQuery("SELECT * FROM Users WHERE user_id = :userId")
     @RegisterMapper(_Mapper.class)
     User getUser(@Bind("userId") UUID userId);
+
+    @SqlQuery("SELECT password_reset FROM Users WHERE user_id = :userId")
+    Boolean getResetPassword(@Bind("userId") UUID userId);
+
+    @SqlUpdate("UPDATE Users SET hash = :hash WHERE user_id = :userId")
+    int updateHash(@Bind("userId") UUID userId,
+                   @Bind("hash") String hash);
 
     class _Mapper implements ResultSetMapper<User> {
         @Override
