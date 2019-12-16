@@ -6,8 +6,6 @@ server:
   adminConnectors:
     - type: http
       port: ${ADMIN_PORT:-8091}
-      
-  rootPath: /aves/*
 
   requestLog:
     appenders:
@@ -27,7 +25,6 @@ swagger:
   contact: Dejan Kovacevic
   contactEmail: dejan@wire.com
   resourcePackage: com.aves.server.resource
-  uriPrefix: /aves
   schemes:
     - http
     - https

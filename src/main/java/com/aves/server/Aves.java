@@ -74,7 +74,7 @@ public class Aves extends Application<Configuration> {
 
         ServerEndpointConfig config = ServerEndpointConfig
                 .Builder
-                .create(ServerEndpoint.class, "/aves/await")
+                .create(ServerEndpoint.class, "/await")
                 .configurator(new Configurator())
                 .encoders(encoders)
                 .build();
