@@ -3,6 +3,6 @@ kind: BackendConfig
 metadata:
   name: aves-backendconfig
 spec:
-  timeoutSec: 600
+  timeoutSec: 900
   connectionDraining:
     drainingTimeoutSec: 60

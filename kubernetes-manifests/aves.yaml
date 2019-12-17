@@ -71,7 +71,7 @@ spec:
 
           livenessProbe:
             httpGet:
-              path: /aves/healthcheck
+              path: /healthcheck
               port: 8090
             initialDelaySeconds: 10
             timeoutSeconds: 10
@@ -80,7 +80,7 @@ spec:
           # for L7 LB
           readinessProbe:
             httpGet:
-              path: /aves/healthcheck
+              path: /healthcheck
               port: 8090
             initialDelaySeconds: 10
             timeoutSeconds: 11
