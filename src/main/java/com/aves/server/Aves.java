@@ -133,6 +133,7 @@ public class Aves extends Application<Configuration> {
         environment.jersey().register(new InviteResource(jdbi));
         environment.jersey().register(new NotificationsResource(jdbi));
         environment.jersey().register(new SignatureResource(jdbi, swisscomClient));
+        environment.jersey().register(new SearchResource(jdbi));
 
         // Dummies
         environment.jersey().register(new TeamsResource());

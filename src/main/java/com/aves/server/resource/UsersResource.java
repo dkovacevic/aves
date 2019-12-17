@@ -58,6 +58,16 @@ public class UsersResource {
     }
 
     @GET
+    @Path("handles/{handle}")
+    @ApiOperation(value = "Get information on a user handle")
+    @Authorization("Bearer")
+    public Response handle(@PathParam("handle") String handle) {
+        return Response.
+                status(404).
+                build();
+    }
+
+    @GET
     @ApiOperation(value = "Get users by userId")
     @Authorization("Bearer")
     public Response getUsers(@ApiParam("List of userIds as UUID strings") @QueryParam("ids") String users) {
