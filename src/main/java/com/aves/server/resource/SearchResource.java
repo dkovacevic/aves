@@ -1,5 +1,6 @@
 package com.aves.server.resource;
 
+import com.aves.server.DAO.UserDAO;
 import com.aves.server.model.ErrorMessage;
 import com.aves.server.model.User;
 import com.aves.server.tools.Logger;
@@ -11,29 +12,37 @@ import org.skife.jdbi.v2.DBI;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Api
 @Path("/search/contacts")
 @Produces(MediaType.APPLICATION_JSON)
 public class SearchResource {
+    private final UserDAO userDAO;
 
     public SearchResource(DBI jdbi) {
+        userDAO = jdbi.onDemand(UserDAO.class);
     }
 
     @GET
     @ApiOperation(value = "Search users")
     @Authorization("Bearer")
-    public Response search(@Context ContainerRequestContext context) {
+    public Response search(@Context ContainerRequestContext context,
+                           @QueryParam("q") String keyword) {
         try {
             UUID userId = (UUID) context.getProperty("zuid");
+            SearchResult result = new SearchResult();
+            result.documents = userDAO.search(keyword);
+            result.found = result.documents.size();
+            result.returned = result.documents.size();
             return Response.
-                    ok(new SearchResult()).
+                    ok(result).
                     build();
         } catch (Exception e) {
             e.printStackTrace();
@@ -49,6 +58,6 @@ public class SearchResource {
         public int took;
         public int found;
         public int returned;
-        public ArrayList<User> documents = new ArrayList<>();
+        public List<User> documents;
     }
 }

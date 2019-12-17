@@ -11,6 +11,7 @@ import org.skife.jdbi.v2.tweak.ResultSetMapper;
 import javax.annotation.Nullable;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.UUID;
 
 public interface UserDAO {
@@ -48,6 +49,11 @@ public interface UserDAO {
     @SqlUpdate("UPDATE Users SET hash = :hash WHERE user_id = :userId")
     int updateHash(@Bind("userId") UUID userId,
                    @Bind("hash") String hash);
+
+
+    @SqlQuery("SELECT * FROM Users WHERE name ~* :keyword")
+    @RegisterMapper(_Mapper.class)
+    List<User> search(@Bind("keyword") String keyword);
 
     class _Mapper implements ResultSetMapper<User> {
         @Override
