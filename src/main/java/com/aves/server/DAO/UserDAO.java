@@ -46,7 +46,7 @@ public interface UserDAO {
     @SqlQuery("SELECT password_reset FROM Users WHERE user_id = :userId")
     Boolean getResetPassword(@Bind("userId") UUID userId);
 
-    @SqlUpdate("UPDATE Users SET hash = :hash WHERE user_id = :userId")
+    @SqlUpdate("UPDATE Users SET hash = :hash, password_reset = false WHERE user_id = :userId")
     int updateHash(@Bind("userId") UUID userId,
                    @Bind("hash") String hash);
 
