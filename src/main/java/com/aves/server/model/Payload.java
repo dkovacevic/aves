@@ -25,6 +25,7 @@ public class Payload {
     public Device device;
 
     public User user;
+    public Connection connection;
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     @JsonInclude(JsonInclude.Include.NON_NULL)

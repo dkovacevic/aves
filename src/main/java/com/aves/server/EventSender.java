@@ -86,6 +86,19 @@ public class EventSender {
         return event;
     }
 
+    public static Event connectionEvent(Connection connection) {
+        Event event = new Event();
+        event.id = UUID.randomUUID();
+
+        Payload payload = new Payload();
+        payload.type = "user.connection";
+        payload.time = time();
+        payload.connection = connection;
+        event.payload.add(payload);
+
+        return event;
+    }
+
     public static Event conversationCreateEvent(UUID from, Conversation conv) {
         Event event = new Event();
         event.id = UUID.randomUUID();
