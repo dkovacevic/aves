@@ -25,8 +25,6 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.Collections;
-import java.util.List;
 import java.util.UUID;
 
 import static com.aves.server.EventSender.*;
@@ -108,11 +106,6 @@ public class InviteResource {
             // Send User Update event to Inviter
             sendEvent(userUpdateEvent(userDAO.getUser(userId)), inviterId, jdbi);
 
-            // Send member join event
-            List<UUID> users = Collections.singletonList(userId);
-            sendEvent(memberJoinEvent(inviterId, convId, users), inviterId, jdbi);
-            sendEvent(memberJoinEvent(inviterId, convId, users), userId, jdbi);
-
             _InviteResult result = new _InviteResult();
             result.user = new _Invitee();
             result.user.id = userId;
@@ -145,24 +138,24 @@ public class InviteResource {
     }
 
     private void sendConversationEvent(UUID inviterId, UUID userId, UUID convId) throws JsonProcessingException {
-        Conversation conversation2 = conversationsDAO.get(convId);
+        Conversation conversation = conversationsDAO.get(convId);
         Member member2 = new Member();
         member2.id = inviterId;
-        conversation2.members.self.id = userId;
-        conversation2.members.others.add(member2);
-        Event event = conversationCreateEvent(inviterId, conversation2);
+        conversation.members.self.id = userId;
+        conversation.members.others.add(member2);
+        Event event = conversationCreateEvent(inviterId, conversation);
         sendEvent(event, userId, jdbi);
     }
 
-    private void sendConnectionEvent(UUID inviterId, UUID userId, UUID convId) throws JsonProcessingException {
+    private void sendConnectionEvent(UUID from, UUID to, UUID convId) throws JsonProcessingException {
         // Send connection event
         Connection connection = new Connection();
-        connection.from = inviterId;
-        connection.to = userId;
+        connection.from = from;
+        connection.to = to;
         connection.time = time();
         connection.conversation = convId;
         Event event = connectionEvent(connection);
-        sendEvent(event, inviterId, jdbi);
+        sendEvent(event, from, jdbi);
     }
 
     private void createSelfConv(UUID userId) throws JsonProcessingException {

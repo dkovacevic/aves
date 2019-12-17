@@ -1,15 +1,21 @@
 package com.aves.server.resource;
 
 import com.aves.server.DAO.ConnectionsDAO;
-import com.aves.server.model.Connection;
-import com.aves.server.tools.Util;
+import com.aves.server.DAO.ConversationsDAO;
+import com.aves.server.DAO.ParticipantsDAO;
+import com.aves.server.model.*;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.Authorization;
 import org.skife.jdbi.v2.DBI;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.container.ContainerRequestContext;
@@ -20,14 +26,23 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import static com.aves.server.EventSender.*;
+import static com.aves.server.tools.Util.time;
+
 @Api
 @Path("/connections")
 @Produces(MediaType.APPLICATION_JSON)
 public class ConnectionsResource {
     private final ConnectionsDAO connectionsDAO;
+    private final ConversationsDAO conversationsDAO;
+    private final ParticipantsDAO participantsDAO;
+    private final DBI jdbi;
 
     public ConnectionsResource(DBI jdbi) {
         connectionsDAO = jdbi.onDemand(ConnectionsDAO.class);
+        conversationsDAO = jdbi.onDemand(ConversationsDAO.class);
+        participantsDAO = jdbi.onDemand(ParticipantsDAO.class);
+        this.jdbi = jdbi;
     }
 
     @GET
@@ -41,7 +56,7 @@ public class ConnectionsResource {
         List<UUID> connections = connectionsDAO.getConnections(userId);
         for (UUID to : connections) {
             Connection connection = new Connection();
-            connection.time = Util.time();
+            connection.time = time();
             connection.from = userId;
             connection.to = to;
 
@@ -52,6 +67,58 @@ public class ConnectionsResource {
                 build();
     }
 
+    @POST
+    @ApiOperation(value = "Connect to user")
+    @Authorization("Bearer")
+    public Response post(@Context ContainerRequestContext context,
+                         @Valid ConnectionRequest request) throws JsonProcessingException {
+
+        UUID userId = (UUID) context.getProperty("zuid");
+
+        connectionsDAO.insert(userId, request.user);
+        connectionsDAO.insert(request.user, userId);
+
+        UUID convId = UUID.randomUUID();
+        conversationsDAO.insert(convId, null, userId, Enums.Conversation.ONE2ONE.ordinal());
+        participantsDAO.insert(convId, userId);
+        participantsDAO.insert(convId, request.user);
+
+        // Send Conversation event
+        sendConversationEvent(userId, request.user, convId);
+        sendConversationEvent(request.user, userId, convId);
+
+        // Send Connection event
+        Connection connection = sendConnectionEvent(request.user, userId, convId);
+        sendConnectionEvent(userId, request.user, convId);
+
+        return Response.
+                ok(connection).
+                status(201).
+                build();
+    }
+
+    private void sendConversationEvent(UUID inviterId, UUID userId, UUID convId) throws JsonProcessingException {
+        Conversation conversation = conversationsDAO.get(convId);
+        Member member2 = new Member();
+        member2.id = inviterId;
+        conversation.members.self.id = userId;
+        conversation.members.others.add(member2);
+        Event event = conversationCreateEvent(inviterId, conversation);
+        sendEvent(event, userId, jdbi);
+    }
+
+    private Connection sendConnectionEvent(UUID from, UUID userId, UUID convId) throws JsonProcessingException {
+        Connection connection = new Connection();
+        connection.from = from;
+        connection.to = userId;
+        connection.time = time();
+        connection.conversation = convId;
+        connection.status = "accepted";
+        Event event = connectionEvent(connection);
+        sendEvent(event, from, jdbi);
+        return connection;
+    }
+
     static class UserConnectionList {
         @JsonProperty("has_more")
         public boolean more;
@@ -59,4 +126,10 @@ public class ConnectionsResource {
         public ArrayList<Connection> connections = new ArrayList<>();
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    static class ConnectionRequest {
+        @NotNull
+        public UUID user;
+        public String name;
+    }
 }

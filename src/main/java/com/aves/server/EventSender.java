@@ -18,28 +18,26 @@ import static com.aves.server.tools.Util.time;
 public class EventSender {
     private static ObjectMapper mapper = new ObjectMapper();
 
-    public static String sendEvent(Event event, UUID to, DBI jdbi) throws JsonProcessingException {
+    public static void sendEvent(Event event, UUID to, DBI jdbi) throws JsonProcessingException {
         NotificationsDAO notificationsDAO = jdbi.onDemand(NotificationsDAO.class);
         ClientsDAO clientsDAO = jdbi.onDemand(ClientsDAO.class);
 
-        String strEvent = mapper.writeValueAsString(event);
-
-        // persist to Notification stream
-        notificationsDAO.insert(event.id, null, to, strEvent);
-
-        for (String clientId : clientsDAO.getClients(to)) {
-            //Send event via Socket
-            boolean send = ServerEndpoint.send(clientId, event);
-            Logger.debug("Websocket: message (%s) to user: %s, client: %s. Sent: %s",
-                    event.id,
-                    to,
-                    clientId,
-                    send);
-
-            Logger.debug("sendEvent: to: %s:%s %s", to, clientId, strEvent);
+        List<String> clients = clientsDAO.getClients(to);
+        if (clients.isEmpty()) {
+            String strEvent = mapper.writeValueAsString(event);
+            notificationsDAO.insert(event.id, null, to, strEvent);
+            return;
         }
 
-        return strEvent;
+        for (String clientId : clients) {
+            event.id = UUID.randomUUID();
+            String strEvent = mapper.writeValueAsString(event);
+            notificationsDAO.insert(event.id, clientId, to, strEvent);
+
+            //Send event via Socket
+            boolean send = ServerEndpoint.send(clientId, event);
+            Logger.debug("sendEvent (%s): to: %s:%s %s", send, to, clientId, strEvent);
+        }
     }
 
     public static String sendEvent(Event event, UUID to, String clientId, DBI jdbi) throws JsonProcessingException {
@@ -51,13 +49,7 @@ public class EventSender {
 
         // Send event via Socket
         boolean send = ServerEndpoint.send(clientId, event);
-        Logger.debug("Websocket: message (%s) to user: %s, client: %s. Sent: %s",
-                event.id,
-                to,
-                clientId,
-                send);
-
-        Logger.debug("sendEvent: to: %s:%s %s", to, clientId, strEvent);
+        Logger.debug("sendEvent (%s): to: %s:%s %s", send, to, clientId, strEvent);
 
         return strEvent;
     }
@@ -94,6 +86,7 @@ public class EventSender {
         payload.type = "user.connection";
         payload.time = time();
         payload.connection = connection;
+        payload.convId = connection.conversation;
         event.payload.add(payload);
         return event;
     }
