@@ -8,6 +8,7 @@ import com.aves.server.model.*;
 import com.aves.server.tools.Logger;
 import com.aves.server.tools.Picture;
 import com.aves.server.tools.Util;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.lambdaworks.crypto.SCryptUtil;
 import io.swagger.annotations.Api;
@@ -24,6 +25,8 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
 import static com.aves.server.EventSender.*;
@@ -105,6 +108,11 @@ public class InviteResource {
             // Send User Update event to Inviter
             sendEvent(userUpdateEvent(userDAO.getUser(userId)), inviterId, jdbi);
 
+            // Send member join event
+            List<UUID> users = Collections.singletonList(userId);
+            sendEvent(memberJoinEvent(inviterId, convId, users), inviterId, jdbi);
+            sendEvent(memberJoinEvent(inviterId, convId, users), userId, jdbi);
+
             _InviteResult result = new _InviteResult();
             result.user = new _Invitee();
             result.user.id = userId;
@@ -142,7 +150,8 @@ public class InviteResource {
         member2.id = inviterId;
         conversation2.members.self.id = userId;
         conversation2.members.others.add(member2);
-        sendEvent(conversationCreateEvent(inviterId, conversation2), userId, jdbi);
+        Event event = conversationCreateEvent(inviterId, conversation2);
+        sendEvent(event, userId, jdbi);
     }
 
     private void sendConnectionEvent(UUID inviterId, UUID userId, UUID convId) throws JsonProcessingException {
@@ -152,7 +161,8 @@ public class InviteResource {
         connection.to = userId;
         connection.time = time();
         connection.conversation = convId;
-        sendEvent(connectionEvent(connection), inviterId, jdbi);
+        Event event = connectionEvent(connection);
+        sendEvent(event, inviterId, jdbi);
     }
 
     private void createSelfConv(UUID userId) throws JsonProcessingException {
@@ -168,6 +178,7 @@ public class InviteResource {
         sendEvent(event, userId, jdbi);
     }
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class _InviteResult {
         public _Invitee user;
         public Conversation conversation;

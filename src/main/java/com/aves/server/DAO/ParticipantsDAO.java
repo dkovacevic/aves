@@ -26,4 +26,7 @@ public interface ParticipantsDAO {
     @RegisterMapper(UUIDMapper.class)
     UUID isParticipant(@Bind("userId") UUID userId,
                        @Bind("convId") UUID convId);
+
+    @SqlUpdate("DELETE FROM Participants WHERE user_Id = :userId AND conv_Id = :convId")
+    void remove(@Bind("convId") UUID convId, @Bind("userId") UUID userId);
 }

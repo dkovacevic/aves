@@ -50,7 +50,6 @@ public interface UserDAO {
     int updateHash(@Bind("userId") UUID userId,
                    @Bind("hash") String hash);
 
-
     @SqlQuery("SELECT * FROM Users WHERE name ~* :keyword")
     @RegisterMapper(_Mapper.class)
     List<User> search(@Bind("keyword") String keyword);

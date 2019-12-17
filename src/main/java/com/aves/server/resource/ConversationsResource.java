@@ -5,6 +5,7 @@ import com.aves.server.DAO.ParticipantsDAO;
 import com.aves.server.model.*;
 import com.aves.server.tools.Logger;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -21,8 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import static com.aves.server.EventSender.conversationCreateEvent;
-import static com.aves.server.EventSender.sendEvent;
+import static com.aves.server.EventSender.*;
 
 @Api
 @Path("/conversations")
@@ -39,7 +39,6 @@ public class ConversationsResource {
     @ApiOperation(value = "Create a new conversation")
     @Authorization("Bearer")
     public Response create(@Context ContainerRequestContext context, @ApiParam @Valid NewConversation conv) {
-
         try {
             ConversationsDAO conversationsDAO = jdbi.onDemand(ConversationsDAO.class);
             ParticipantsDAO participantsDAO = jdbi.onDemand(ParticipantsDAO.class);
@@ -60,7 +59,7 @@ public class ConversationsResource {
             // build result
             List<UUID> others = participantsDAO.getUsers(convId);
             for (UUID selfId : others) {
-                conversation = buildConversation(conversation, selfId, others);
+                buildConversation(conversation, selfId, others);
 
                 // Send event
                 Event event = conversationCreateEvent(userId, conversation);
@@ -69,7 +68,7 @@ public class ConversationsResource {
 
             Logger.debug("New conversation: %s", convId);
 
-            conversation = buildConversation(conversation, userId, others);
+            buildConversation(conversation, userId, others);
 
             return Response.
                     ok(conversation).
@@ -113,10 +112,93 @@ public class ConversationsResource {
 
         List<UUID> others = participantsDAO.getUsers(convId);
 
-        conversation = buildConversation(conversation, userId, others);
+        buildConversation(conversation, userId, others);
 
         return Response.
                 ok(conversation).
+                build();
+    }
+
+    @POST
+    @Path("{convId}/members")
+    @Authorization("Bearer")
+    @ApiOperation(value = "Add participants")
+    public Response addMembers(@Context ContainerRequestContext context,
+                               @PathParam("convId") UUID convId,
+                               Invite invite) throws JsonProcessingException {
+
+        ConversationsDAO conversationsDAO = jdbi.onDemand(ConversationsDAO.class);
+        ParticipantsDAO participantsDAO = jdbi.onDemand(ParticipantsDAO.class);
+
+        UUID userId = (UUID) context.getProperty("zuid");
+
+        UUID challenge = participantsDAO.isParticipant(userId, convId);
+        if (challenge == null) {
+            return Response.
+                    status(404).
+                    build();
+        }
+
+        Conversation conversation = conversationsDAO.get(convId);
+        if (conversation == null) {
+            return Response.
+                    status(404).
+                    build();
+        }
+
+        for (UUID participantId : invite.users) {
+            participantsDAO.insert(convId, participantId);
+        }
+
+
+        List<UUID> participants = participantsDAO.getUsers(convId);
+        for (UUID participant : participants) {
+            Event event = memberJoinEvent(userId, convId, invite.users);
+            sendEvent(event, participant, jdbi);
+        }
+
+        return Response.
+                ok(memberJoinEvent(userId, convId, invite.users)).
+                build();
+    }
+
+    @DELETE
+    @Path("{convId}/members/{member}")
+    @Authorization("Bearer")
+    @ApiOperation(value = "Remove member from the conversation")
+    public Response removeMember(@Context ContainerRequestContext context,
+                                 @PathParam("convId") UUID convId,
+                                 @PathParam("member") UUID member
+    ) throws JsonProcessingException {
+
+        ConversationsDAO conversationsDAO = jdbi.onDemand(ConversationsDAO.class);
+        ParticipantsDAO participantsDAO = jdbi.onDemand(ParticipantsDAO.class);
+
+        UUID userId = (UUID) context.getProperty("zuid");
+
+        UUID challenge = participantsDAO.isParticipant(userId, convId);
+        if (challenge == null) {
+            return Response.
+                    status(403).
+                    build();
+        }
+
+        Conversation conversation = conversationsDAO.get(convId);
+        if (conversation == null) {
+            return Response.
+                    status(404).
+                    build();
+        }
+
+        participantsDAO.remove(convId, member);
+
+        List<UUID> participants = participantsDAO.getUsers(convId);
+        for (UUID participant : participants) {
+            Event event = memberLeaveEvent(userId, convId, member);
+            sendEvent(event, participant, jdbi);
+        }
+        return Response.
+                ok(memberLeaveEvent(userId, convId, member)).
                 build();
     }
 
@@ -136,7 +218,7 @@ public class ConversationsResource {
         for (UUID convId : convIds) {
             Conversation conversation = conversationsDAO.get(convId);
             List<UUID> others = participantsDAO.getUsers(convId);
-            conversation = buildConversation(conversation, userId, others);
+            buildConversation(conversation, userId, others);
 
             result.conversations.add(conversation);
         }
@@ -146,7 +228,7 @@ public class ConversationsResource {
                 build();
     }
 
-    private Conversation buildConversation(Conversation conversation, UUID selfId, List<UUID> others) {
+    private void buildConversation(Conversation conversation, UUID selfId, List<UUID> others) {
         conversation.members = new Members();
         conversation.members.self.id = selfId;
         for (UUID memberId : others) {
@@ -156,12 +238,15 @@ public class ConversationsResource {
                 conversation.members.others.add(member);
             }
         }
-        return conversation;
     }
 
     public static class _Result {
         @JsonProperty("has_more")
         public boolean hasMore;
         public List<Conversation> conversations = new ArrayList<>();
+    }
+
+    public static class Invite {
+        public List<UUID> users;
     }
 }
