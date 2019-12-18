@@ -25,7 +25,6 @@ import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
 import java.util.Base64;
 import java.util.Date;
-import java.util.Random;
 import java.util.UUID;
 
 public class Util {
@@ -127,8 +126,10 @@ public class Util {
     }
 
     public static Picture getProfilePicture() throws Exception {
-        String filename = String.format("profiles/%d.png", new Random().nextInt(8));
+        String filename = String.format("profiles/%d.png", random.nextInt(27));
         InputStream is = Util.class.getClassLoader().getResourceAsStream(filename);
+        if (is == null)
+            throw new IOException("File not found: " + filename);
         byte[] image = toByteArray(is);
         return ImageProcessor.getMediumImage(new Picture(image));
     }
@@ -138,7 +139,7 @@ public class Util {
         return Util.class.getClassLoader().getResourceAsStream(filename);
     }
 
-    public static Mail createMail(String subject, String body, String from, String to) {
+    private static Mail createMail(String subject, String body, String from, String to) {
         return new Mail(new Email(from), subject, new Email(to), new Content("text/HTML", body));
     }
 
