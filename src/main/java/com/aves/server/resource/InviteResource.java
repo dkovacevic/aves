@@ -64,10 +64,6 @@ public class InviteResource {
 
             UUID userId = UUID.randomUUID();
 
-            int accent = random(8);
-
-            String email = invite.email.toLowerCase().trim();
-
             // Save new User
             userDAO.insert(
                     userId,
@@ -75,12 +71,14 @@ public class InviteResource {
                     invite.firstname,
                     invite.lastname,
                     invite.country,
-                    email,
+                    invite.email.toLowerCase().trim(),
                     invite.phone,
-                    accent,
+                    random(8),
                     preview,
                     preview,
                     hash);
+
+            User user = userDAO.getUser(userId);
 
             // Create self conv for this user
             createSelfConv(userId);
@@ -104,25 +102,20 @@ public class InviteResource {
             sendConnectionEvent(userId, inviterId, convId);
 
             // Send User Update event to Inviter
-            sendEvent(userUpdateEvent(userDAO.getUser(userId)), inviterId, jdbi);
+            sendEvent(userUpdateEvent(user), inviterId, jdbi);
+
+            Conversation conversation = conversationsDAO.get(convId);
 
             _InviteResult result = new _InviteResult();
-            result.user = new _Invitee();
-            result.user.id = userId;
-            result.user.firstname = invite.firstname;
-            result.user.lastname = invite.lastname;
-            result.user.name = invite.name;
-            result.user.phone = invite.phone;
-            result.user.country = invite.country;
-            result.user.email = email;
-            result.user.password = password;
+            result.user = user;
+            result.conversation = conversation;
 
             String template = getEmailTemplate();
             String body = template.replace("[USER]", invite.name)
-                    .replace("[EMAIL]", email)
+                    .replace("[EMAIL]", user.email)
                     .replace("[PASSWORD]", password);
 
-            Util.sendEmail("Your New Account", body, "aves@wire.com", email);
+            Util.sendEmail("Your New Account", body, "aves@wire.com", user.email);
 
             return Response.
                     ok(result).
@@ -154,8 +147,8 @@ public class InviteResource {
         connection.to = to;
         connection.time = time();
         connection.conversation = convId;
-        Event event = connectionEvent(connection);
-        sendEvent(event, from, jdbi);
+        sendEvent(connectionEvent(connection), from, jdbi);
+        sendEvent(connectionEvent(connection), to, jdbi);
     }
 
     private void createSelfConv(UUID userId) throws JsonProcessingException {
@@ -173,12 +166,7 @@ public class InviteResource {
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class _InviteResult {
-        public _Invitee user;
+        public User user;
         public Conversation conversation;
-    }
-
-    public static class _Invitee extends NewUser {
-        public UUID id;
-        public String password;
     }
 }
