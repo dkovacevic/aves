@@ -9,7 +9,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.Authorization;
-import org.skife.jdbi.v2.DBI;
+import org.jdbi.v3.core.Jdbi;
 
 import javax.ws.rs.*;
 import javax.ws.rs.container.ContainerRequestContext;
@@ -23,11 +23,9 @@ import java.util.UUID;
 @Path("/users")
 @Produces(MediaType.APPLICATION_JSON)
 public class UsersResource {
-    private final DBI jdbi;
     private final UserDAO userDAO;
 
-    public UsersResource(DBI jdbi) {
-        this.jdbi = jdbi;
+    public UsersResource(Jdbi jdbi) {
         this.userDAO = jdbi.onDemand(UserDAO.class);
     }
 

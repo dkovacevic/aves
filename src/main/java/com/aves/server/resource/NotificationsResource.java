@@ -10,7 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.Authorization;
-import org.skife.jdbi.v2.DBI;
+import org.jdbi.v3.core.Jdbi;
 
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
@@ -19,18 +19,17 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.sql.Timestamp;
-import java.util.List;
 import java.util.UUID;
 
 @Api
 @Path("/notifications")
 @Produces(MediaType.APPLICATION_JSON)
 public class NotificationsResource {
-    private final DBI jdbi;
+    private final Jdbi jdbi;
     private ObjectMapper mapper = new ObjectMapper();
     private final NotificationsDAO notificationsDAO;
 
-    public NotificationsResource(DBI jdbi) {
+    public NotificationsResource(Jdbi jdbi) {
         this.jdbi = jdbi;
         this.notificationsDAO = jdbi.onDemand(NotificationsDAO.class);
     }
@@ -61,14 +60,9 @@ public class NotificationsResource {
                 time = new Timestamp(0);
             }
 
-            List<String> notifications = notificationsDAO.get(clientId, userId, time, size);
-
-            for (String notif : notifications) {
-                Event notification = mapper.readValue(notif, Event.class);
-                result.notifications.add(notification);
-            }
-
+            result.notifications = notificationsDAO.get(clientId, userId, time, size);
             Logger.debug("NotificationsResource::get: %s %s size: %d", userId, clientId, result.notifications.size());
+
             return Response.
                     ok(result).
                     status(status).
@@ -94,9 +88,7 @@ public class NotificationsResource {
 
             NotificationsDAO notificationsDAO = jdbi.onDemand(NotificationsDAO.class);
 
-            String notification = notificationsDAO.getLast(clientId, userId);
-
-            Event event = mapper.readValue(notification, Event.class);
+            Event event = notificationsDAO.getLast(clientId, userId);
 
             return Response.
                     ok(event).

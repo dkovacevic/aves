@@ -13,7 +13,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.Authorization;
-import org.skife.jdbi.v2.DBI;
+import org.jdbi.v3.core.Jdbi;
 
 import javax.validation.Valid;
 import javax.ws.rs.*;
@@ -32,9 +32,9 @@ import static com.aves.server.tools.Util.time;
 @Path("/clients")
 @Produces(MediaType.APPLICATION_JSON)
 public class ClientsResource {
-    private final DBI jdbi;
+    private final Jdbi jdbi;
 
-    public ClientsResource(DBI jdbi) {
+    public ClientsResource(Jdbi jdbi) {
         this.jdbi = jdbi;
     }
 
@@ -62,9 +62,9 @@ public class ClientsResource {
             clientsDAO.insert(clientId, userId, lastkey.id);
 
             for (PreKey preKey : newClient.prekeys) {
-                prekeysDAO.insert(clientId, preKey.id, preKey.key);
+                prekeysDAO.insert(clientId, preKey);
             }
-            prekeysDAO.insert(clientId, lastkey.id, lastkey.key);
+            prekeysDAO.insert(clientId, lastkey);
 
             Logger.info("New Device: %s, Last key: %d", clientId, lastkey.id);
 
@@ -104,12 +104,12 @@ public class ClientsResource {
             if (newClient.lastkey != null) {
                 PreKey lastkey = newClient.lastkey;
                 clientsDAO.insert(clientId, userId, lastkey.id);
-                prekeysDAO.insert(clientId, lastkey.id, lastkey.key);
+                prekeysDAO.insert(clientId, lastkey);
             }
 
             if (newClient.prekeys != null) {
                 for (PreKey preKey : newClient.prekeys) {
-                    prekeysDAO.insert(clientId, preKey.id, preKey.key);
+                    prekeysDAO.insert(clientId, preKey);
                 }
             }
 

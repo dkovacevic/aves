@@ -1,30 +1,30 @@
 package com.aves.server.DAO;
 
 import com.aves.server.model.otr.PreKey;
-import org.skife.jdbi.v2.StatementContext;
-import org.skife.jdbi.v2.sqlobject.Bind;
-import org.skife.jdbi.v2.sqlobject.SqlQuery;
-import org.skife.jdbi.v2.sqlobject.SqlUpdate;
-import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
-import org.skife.jdbi.v2.tweak.ResultSetMapper;
+import org.jdbi.v3.core.mapper.RowMapper;
+import org.jdbi.v3.core.statement.StatementContext;
+import org.jdbi.v3.sqlobject.config.RegisterRowMapper;
+import org.jdbi.v3.sqlobject.customizer.Bind;
+import org.jdbi.v3.sqlobject.customizer.BindFields;
+import org.jdbi.v3.sqlobject.statement.SqlQuery;
+import org.jdbi.v3.sqlobject.statement.SqlUpdate;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public interface PrekeysDAO {
     @SqlUpdate("INSERT INTO Prekeys (client_id, key_id, key) " +
-            "VALUES (:clientId, :keyId, :key) " +
-            "ON CONFLICT (client_Id, key_id) DO UPDATE SET key = EXCLUDED.key")
+            "VALUES (:clientId, :preKey.id, :preKey.key) " +
+            "ON CONFLICT (client_Id, preKey.id) DO UPDATE SET key = EXCLUDED.key")
     int insert(@Bind("clientId") String clientId,
-               @Bind("keyId") int keyId,
-               @Bind("key") String key);
+               @BindFields("preKey") PreKey preKey);
 
     @SqlQuery("SELECT * FROM Prekeys WHERE client_id = :clientId AND used = FALSE LIMIT 1")
-    @RegisterMapper(_Mapper.class)
+    @RegisterRowMapper(_Mapper.class)
     PreKey get(@Bind("clientId") String clientId);
 
     @SqlQuery("SELECT * FROM Prekeys WHERE client_id = :clientId AND key_id = :keyId AND used = FALSE")
-    @RegisterMapper(_Mapper.class)
+    @RegisterRowMapper(_Mapper.class)
     PreKey get(@Bind("clientId") String clientId,
                @Bind("keyId") int keyId);
 
@@ -32,13 +32,12 @@ public interface PrekeysDAO {
     int mark(@Bind("clientId") String clientId,
              @Bind("keyId") int keyId);
 
-    class _Mapper implements ResultSetMapper<PreKey> {
+    class _Mapper implements RowMapper<PreKey> {
         @Override
-        public PreKey map(int i, ResultSet rs, StatementContext statementContext) throws SQLException {
+        public PreKey map(ResultSet rs, StatementContext ctx) throws SQLException {
             PreKey preKey = new PreKey();
             preKey.id = rs.getInt("key_id");
             preKey.key = rs.getString("key");
-
             return preKey;
         }
     }

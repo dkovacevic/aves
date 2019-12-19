@@ -1,14 +1,14 @@
 package com.aves.server.DAO;
 
 import com.aves.server.model.User;
-import org.skife.jdbi.v2.StatementContext;
-import org.skife.jdbi.v2.sqlobject.Bind;
-import org.skife.jdbi.v2.sqlobject.SqlQuery;
-import org.skife.jdbi.v2.sqlobject.SqlUpdate;
-import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
-import org.skife.jdbi.v2.tweak.ResultSetMapper;
+import org.jdbi.v3.core.mapper.RowMapper;
+import org.jdbi.v3.core.statement.StatementContext;
+import org.jdbi.v3.sqlobject.config.RegisterRowMapper;
+import org.jdbi.v3.sqlobject.customizer.Bind;
+import org.jdbi.v3.sqlobject.customizer.BindFields;
+import org.jdbi.v3.sqlobject.statement.SqlQuery;
+import org.jdbi.v3.sqlobject.statement.SqlUpdate;
 
-import javax.annotation.Nullable;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
@@ -16,15 +16,9 @@ import java.util.UUID;
 
 public interface UserDAO {
     @SqlUpdate("INSERT INTO Users (user_id, name, firstname, lastname, country, email, phone, accent, complete, preview, hash) " +
-            "VALUES (:userId, :name, :firstname, :lastname, :country, :email, :phone, :accent, :complete, :preview, :hash)")
-    int insert(@Bind("userId") UUID userId,
-               @Bind("name") String name,
-               @Bind("firstname") String firstname,
-               @Bind("lastname") String lastname,
-               @Bind("country") String country,
-               @Bind("email") String email,
-               @Bind("phone") String phone,
-               @Bind("accent") int accent,
+            "VALUES (:user.id, :user.name, :user.firstname, :user.lastname, :user.country, :user.email, :user.phone, :user.accent," +
+            " :complete, :preview, :hash)")
+    int insert(@BindFields("user") User user,
                @Bind("complete") String complete,
                @Bind("preview") String preview,
                @Bind("hash") String hash);
@@ -36,30 +30,32 @@ public interface UserDAO {
     String getHash(@Bind("userId") UUID userId);
 
     @SqlQuery("SELECT user_id AS uuid FROM Users WHERE email = :email")
-    @RegisterMapper(UUIDMapper.class)
+    @RegisterRowMapper(UUIDMapper.class)
     UUID getUserId(@Bind("email") String email);
 
     @SqlQuery("SELECT * FROM Users WHERE user_id = :userId")
-    @RegisterMapper(_Mapper.class)
+    @RegisterRowMapper(_Mapper.class)
     User getUser(@Bind("userId") UUID userId);
 
     @SqlQuery("SELECT password_reset FROM Users WHERE user_id = :userId")
     Boolean getResetPassword(@Bind("userId") UUID userId);
+
+    @SqlUpdate("UPDATE Users SET password_reset = :reset WHERE user_id = :userId")
+    int setResetPassword(@Bind("userId") UUID userId, @Bind("reset") boolean reset);
 
     @SqlUpdate("UPDATE Users SET hash = :hash, password_reset = false WHERE user_id = :userId")
     int updateHash(@Bind("userId") UUID userId,
                    @Bind("hash") String hash);
 
     @SqlQuery("SELECT * FROM Users WHERE name ~* :keyword")
-    @RegisterMapper(_Mapper.class)
+    @RegisterRowMapper(_Mapper.class)
     List<User> search(@Bind("keyword") String keyword);
 
-    class _Mapper implements ResultSetMapper<User> {
+    class _Mapper implements RowMapper<User> {
         @Override
-        @Nullable
-        public User map(int i, ResultSet rs, StatementContext statementContext) throws SQLException {
+        public User map(ResultSet rs, StatementContext ctx) throws SQLException {
             User user = new User();
-            user.id = getUuid(rs, "user_id");
+            user.id = (UUID) rs.getObject("user_id");
             user.name = rs.getString("name");
             user.firstname = rs.getString("firstname");
             user.lastname = rs.getString("lastname");
@@ -84,14 +80,6 @@ public interface UserDAO {
                 user.assets.add(asset);
             }
             return user;
-        }
-
-        private UUID getUuid(ResultSet rs, String name) throws SQLException {
-            UUID contact = null;
-            Object rsObject = rs.getObject(name);
-            if (rsObject != null)
-                contact = (UUID) rsObject;
-            return contact;
         }
     }
 }

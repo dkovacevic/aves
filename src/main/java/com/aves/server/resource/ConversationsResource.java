@@ -4,15 +4,17 @@ import com.aves.server.DAO.ConversationsDAO;
 import com.aves.server.DAO.ParticipantsDAO;
 import com.aves.server.model.*;
 import com.aves.server.tools.Logger;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.Authorization;
-import org.skife.jdbi.v2.DBI;
+import org.jdbi.v3.core.Jdbi;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
@@ -29,9 +31,9 @@ import static com.aves.server.EventSender.*;
 @Produces(MediaType.APPLICATION_JSON)
 public class ConversationsResource {
 
-    private final DBI jdbi;
+    private final Jdbi jdbi;
 
-    public ConversationsResource(DBI jdbi) {
+    public ConversationsResource(Jdbi jdbi) {
         this.jdbi = jdbi;
     }
 
@@ -44,17 +46,21 @@ public class ConversationsResource {
             ParticipantsDAO participantsDAO = jdbi.onDemand(ParticipantsDAO.class);
 
             UUID userId = (UUID) context.getProperty("zuid");
-            UUID convId = UUID.randomUUID();
 
             // persist conv
-            conversationsDAO.insert(convId, conv.name, userId, Enums.Conversation.REGULAR.ordinal());
+            Conversation conversation = new Conversation();
+            conversation.id = UUID.randomUUID();
+            conversation.creator = userId;
+            conversation.type = Enums.Conversation.REGULAR.ordinal();
+
+            conversationsDAO.insert(conversation);
+
+            UUID convId = conversation.id;
 
             participantsDAO.insert(convId, userId);
             for (UUID participantId : conv.users) {
                 participantsDAO.insert(convId, participantId);
             }
-
-            Conversation conversation = conversationsDAO.get(convId);
 
             // build result
             List<UUID> others = participantsDAO.getUsers(convId);
@@ -125,7 +131,7 @@ public class ConversationsResource {
     @ApiOperation(value = "Add participants")
     public Response addMembers(@Context ContainerRequestContext context,
                                @PathParam("convId") UUID convId,
-                               Invite invite) throws JsonProcessingException {
+                               Users invite) throws JsonProcessingException {
 
         ConversationsDAO conversationsDAO = jdbi.onDemand(ConversationsDAO.class);
         ParticipantsDAO participantsDAO = jdbi.onDemand(ParticipantsDAO.class);
@@ -150,7 +156,6 @@ public class ConversationsResource {
             participantsDAO.insert(convId, participantId);
         }
 
-
         List<UUID> participants = participantsDAO.getUsers(convId);
         for (UUID participant : participants) {
             Event event = memberJoinEvent(userId, convId, invite.users);
@@ -168,8 +173,7 @@ public class ConversationsResource {
     @ApiOperation(value = "Remove member from the conversation")
     public Response removeMember(@Context ContainerRequestContext context,
                                  @PathParam("convId") UUID convId,
-                                 @PathParam("member") UUID member
-    ) throws JsonProcessingException {
+                                 @PathParam("member") UUID member) throws JsonProcessingException {
 
         ConversationsDAO conversationsDAO = jdbi.onDemand(ConversationsDAO.class);
         ParticipantsDAO participantsDAO = jdbi.onDemand(ParticipantsDAO.class);
@@ -246,7 +250,9 @@ public class ConversationsResource {
         public List<Conversation> conversations = new ArrayList<>();
     }
 
-    public static class Invite {
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class Users {
+        @NotNull
         public List<UUID> users;
     }
 }

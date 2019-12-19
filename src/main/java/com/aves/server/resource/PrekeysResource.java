@@ -12,7 +12,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.Authorization;
-import org.skife.jdbi.v2.DBI;
+import org.jdbi.v3.core.Jdbi;
 
 import javax.validation.Valid;
 import javax.ws.rs.*;
@@ -24,10 +24,9 @@ import java.util.*;
 @Path("/users")
 @Produces(MediaType.APPLICATION_JSON)
 public class PrekeysResource {
-    //private static final int MAX_PREKEY_ID = 0xFFFF;
-    private final DBI jdbi;
+    private final Jdbi jdbi;
 
-    public PrekeysResource(DBI jdbi) {
+    public PrekeysResource(Jdbi jdbi) {
         this.jdbi = jdbi;
     }
 
