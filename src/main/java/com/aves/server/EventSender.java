@@ -7,7 +7,7 @@ import com.aves.server.tools.Logger;
 import com.aves.server.websocket.ServerEndpoint;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.skife.jdbi.v2.DBI;
+import org.jdbi.v3.core.Jdbi;
 
 import java.util.Collections;
 import java.util.List;
@@ -18,7 +18,7 @@ import static com.aves.server.tools.Util.time;
 public class EventSender {
     private static ObjectMapper mapper = new ObjectMapper();
 
-    public static void sendEvent(Event event, UUID to, DBI jdbi) throws JsonProcessingException {
+    public static void sendEvent(Event event, UUID to, Jdbi jdbi) throws JsonProcessingException {
         NotificationsDAO notificationsDAO = jdbi.onDemand(NotificationsDAO.class);
         ClientsDAO clientsDAO = jdbi.onDemand(ClientsDAO.class);
 
@@ -40,7 +40,7 @@ public class EventSender {
         }
     }
 
-    public static String sendEvent(Event event, UUID to, String clientId, DBI jdbi) throws JsonProcessingException {
+    public static String sendEvent(Event event, UUID to, String clientId, Jdbi jdbi) throws JsonProcessingException {
         NotificationsDAO notificationsDAO = jdbi.onDemand(NotificationsDAO.class);
 
         // Persist event into Notification stream

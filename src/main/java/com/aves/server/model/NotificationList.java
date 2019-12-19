@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.ArrayList;
+import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class NotificationList {
@@ -11,7 +12,7 @@ public class NotificationList {
     public boolean hasMore;
 
     @JsonProperty
-    public ArrayList<Event> notifications = new ArrayList<>();
+    public List<Event> notifications = new ArrayList<>();
 
     @JsonProperty
     public String time;

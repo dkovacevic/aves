@@ -126,7 +126,7 @@ public class Util {
     }
 
     public static Picture getProfilePicture() throws Exception {
-        String filename = String.format("profiles/%d.png", random(32));
+        String filename = String.format("profiles/%d.png", random(40));
         InputStream is = Util.class.getClassLoader().getResourceAsStream(filename);
         if (is == null)
             throw new IOException("File not found: " + filename);

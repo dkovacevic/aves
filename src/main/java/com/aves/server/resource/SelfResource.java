@@ -10,7 +10,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.Authorization;
 import org.hibernate.validator.constraints.Length;
-import org.skife.jdbi.v2.DBI;
+import org.jdbi.v3.core.Jdbi;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -27,7 +27,7 @@ import java.util.UUID;
 public class SelfResource {
     private final UserDAO userDAO;
 
-    public SelfResource(DBI jdbi) {
+    public SelfResource(Jdbi jdbi) {
         userDAO = jdbi.onDemand(UserDAO.class);
     }
 

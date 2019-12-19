@@ -18,7 +18,8 @@ import io.dropwizard.client.JerseyClientBuilder;
 import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
 import io.dropwizard.configuration.SubstitutingSourceProvider;
 import io.dropwizard.db.DataSourceFactory;
-import io.dropwizard.jdbi.DBIFactory;
+import io.dropwizard.jdbi3.JdbiFactory;
+import io.dropwizard.jdbi3.bundles.JdbiExceptionsBundle;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.dropwizard.websockets.WebsocketBundle;
@@ -27,22 +28,21 @@ import io.federecio.dropwizard.swagger.SwaggerBundleConfiguration;
 import io.jsonwebtoken.security.Keys;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.flywaydb.core.Flyway;
-import org.skife.jdbi.v2.DBI;
+import org.jdbi.v3.core.Jdbi;
 
 import javax.crypto.SecretKey;
 import javax.servlet.DispatcherType;
 import javax.servlet.FilterRegistration;
-import javax.websocket.Encoder;
 import javax.websocket.server.ServerEndpointConfig;
 import javax.ws.rs.client.Client;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumSet;
 
 public class Aves extends Application<Configuration> {
     private final AdminResourceBundle admin = new AdminResourceBundle();
 
     private static SecretKey key;
-    public static DBI jdbi;
+    public static Jdbi jdbi;
 
     public static SecretKey getKey() {
         return key;
@@ -67,19 +67,16 @@ public class Aves extends Application<Configuration> {
             }
         });
         bootstrap.addBundle(admin);
-
-        ArrayList<Class<? extends Encoder>> encoders = new ArrayList<>();
-        encoders.add(EventEncoder.class);
+        bootstrap.addBundle(new JdbiExceptionsBundle());
 
         ServerEndpointConfig config = ServerEndpointConfig
                 .Builder
                 .create(ServerEndpoint.class, "/await")
                 .configurator(new Configurator())
-                .encoders(encoders)
+                .encoders(Collections.singletonList(EventEncoder.class))
                 .build();
 
-        WebsocketBundle bundle = new WebsocketBundle(config);
-        bootstrap.addBundle(bundle);
+        bootstrap.addBundle(new WebsocketBundle(config));
     }
 
     public void run(Configuration config, Environment environment) {
@@ -89,12 +86,12 @@ public class Aves extends Application<Configuration> {
         Flyway flyway = Flyway
                 .configure()
                 .dataSource(database.getUrl(), database.getUser(), database.getPassword())
-                .baselineOnMigrate(true)
                 .load();
         flyway.migrate();
 
         Aves.key = Keys.hmacShaKeyFor(config.key.getBytes());
-        jdbi = new DBIFactory().build(environment, database, "aves");
+
+        jdbi = new JdbiFactory().build(environment, database, "aves");
 
         // Enable CORS headers
         final FilterRegistration.Dynamic cors = environment.servlets().addFilter("CORS", CrossOriginFilter.class);
@@ -133,11 +130,11 @@ public class Aves extends Application<Configuration> {
         environment.jersey().register(new NotificationsResource(jdbi));
         environment.jersey().register(new SignatureResource(jdbi, swisscomClient));
         environment.jersey().register(new SearchResource(jdbi));
+        environment.jersey().register(new ConnectionsResource(jdbi));
 
         // Dummies
         environment.jersey().register(new TeamsResource());
         environment.jersey().register(new PropertiesResource());
         environment.jersey().register(new CallsResource());
-        environment.jersey().register(new ConnectionsResource(jdbi));
     }
 }

@@ -1,34 +1,35 @@
 package com.aves.server.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.hibernate.validator.constraints.Length;
-import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.validation.constraints.NotNull;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class NewUser {
     @NotNull
-    @Length(min = 6, max = 1024)
+    @Length(min = 6)
     public String email;
 
     @NotNull
-    @NotEmpty
+    @Length(min = 3, max = 125)
     public String name;
 
     @NotNull
-    @Length(min = 6, max = 1024)
-    public String password;
-
-    @NotNull
-    @NotEmpty
+    @Length(min = 10, max = 16)
     public String phone;
 
+    @NotNull
+    @Length(max = 124)
     public String firstname;
 
+    @NotNull
+    @Length(max = 124)
     public String lastname;
 
+    @NotNull
+    @Length(min = 2, max = 2)
     public String country;
 
-    @JsonProperty("accent_id")
-    public int accent;
+    public String password;
 }

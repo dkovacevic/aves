@@ -10,7 +10,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.Authorization;
-import org.skife.jdbi.v2.DBI;
+import org.jdbi.v3.core.Jdbi;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -36,9 +36,9 @@ public class ConnectionsResource {
     private final ConnectionsDAO connectionsDAO;
     private final ConversationsDAO conversationsDAO;
     private final ParticipantsDAO participantsDAO;
-    private final DBI jdbi;
+    private final Jdbi jdbi;
 
-    public ConnectionsResource(DBI jdbi) {
+    public ConnectionsResource(Jdbi jdbi) {
         connectionsDAO = jdbi.onDemand(ConnectionsDAO.class);
         conversationsDAO = jdbi.onDemand(ConversationsDAO.class);
         participantsDAO = jdbi.onDemand(ParticipantsDAO.class);
@@ -78,8 +78,15 @@ public class ConnectionsResource {
         connectionsDAO.insert(userId, request.user);
         connectionsDAO.insert(request.user, userId);
 
-        UUID convId = UUID.randomUUID();
-        conversationsDAO.insert(convId, null, userId, Enums.Conversation.ONE2ONE.ordinal());
+        Conversation conversation = new Conversation();
+        conversation.id = UUID.randomUUID();
+        conversation.creator = userId;
+        conversation.type = Enums.Conversation.ONE2ONE.ordinal();
+
+        conversationsDAO.insert(conversation);
+
+        UUID convId = conversation.id;
+
         participantsDAO.insert(convId, userId);
         participantsDAO.insert(convId, request.user);
 

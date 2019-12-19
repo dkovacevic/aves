@@ -10,7 +10,7 @@ import com.aves.server.tools.Logger;
 import com.lambdaworks.crypto.SCryptUtil;
 import io.jsonwebtoken.Jwts;
 import io.swagger.annotations.*;
-import org.skife.jdbi.v2.DBI;
+import org.jdbi.v3.core.Jdbi;
 
 import javax.validation.Valid;
 import javax.ws.rs.Consumes;
@@ -29,10 +29,10 @@ import java.util.concurrent.TimeUnit;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class LoginResource {
-    private final DBI jdbi;
+    private final Jdbi jdbi;
     private final Configuration config;
 
-    public LoginResource(DBI jdbi, Configuration config) {
+    public LoginResource(Jdbi jdbi, Configuration config) {
         this.jdbi = jdbi;
         this.config = config;
     }

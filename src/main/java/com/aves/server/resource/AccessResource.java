@@ -9,7 +9,7 @@ import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.skife.jdbi.v2.DBI;
+import org.jdbi.v3.core.Jdbi;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -23,10 +23,10 @@ import java.util.concurrent.TimeUnit;
 @Path("/access")
 @Produces(MediaType.APPLICATION_JSON)
 public class AccessResource {
-    private final DBI jdbi;
+    private final Jdbi jdbi;
     private final Configuration config;
 
-    public AccessResource(DBI jdbi, Configuration config) {
+    public AccessResource(Jdbi jdbi, Configuration config) {
         this.jdbi = jdbi;
         this.config = config;
     }

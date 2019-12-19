@@ -25,5 +25,4 @@ public class Conversation {
 
     @JsonProperty
     public int type;
-
 }

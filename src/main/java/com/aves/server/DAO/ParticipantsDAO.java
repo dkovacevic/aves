@@ -1,9 +1,9 @@
 package com.aves.server.DAO;
 
-import org.skife.jdbi.v2.sqlobject.Bind;
-import org.skife.jdbi.v2.sqlobject.SqlQuery;
-import org.skife.jdbi.v2.sqlobject.SqlUpdate;
-import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
+import org.jdbi.v3.sqlobject.config.RegisterRowMapper;
+import org.jdbi.v3.sqlobject.customizer.Bind;
+import org.jdbi.v3.sqlobject.statement.SqlQuery;
+import org.jdbi.v3.sqlobject.statement.SqlUpdate;
 
 import java.util.List;
 import java.util.UUID;
@@ -15,15 +15,15 @@ public interface ParticipantsDAO {
                @Bind("userId") UUID userId);
 
     @SqlQuery("SELECT user_Id AS uuid FROM Participants WHERE conv_Id = :convId")
-    @RegisterMapper(UUIDMapper.class)
+    @RegisterRowMapper(UUIDMapper.class)
     List<UUID> getUsers(@Bind("convId") UUID convId);
 
     @SqlQuery("SELECT conv_Id AS uuid FROM Participants WHERE user_Id = :userId")
-    @RegisterMapper(UUIDMapper.class)
+    @RegisterRowMapper(UUIDMapper.class)
     List<UUID> getConversations(@Bind("userId") UUID userId);
 
     @SqlQuery("SELECT conv_Id AS uuid FROM Participants WHERE user_Id = :userId AND conv_Id = :convId")
-    @RegisterMapper(UUIDMapper.class)
+    @RegisterRowMapper(UUIDMapper.class)
     UUID isParticipant(@Bind("userId") UUID userId,
                        @Bind("convId") UUID convId);
 

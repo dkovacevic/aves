@@ -10,7 +10,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.Authorization;
 import org.hibernate.validator.constraints.NotEmpty;
-import org.skife.jdbi.v2.DBI;
+import org.jdbi.v3.core.Jdbi;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -25,10 +25,10 @@ import java.util.UUID;
 @Path("/signature")
 @Produces(MediaType.APPLICATION_JSON)
 public class SignatureResource {
-    private final DBI jdbi;
+    private final Jdbi jdbi;
     private final SwisscomClient swisscomClient;
 
-    public SignatureResource(DBI jdbi, SwisscomClient swisscomClient) {
+    public SignatureResource(Jdbi jdbi, SwisscomClient swisscomClient) {
         this.jdbi = jdbi;
         this.swisscomClient = swisscomClient;
     }
