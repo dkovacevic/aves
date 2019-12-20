@@ -9,7 +9,6 @@ import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.jdbi.v3.core.Jdbi;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -23,11 +22,9 @@ import java.util.concurrent.TimeUnit;
 @Path("/access")
 @Produces(MediaType.APPLICATION_JSON)
 public class AccessResource {
-    private final Jdbi jdbi;
     private final Configuration config;
 
-    public AccessResource(Jdbi jdbi, Configuration config) {
-        this.jdbi = jdbi;
+    public AccessResource(Configuration config) {
         this.config = config;
     }
 
@@ -58,7 +55,7 @@ public class AccessResource {
             Date exp = new Date(new Date().getTime() + mills);
 
             String token = Jwts.builder()
-                    .setIssuer("https://aves.com")
+                    .setIssuer("https://aves.services.wire.com")
                     .setSubject("" + userId)
                     .setExpiration(exp)
                     .signWith(Aves.getKey())

@@ -15,18 +15,15 @@ import java.sql.SQLException;
 public interface PrekeysDAO {
     @SqlUpdate("INSERT INTO Prekeys (client_id, key_id, key) " +
             "VALUES (:clientId, :preKey.id, :preKey.key) " +
-            "ON CONFLICT (client_Id, preKey.id) DO UPDATE SET key = EXCLUDED.key")
+            "ON CONFLICT (client_id, key_id) DO UPDATE SET key = EXCLUDED.key")
     int insert(@Bind("clientId") String clientId,
                @BindFields("preKey") PreKey preKey);
 
-    @SqlQuery("SELECT * FROM Prekeys WHERE client_id = :clientId AND used = FALSE LIMIT 1")
+    @SqlQuery("SELECT * FROM Prekeys WHERE client_id = :clientId AND used = FALSE " +
+            "ORDER BY key_id " +
+            "LIMIT 1")
     @RegisterRowMapper(_Mapper.class)
     PreKey get(@Bind("clientId") String clientId);
-
-    @SqlQuery("SELECT * FROM Prekeys WHERE client_id = :clientId AND key_id = :keyId AND used = FALSE")
-    @RegisterRowMapper(_Mapper.class)
-    PreKey get(@Bind("clientId") String clientId,
-               @Bind("keyId") int keyId);
 
     @SqlUpdate("UPDATE Prekeys SET used = TRUE WHERE client_id = :clientId AND key_id = :keyId")
     int mark(@Bind("clientId") String clientId,
