@@ -38,6 +38,13 @@ public class AccessResource {
                 header = access;
 
             String expired = cookie != null ? cookie : header;
+            if (expired == null) {
+                return Response
+                        .ok(new ErrorMessage("Missing access token"))
+                        .status(400)
+                        .build();
+            }
+
             UUID userId;
             try {
                 String subject = Jwts.parser()
