@@ -1,7 +1,6 @@
 package com.aves.server.resource.dummy;
 
 import com.aves.server.DAO.PropertiesDAO;
-import com.aves.server.tools.Logger;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -9,9 +8,12 @@ import io.swagger.annotations.Authorization;
 import org.jdbi.v3.core.Jdbi;
 
 import javax.ws.rs.*;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.HashMap;
+import java.util.UUID;
 
 @Api
 @Path("/properties")
@@ -27,8 +29,11 @@ public class PropertiesResource {
     @Path("{key}")
     @ApiOperation(value = "Get properties")
     @Authorization("Bearer")
-    public Response getProperty(@ApiParam @PathParam("key") String key) {
-        String value = propertiesDAO.get(key);
+    public Response getProperty(@Context ContainerRequestContext context,
+                                @ApiParam @PathParam("key") String key) {
+        UUID userId = (UUID) context.getProperty("zuid");
+
+        String value = propertiesDAO.get(userId, key);
         if (value == null)
             return Response.status(404).build();
 
@@ -39,9 +44,11 @@ public class PropertiesResource {
     @Path("{key}")
     @ApiOperation(value = "Put properties")
     @Authorization("Bearer")
-    public Response putProperty(@ApiParam @PathParam("key") String key, String value) {
-        Logger.info("PropertiesResource.put(%s): %s", key, value);
-        propertiesDAO.upsert(key, value);
+    public Response putProperty(@Context ContainerRequestContext context,
+                                @ApiParam @PathParam("key") String key, String value) {
+        UUID userId = (UUID) context.getProperty("zuid");
+
+        propertiesDAO.upsert(userId, key, value);
         return Response.ok().build();
     }
 
