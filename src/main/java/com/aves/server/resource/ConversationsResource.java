@@ -21,6 +21,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -52,6 +53,9 @@ public class ConversationsResource {
             conversation.id = UUID.randomUUID();
             conversation.creator = userId;
             conversation.type = Enums.Conversation.REGULAR.ordinal();
+            conversation.name = conv.name;
+            conversation.lastEventTime = "1970-01-01T00:00:00.000Z";
+            conversation.lastEvent = "0.0";
 
             conversationsDAO.insert(conversation);
 
@@ -71,8 +75,6 @@ public class ConversationsResource {
                 Event event = conversationCreateEvent(userId, conversation);
                 sendEvent(event, selfId, jdbi);
             }
-
-            Logger.debug("New conversation: %s", convId);
 
             buildConversation(conversation, userId, others);
 
@@ -156,14 +158,17 @@ public class ConversationsResource {
             participantsDAO.insert(convId, participantId);
         }
 
+        UserIds userIds = new UserIds();
+        userIds.usersIds = invite.users;
+
         List<UUID> participants = participantsDAO.getUsers(convId);
         for (UUID participant : participants) {
-            Event event = memberJoinEvent(userId, convId, invite.users);
+            Event event = memberJoinEvent(userId, convId, userIds);
             sendEvent(event, participant, jdbi);
         }
 
         return Response.
-                ok(memberJoinEvent(userId, convId, invite.users)).
+                ok(memberJoinEvent(userId, convId, userIds)).
                 build();
     }
 
@@ -196,13 +201,16 @@ public class ConversationsResource {
 
         participantsDAO.remove(convId, member);
 
+        UserIds userIds = new UserIds();
+        userIds.usersIds = Collections.singletonList(member);
+
         List<UUID> participants = participantsDAO.getUsers(convId);
         for (UUID participant : participants) {
-            Event event = memberLeaveEvent(userId, convId, member);
+            Event event = memberLeaveEvent(userId, convId, userIds);
             sendEvent(event, participant, jdbi);
         }
         return Response.
-                ok(memberLeaveEvent(userId, convId, member)).
+                ok(memberLeaveEvent(userId, convId, userIds)).
                 build();
     }
 

@@ -25,4 +25,9 @@ public class Conversation {
 
     @JsonProperty
     public int type;
+
+    @JsonProperty("last_event_time")
+    public String lastEventTime;
+    @JsonProperty("last_event")
+    public String lastEvent;
 }

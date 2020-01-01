@@ -3,13 +3,13 @@ package com.aves.server;
 import com.aves.server.DAO.ClientsDAO;
 import com.aves.server.DAO.NotificationsDAO;
 import com.aves.server.model.*;
+import com.aves.server.model.otr.OtrEvent;
 import com.aves.server.tools.Logger;
 import com.aves.server.websocket.ServerEndpoint;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.jdbi.v3.core.Jdbi;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -91,32 +91,30 @@ public class EventSender {
         return event;
     }
 
-    public static Event memberJoinEvent(UUID from, UUID convId, List<UUID> users) {
+    public static Event memberJoinEvent(UUID from, UUID convId, UserIds userIds) {
         Event event = new Event();
         event.id = UUID.randomUUID();
 
-        Payload payload = new Payload();
+        Payload<UserIds> payload = new Payload<>();
         payload.type = "conversation.member-join";
         payload.time = time();
         payload.convId = convId;
         payload.from = from;
-        payload.data = new Payload.Data();
-        payload.data.userIds = users;
+        payload.data = userIds;
         event.payload.add(payload);
         return event;
     }
 
-    public static Event memberLeaveEvent(UUID from, UUID convId, UUID member) {
+    public static Event memberLeaveEvent(UUID from, UUID convId, UserIds userIds) {
         Event event = new Event();
         event.id = UUID.randomUUID();
 
-        Payload payload = new Payload();
+        Payload<UserIds> payload = new Payload<>();
         payload.type = "conversation.member-leave";
         payload.time = time();
         payload.convId = convId;
         payload.from = from;
-        payload.data = new Payload.Data();
-        payload.data.userIds = Collections.singletonList(member);
+        payload.data = userIds;
         event.payload.add(payload);
         return event;
     }
@@ -125,26 +123,21 @@ public class EventSender {
         Event event = new Event();
         event.id = UUID.randomUUID();
 
-        Payload payload = new Payload();
+        Payload<Conversation> payload = new Payload<>();
         payload.type = "conversation.create";
         payload.convId = conv.id;
         payload.from = from;
         payload.time = time();
-        payload.data = new Payload.Data();
-        payload.data.id = conv.id;
-        payload.data.creator = conv.creator;
-        payload.data.name = conv.name;
-        payload.data.type = conv.type;
-        payload.data.members = conv.members;
+        payload.data = conv;
         event.payload.add(payload);
         return event;
     }
 
-    public static Event conversationOtrMessageAddEvent(UUID convId, UUID from, Payload.Data data) {
+    public static Event conversationOtrMessageAddEvent(UUID convId, UUID from, OtrEvent data) {
         Event event = new Event();
         event.id = UUID.randomUUID();
 
-        Payload payload = new Payload();
+        Payload<OtrEvent> payload = new Payload<>();
         payload.type = "conversation.otr-message-add";
         payload.convId = convId;
         payload.from = from;

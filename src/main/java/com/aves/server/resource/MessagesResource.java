@@ -4,11 +4,7 @@ import com.aves.server.DAO.ClientsDAO;
 import com.aves.server.DAO.ParticipantsDAO;
 import com.aves.server.model.ErrorMessage;
 import com.aves.server.model.Event;
-import com.aves.server.model.Payload;
-import com.aves.server.model.otr.ClientCipher;
-import com.aves.server.model.otr.ClientMismatch;
-import com.aves.server.model.otr.NewOtrMessage;
-import com.aves.server.model.otr.Recipients;
+import com.aves.server.model.otr.*;
 import com.aves.server.tools.Logger;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -79,7 +75,7 @@ public class MessagesResource {
                 ClientCipher clientCipher = recipients.get(participantId);
                 for (String clientId : clientCipher.keySet()) {
                     if (!Objects.equals(sender, clientId)) {
-                        Payload.Data data = new Payload.Data();
+                        OtrEvent data = new OtrEvent();
                         data.sender = sender;
                         data.recipient = clientId;
                         data.text = clientCipher.get(clientId);
