@@ -54,9 +54,6 @@ public class LoginResource {
                         .build();
             }
 
-            long mills = TimeUnit.SECONDS.toMillis(config.tokenExpiration);
-            Date exp = new Date(new Date().getTime() + mills);
-
             UUID userId = userDAO.getUserId(email);
             if (userId == null) {
                 return Response
@@ -64,6 +61,9 @@ public class LoginResource {
                         .status(403)
                         .build();
             }
+
+            long mills = TimeUnit.SECONDS.toMillis(config.tokenExpiration);
+            Date exp = new Date(new Date().getTime() + mills);
 
             String token = Jwts.builder()
                     .setIssuer("https://aves.com")

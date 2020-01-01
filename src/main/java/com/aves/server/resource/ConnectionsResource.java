@@ -104,14 +104,14 @@ public class ConnectionsResource {
                 build();
     }
 
-    private void sendConversationEvent(UUID inviterId, UUID userId, UUID convId) throws JsonProcessingException {
+    private void sendConversationEvent(UUID other, UUID self, UUID convId) throws JsonProcessingException {
         Conversation conversation = conversationsDAO.get(convId);
+        conversation.members.self.id = self;
         Member member2 = new Member();
-        member2.id = inviterId;
-        conversation.members.self.id = userId;
+        member2.id = other;
         conversation.members.others.add(member2);
-        Event event = conversationCreateEvent(inviterId, conversation);
-        sendEvent(event, userId, jdbi);
+        Event event = conversationCreateEvent(self, conversation);
+        sendEvent(event, self, jdbi);
     }
 
     private Connection sendConnectionEvent(UUID from, UUID userId, UUID convId) throws JsonProcessingException {

@@ -13,18 +13,19 @@ public class Configurator extends ServerEndpointConfig.Configurator {
 
     @Override
     public void modifyHandshake(ServerEndpointConfig sec, HandshakeRequest request, HandshakeResponse response) {
-        String token = Util.getQueryParam(request.getQueryString(), "access_token");
+        try {
+            String token = Util.getQueryParam(request.getQueryString(), "access_token");
 
-        String subject = Jwts.parser()
-                .setSigningKey(Aves.getKey())
-                .parseClaimsJws(token)
-                .getBody()
-                .getSubject();
+            String subject = Jwts.parser()
+                    .setSigningKey(Aves.getKey())
+                    .parseClaimsJws(token)
+                    .getBody()
+                    .getSubject();
 
-        UUID userId = UUID.fromString(subject);
-
-        sec.getUserProperties().put("zuid", userId);
-
-        super.modifyHandshake(sec, request, response);
+            UUID userId = UUID.fromString(subject);
+            sec.getUserProperties().put("zuid", userId);
+        } catch (Exception e) {
+            throw new RuntimeException("WebSocket Configurator", e);
+        }
     }
 }
