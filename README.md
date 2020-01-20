@@ -2,5 +2,5 @@
 OTR Chat Server
 
 ## API Documentation
-https://services.zinfra.io/aves/swagger#!/default
+https://aves.services.zinfra.io/swagger#!/default
 
