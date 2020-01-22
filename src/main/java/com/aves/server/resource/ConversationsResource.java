@@ -252,6 +252,25 @@ public class ConversationsResource {
                 build();
     }
 
+    @GET
+    @Path("ids")
+    @Authorization("Bearer")
+    @ApiOperation(value = "Get all conversation Ids")
+    public Response getIds(@Context ContainerRequestContext context) {
+        ConversationsDAO conversationsDAO = jdbi.onDemand(ConversationsDAO.class);
+        ParticipantsDAO participantsDAO = jdbi.onDemand(ParticipantsDAO.class);
+
+        UUID userId = (UUID) context.getProperty("zuid");
+
+        _ResultIds result = new _ResultIds();
+
+        result.conversations = participantsDAO.getConversations(userId);
+
+        return Response.
+                ok(result).
+                build();
+    }
+
     private void buildConversation(Conversation conversation, UUID selfId, List<UUID> others) {
         conversation.members = new Members();
         conversation.members.self.id = selfId;
@@ -268,6 +287,12 @@ public class ConversationsResource {
         @JsonProperty("has_more")
         public boolean hasMore;
         public List<Conversation> conversations = new ArrayList<>();
+    }
+
+    public static class _ResultIds {
+        @JsonProperty("has_more")
+        public boolean hasMore;
+        public List<UUID> conversations = new ArrayList<>();
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
