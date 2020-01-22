@@ -1,0 +1,1 @@
+ALTER TABLE Connections ADD COLUMN conv UUID;

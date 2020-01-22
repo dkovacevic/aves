@@ -53,15 +53,8 @@ public class ConnectionsResource {
 
         UUID userId = (UUID) context.getProperty("zuid");
 
-        List<UUID> connections = connectionsDAO.getConnections(userId);
-        for (UUID to : connections) {
-            Connection connection = new Connection();
-            connection.time = time();
-            connection.from = userId;
-            connection.to = to;
+        result.connections = connectionsDAO.getConnections(userId);
 
-            result.connections.add(connection);
-        }
         return Response.
                 ok(result).
                 build();
@@ -75,17 +68,17 @@ public class ConnectionsResource {
 
         UUID userId = (UUID) context.getProperty("zuid");
 
-        connectionsDAO.insert(userId, request.user);
-        connectionsDAO.insert(request.user, userId);
+        UUID convId = UUID.randomUUID();
 
         Conversation conversation = new Conversation();
-        conversation.id = UUID.randomUUID();
+        conversation.id = convId;
         conversation.creator = userId;
         conversation.type = Enums.Conversation.ONE2ONE.ordinal();
 
         conversationsDAO.insert(conversation);
 
-        UUID convId = conversation.id;
+        connectionsDAO.insert(userId, request.user, convId);
+        connectionsDAO.insert(request.user, userId, convId);
 
         participantsDAO.insert(convId, userId);
         participantsDAO.insert(convId, request.user);
@@ -130,7 +123,7 @@ public class ConnectionsResource {
         @JsonProperty("has_more")
         public boolean more;
         @JsonProperty
-        public ArrayList<Connection> connections = new ArrayList<>();
+        public List<Connection> connections = new ArrayList<>();
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

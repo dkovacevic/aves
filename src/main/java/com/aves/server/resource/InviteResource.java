@@ -81,21 +81,21 @@ public class InviteResource {
             // Create self conv for this user
             createSelfConv(userId);
 
+            UUID convId = UUID.randomUUID();
+
             // Create new conv
             Conversation conversation = new Conversation();
-            conversation.id = UUID.randomUUID();
+            conversation.id = convId;
             conversation.creator = inviterId;
             conversation.type = Enums.Conversation.ONE2ONE.ordinal();
-
-            UUID convId = conversation.id;
 
             conversationsDAO.insert(conversation);
             participantsDAO.insert(convId, inviterId);
             participantsDAO.insert(convId, userId);
 
             // Save new Connection
-            connectionsDAO.insert(inviterId, userId);
-            connectionsDAO.insert(userId, inviterId);
+            connectionsDAO.insert(inviterId, userId, convId);
+            connectionsDAO.insert(userId, inviterId, convId);
 
             // Send Conversation event
             sendConversationEvent(inviterId, userId, conversation);

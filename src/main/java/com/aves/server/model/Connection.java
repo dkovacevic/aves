@@ -15,5 +15,5 @@ public class Connection {
     public UUID from;
     public UUID to;
     public UUID conversation;
-    public String message;
+    public String message = " ";
 }
