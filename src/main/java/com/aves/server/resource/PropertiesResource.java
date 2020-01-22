@@ -1,4 +1,4 @@
-package com.aves.server.resource.dummy;
+package com.aves.server.resource;
 
 import com.aves.server.DAO.PropertiesDAO;
 import io.swagger.annotations.Api;
