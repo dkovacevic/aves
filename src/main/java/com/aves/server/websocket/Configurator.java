@@ -7,6 +7,8 @@ import io.jsonwebtoken.Jwts;
 import javax.websocket.HandshakeResponse;
 import javax.websocket.server.HandshakeRequest;
 import javax.websocket.server.ServerEndpointConfig;
+import javax.ws.rs.core.HttpHeaders;
+import java.util.List;
 import java.util.UUID;
 
 public class Configurator extends ServerEndpointConfig.Configurator {
@@ -15,6 +17,16 @@ public class Configurator extends ServerEndpointConfig.Configurator {
     public void modifyHandshake(ServerEndpointConfig sec, HandshakeRequest request, HandshakeResponse response) {
         try {
             String token = Util.getQueryParam(request.getQueryString(), "access_token");
+
+            if (token == null) {
+                List<String> auths = request.getHeaders().get(HttpHeaders.AUTHORIZATION);
+                if (auths != null && !auths.isEmpty())
+                    token = auths.get(0).replace("Bearer ", "");
+            }
+
+            if (token == null) {
+                throw new RuntimeException("missing access token");
+            }
 
             String subject = Jwts.parser()
                     .setSigningKey(Aves.getKey())
