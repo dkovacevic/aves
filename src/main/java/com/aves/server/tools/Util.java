@@ -74,6 +74,10 @@ public class Util {
         return minioClient.getObject(BUCKET_NAME, assetId);
     }
 
+    public static String nextHex() {
+        return new BigInteger(64, random).toString(16);
+    }
+
     private static String next() {
         return new BigInteger(130, random).toString(32);
     }

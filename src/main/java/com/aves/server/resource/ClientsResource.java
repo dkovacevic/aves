@@ -9,6 +9,7 @@ import com.aves.server.model.Event;
 import com.aves.server.model.NewClient;
 import com.aves.server.model.otr.PreKey;
 import com.aves.server.tools.Logger;
+import com.aves.server.tools.Util;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -25,7 +26,6 @@ import java.util.List;
 import java.util.UUID;
 
 import static com.aves.server.EventSender.sendEvent;
-import static com.aves.server.tools.Util.next;
 import static com.aves.server.tools.Util.time;
 
 @Api
@@ -56,8 +56,8 @@ public class ClientsResource {
                         build();
             }
 
-            String clientId = next(12);
-
+            String clientId = Util.nextHex();
+            
             PreKey lastkey = newClient.lastkey;
             clientsDAO.insert(clientId, userId, lastkey.id);
 
