@@ -172,6 +172,18 @@ public class ConversationsResource {
                 build();
     }
 
+    @POST
+    @Path("{convId}/typing")
+    @Authorization("Bearer")
+    @ApiOperation(value = "Signal typing")
+    public Response typing(@Context ContainerRequestContext context,
+                           @PathParam("convId") UUID convId) {
+
+        return Response.
+                ok().
+                build();
+    }
+
     @DELETE
     @Path("{convId}/members/{member}")
     @Authorization("Bearer")
