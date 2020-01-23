@@ -14,4 +14,5 @@ public class Device {
     public String clazz;
     public String label;
     public int lastKey;
+    public String model;
 }

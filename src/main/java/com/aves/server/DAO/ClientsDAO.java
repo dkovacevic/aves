@@ -1,6 +1,7 @@
 package com.aves.server.DAO;
 
 import com.aves.server.model.Device;
+import com.aves.server.tools.Util;
 import org.jdbi.v3.core.mapper.RowMapper;
 import org.jdbi.v3.core.statement.StatementContext;
 import org.jdbi.v3.sqlobject.config.RegisterRowMapper;
@@ -41,11 +42,12 @@ public interface ClientsDAO {
         public Device map(ResultSet rs, StatementContext ctx) throws SQLException {
             Device device = new Device();
             device.id = rs.getString("client_Id");
-            device.time = rs.getString("time");
+            device.time = Util.time(rs.getDate("time"));
             device.clazz = "desktop";
             device.type = "permanent";
             device.label = "diggy";
             device.lastKey = rs.getInt("lastkey");
+            device.model = "Chrome";
             return device;
         }
     }
