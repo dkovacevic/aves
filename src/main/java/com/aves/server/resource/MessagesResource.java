@@ -6,6 +6,7 @@ import com.aves.server.model.ErrorMessage;
 import com.aves.server.model.Event;
 import com.aves.server.model.otr.*;
 import com.aves.server.tools.Logger;
+import com.aves.server.tools.Util;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -19,6 +20,7 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -58,11 +60,12 @@ public class MessagesResource {
 
         for (Otr.UserEntry entry : payload.getRecipientsList()) {
             Otr.UserId user = entry.getUser();
-            UUID userId = UUID.nameUUIDFromBytes(user.getUuid().toByteArray());
+            UUID userId = Util.getGuidFromByteArray(user.getUuid().toByteArray());
 
             for (Otr.ClientEntry clientEntry : entry.getClientsList()) {
                 String clientId = toBigInteger(clientEntry.getClient().getClient()).toString(16);
-                String cipher = clientEntry.getText().toStringUtf8();
+                String cipher = Base64.getEncoder().encodeToString(clientEntry.getText().toByteArray());
+
                 otrMessage.recipients.add(userId, clientId, cipher);
             }
         }

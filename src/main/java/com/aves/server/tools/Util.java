@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
 import java.net.URLConnection;
+import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -182,5 +183,10 @@ public class Util {
 
     public static BigInteger toBigInteger(long unsignedLong) {
         return BigInteger.valueOf(unsignedLong).and(UNSIGNED_LONG_MASK);
+    }
+
+    public static UUID getGuidFromByteArray(byte[] bytes) {
+        ByteBuffer bb = ByteBuffer.wrap(bytes);
+        return new UUID(bb.getLong(), bb.getLong());
     }
 }
