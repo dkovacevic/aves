@@ -19,6 +19,8 @@ import io.dropwizard.configuration.SubstitutingSourceProvider;
 import io.dropwizard.db.DataSourceFactory;
 import io.dropwizard.jdbi3.JdbiFactory;
 import io.dropwizard.jdbi3.bundles.JdbiExceptionsBundle;
+import io.dropwizard.jersey.protobuf.ProtobufBundle;
+import io.dropwizard.jersey.protobuf.ProtocolBufferMessageBodyProvider;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.dropwizard.websockets.WebsocketBundle;
@@ -76,6 +78,7 @@ public class Aves extends Application<Configuration> {
                 .build();
 
         bootstrap.addBundle(new WebsocketBundle(config));
+        bootstrap.addBundle(new ProtobufBundle());
     }
 
     public void run(Configuration config, Environment environment) {
@@ -114,6 +117,8 @@ public class Aves extends Application<Configuration> {
 
         //admin.getJerseyEnvironment().register(new StatusHealthcheck());
         environment.jersey().register(new StatusHealthcheck());
+
+        environment.jersey().register(new ProtocolBufferMessageBodyProvider());
 
         environment.jersey().register(new ConfigResource());
         environment.jersey().register(new LoginResource(jdbi, config));

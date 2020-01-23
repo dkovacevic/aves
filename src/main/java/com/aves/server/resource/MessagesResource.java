@@ -26,6 +26,7 @@ import java.util.UUID;
 import static com.aves.server.EventSender.conversationOtrMessageAddEvent;
 import static com.aves.server.EventSender.sendEvent;
 import static com.aves.server.tools.Util.time;
+import static com.aves.server.tools.Util.toBigInteger;
 
 @Api
 @Path("/conversations/{convId}/otr/messages")
@@ -42,13 +43,42 @@ public class MessagesResource {
     }
 
     @POST
+    @Authorization("Bearer")
+    @Consumes("application/x-protobuf")
+    public Response postProtobuf(@Context ContainerRequestContext context,
+                                 @PathParam("convId") UUID convId,
+                                 @QueryParam("report_missing") UUID reportMissing,
+                                 @QueryParam("ignore_missing") boolean ignoreMissing,
+                                 Otr.NewOtrMessage payload) {
+
+        NewOtrMessage otrMessage = new NewOtrMessage();
+        otrMessage.recipients = new Recipients();
+        long client = payload.getSender().getClient();
+        otrMessage.sender = toBigInteger(client).toString(16);
+
+        for (Otr.UserEntry entry : payload.getRecipientsList()) {
+            Otr.UserId user = entry.getUser();
+            UUID userId = UUID.nameUUIDFromBytes(user.getUuid().toByteArray());
+
+            for (Otr.ClientEntry clientEntry : entry.getClientsList()) {
+                String clientId = toBigInteger(clientEntry.getClient().getClient()).toString(16);
+                String cipher = clientEntry.getText().toStringUtf8();
+                otrMessage.recipients.add(userId, clientId, cipher);
+            }
+        }
+
+        return postJson(context, convId, reportMissing, ignoreMissing, otrMessage);
+    }
+
+    @POST
     @ApiOperation(value = "Post new Otr Message")
     @Authorization("Bearer")
-    public Response post(@Context ContainerRequestContext context,
-                         @PathParam("convId") UUID convId,
-                         @QueryParam("report_missing") UUID reportMissing,
-                         @QueryParam("ignore_missing") boolean ignoreMissing,
-                         @ApiParam @Valid NewOtrMessage otrMessage) {
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response postJson(@Context ContainerRequestContext context,
+                             @PathParam("convId") UUID convId,
+                             @QueryParam("report_missing") UUID reportMissing,
+                             @QueryParam("ignore_missing") boolean ignoreMissing,
+                             @ApiParam @Valid NewOtrMessage otrMessage) {
 
         try {
             UUID userId = (UUID) context.getProperty("zuid");

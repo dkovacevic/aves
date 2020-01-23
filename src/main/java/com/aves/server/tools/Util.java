@@ -31,6 +31,7 @@ public class Util {
     private static final SecureRandom random = new SecureRandom();
     private static final String BUCKET_NAME = "aves-bucket";
     private static SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+    private static final BigInteger UNSIGNED_LONG_MASK = BigInteger.ONE.shiftLeft(Long.SIZE).subtract(BigInteger.ONE);
 
     private static MinioClient minioClient;
     private static SendGrid sendgrid;
@@ -179,4 +180,7 @@ public class Util {
         return formatter.format(time);
     }
 
+    public static BigInteger toBigInteger(long unsignedLong) {
+        return BigInteger.valueOf(unsignedLong).and(UNSIGNED_LONG_MASK);
+    }
 }
