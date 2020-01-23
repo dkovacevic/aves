@@ -35,7 +35,7 @@ public class Configurator extends ServerEndpointConfig.Configurator {
                     .getSubject();
 
             UUID userId = UUID.fromString(subject);
-            sec.getUserProperties().put("zuid", userId);
+            sec.getUserProperties().put("zuid", userId); 
         } catch (Exception e) {
             throw new RuntimeException("WebSocket Configurator", e);
         }

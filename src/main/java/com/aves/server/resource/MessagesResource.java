@@ -10,6 +10,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.Authorization;
+import org.apache.http.annotation.Obsolete;
 import org.jdbi.v3.core.Jdbi;
 
 import javax.validation.Valid;
@@ -99,6 +100,25 @@ public class MessagesResource {
                     .status(500)
                     .build();
         }
+    }
+
+    @GET
+    @ApiOperation(value = "Dummy")
+    @Authorization("Bearer")
+    @Obsolete
+    public Response get(@Context ContainerRequestContext context,
+                        @PathParam("convId") UUID convId) {
+
+        UUID userId = (UUID) context.getProperty("zuid");
+
+        List<String> clients = clientsDAO.getClients(userId);
+        NewOtrMessage message = new NewOtrMessage();
+        message.sender = clients.get(0);
+        message.recipients = new Recipients();
+
+        return Response.
+                ok(message).
+                build();
     }
 
     private ClientMismatch checkMissing(UUID ignore, String sender, Recipients recipients, List<UUID> participants) {

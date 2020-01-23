@@ -12,5 +12,6 @@ public class NewOtrMessage {
     public String sender; //clientId of the sender
 
     @JsonProperty
+    @NotNull
     public Recipients recipients;
 }
