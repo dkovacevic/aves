@@ -127,6 +127,34 @@ public class ConversationsResource {
                 build();
     }
 
+    @GET
+    @Path("{convId}/self")
+    @Authorization("Bearer")
+    @ApiOperation(value = "Get self membership properties")
+    public Response getSelf(@Context ContainerRequestContext context, @PathParam("convId") UUID convId) {
+
+        UUID userId = (UUID) context.getProperty("zuid");
+
+        Member member = new Member();
+        member.id = userId;
+
+        return Response.
+                ok(member).
+                build();
+    }
+
+    @PUT
+    @Path("{convId}/self")
+    @Authorization("Bearer")
+    @ApiOperation(value = "Update self membership properties")
+    public Response putSelf(@Context ContainerRequestContext context,
+                            @PathParam("convId") UUID convId,
+                            Member member) {
+        return Response.
+                ok().
+                build();
+    }
+
     @POST
     @Path("{convId}/members")
     @Authorization("Bearer")

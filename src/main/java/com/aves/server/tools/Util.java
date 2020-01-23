@@ -174,4 +174,9 @@ public class Util {
     public static String time() {
         return formatter.format(new Date());
     }
+
+    public static String time(java.sql.Date time) {
+        return formatter.format(time);
+    }
+
 }
