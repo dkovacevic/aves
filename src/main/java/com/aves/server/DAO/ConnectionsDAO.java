@@ -1,6 +1,7 @@
 package com.aves.server.DAO;
 
 import com.aves.server.model.Connection;
+import com.aves.server.tools.Util;
 import org.jdbi.v3.core.mapper.RowMapper;
 import org.jdbi.v3.core.statement.StatementContext;
 import org.jdbi.v3.sqlobject.config.RegisterRowMapper;
@@ -8,6 +9,7 @@ import org.jdbi.v3.sqlobject.customizer.Bind;
 import org.jdbi.v3.sqlobject.statement.SqlQuery;
 import org.jdbi.v3.sqlobject.statement.SqlUpdate;
 
+import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
@@ -28,7 +30,8 @@ public interface ConnectionsDAO {
         @Override
         public Connection map(ResultSet rs, StatementContext ctx) throws SQLException {
             Connection connection = new Connection();
-            connection.time = rs.getString("time");
+            Date time = rs.getDate("time");
+            connection.time = Util.time(time);
             connection.from = (UUID) rs.getObject("user_from");
             connection.to = (UUID) rs.getObject("user_to");
             Object conv = rs.getObject("conv");
