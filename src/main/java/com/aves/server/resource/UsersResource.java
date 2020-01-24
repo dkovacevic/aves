@@ -1,6 +1,8 @@
 package com.aves.server.resource;
 
+import com.aves.server.DAO.ClientsDAO;
 import com.aves.server.DAO.UserDAO;
+import com.aves.server.model.Device;
 import com.aves.server.model.ErrorMessage;
 import com.aves.server.model.User;
 import com.aves.server.tools.Logger;
@@ -24,9 +26,12 @@ import java.util.UUID;
 @Produces(MediaType.APPLICATION_JSON)
 public class UsersResource {
     private final UserDAO userDAO;
+    private final ClientsDAO clientsDAO;
 
     public UsersResource(Jdbi jdbi) {
         this.userDAO = jdbi.onDemand(UserDAO.class);
+        this.clientsDAO = jdbi.onDemand(ClientsDAO.class);
+
     }
 
     @GET
@@ -48,6 +53,33 @@ public class UsersResource {
         } catch (Exception e) {
             e.printStackTrace();
             Logger.error("UsersResource.get : %s", e);
+            return Response
+                    .ok(new ErrorMessage(e.getMessage()))
+                    .status(500)
+                    .build();
+        }
+    }
+
+    @GET
+    @Path("{userId}/clients/{clientId}")
+    @ApiOperation(value = "Get user's details")
+    @Authorization("Bearer")
+    public Response getClient(@PathParam("userId") UUID userId,
+                              @PathParam("clientId") String clientId) {
+        try {
+            Device device = clientsDAO.getDevice(userId, clientId);
+            if (device == null) {
+                return Response.
+                        status(404).
+                        build();
+            }
+
+            return Response.
+                    ok(device).
+                    build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Logger.error("UsersResource.getClient : %s", e);
             return Response
                     .ok(new ErrorMessage(e.getMessage()))
                     .status(500)

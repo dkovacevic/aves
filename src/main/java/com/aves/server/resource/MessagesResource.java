@@ -55,13 +55,10 @@ public class MessagesResource {
 
         NewOtrMessage otrMessage = new NewOtrMessage();
         otrMessage.recipients = new Recipients();
-        long client = payload.getSender().getClient();
-        otrMessage.sender = toBigInteger(client).toString(16);
+        otrMessage.sender = toBigInteger(payload.getSender().getClient()).toString(16);
 
         for (Otr.UserEntry entry : payload.getRecipientsList()) {
-            Otr.UserId user = entry.getUser();
-            UUID userId = Util.getGuidFromByteArray(user.getUuid().toByteArray());
-
+            UUID userId = Util.getGuidFromByteArray(entry.getUser().getUuid().toByteArray());
             for (Otr.ClientEntry clientEntry : entry.getClientsList()) {
                 String clientId = toBigInteger(clientEntry.getClient().getClient()).toString(16);
                 String cipher = Base64.getEncoder().encodeToString(clientEntry.getText().toByteArray());

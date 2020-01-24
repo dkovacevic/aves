@@ -6,6 +6,7 @@ import com.aves.server.healthchecks.StatusHealthcheck;
 import com.aves.server.model.Configuration;
 import com.aves.server.resource.*;
 import com.aves.server.resource.dummy.CallsResource;
+import com.aves.server.resource.dummy.OnboardingResource;
 import com.aves.server.resource.dummy.TeamsResource;
 import com.aves.server.websocket.Configurator;
 import com.aves.server.websocket.EventEncoder;
@@ -141,5 +142,6 @@ public class Aves extends Application<Configuration> {
         environment.jersey().register(new TeamsResource());
         environment.jersey().register(new PropertiesResource(jdbi));
         environment.jersey().register(new CallsResource());
+        environment.jersey().register(new OnboardingResource());
     }
 }
