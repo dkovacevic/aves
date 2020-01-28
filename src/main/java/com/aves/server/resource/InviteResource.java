@@ -56,6 +56,7 @@ public class InviteResource {
                          @ApiParam @Valid NewUser newUser) {
         try {
             UUID inviterId = (UUID) context.getProperty("zuid");
+            User inviter = userDAO.getUser(inviterId);
 
             String password = newUser.password != null ? newUser.password : next(8);
             String hash = SCryptUtil.scrypt(password, 16384, 8, 1);
@@ -115,7 +116,8 @@ public class InviteResource {
             String template = getEmailTemplate();
             String body = template.replace("[USER]", newUser.name)
                     .replace("[EMAIL]", user.email)
-                    .replace("[PASSWORD]", password);
+                    .replace("[PASSWORD]", password)
+                    .replace("[INVITER]", inviter.firstname);
 
             Util.sendEmail("Your New Account", body, "aves@wire.com", user.email);
 
