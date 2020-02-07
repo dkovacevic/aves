@@ -174,4 +174,28 @@ public class ClientsResource {
                     .build();
         }
     }
+
+    @DELETE
+    @Path("{clientId}")
+    @ApiOperation(value = "Delete device")
+    @Authorization("Bearer")
+    public Response delete(@Context ContainerRequestContext context,
+                           @PathParam("clientId") String clientId) {
+        try {
+            ClientsDAO clientsDAO = jdbi.onDemand(ClientsDAO.class);
+
+            clientsDAO.delete(clientId);
+
+            return Response.
+                    ok().
+                    build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Logger.error("ClientResource.delete : %s", e);
+            return Response
+                    .ok(new ErrorMessage(e.getMessage()))
+                    .status(500)
+                    .build();
+        }
+    }
 }

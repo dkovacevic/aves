@@ -40,6 +40,9 @@ public interface ClientsDAO {
     @RegisterRowMapper(UUIDMapper.class)
     UUID getUserId(@Bind("clientId") String clientId);
 
+    @SqlUpdate("DELETE FROM Clients WHERE client_id = :clientId")
+    int delete(@Bind("clientId") String clientId);
+
     class _Mapper implements RowMapper<Device> {
         @Override
         public Device map(ResultSet rs, StatementContext ctx) throws SQLException {
