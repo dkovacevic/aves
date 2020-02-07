@@ -1,11 +1,13 @@
 package com.aves.server.DAO;
 
 import com.aves.server.model.Device;
+import com.aves.server.model.NewClient;
 import com.aves.server.tools.Util;
 import org.jdbi.v3.core.mapper.RowMapper;
 import org.jdbi.v3.core.statement.StatementContext;
 import org.jdbi.v3.sqlobject.config.RegisterRowMapper;
 import org.jdbi.v3.sqlobject.customizer.Bind;
+import org.jdbi.v3.sqlobject.customizer.BindFields;
 import org.jdbi.v3.sqlobject.statement.SqlQuery;
 import org.jdbi.v3.sqlobject.statement.SqlUpdate;
 
@@ -15,12 +17,13 @@ import java.util.List;
 import java.util.UUID;
 
 public interface ClientsDAO {
-    @SqlUpdate("INSERT INTO Clients (client_Id, user_id, lastkey) " +
-            "VALUES (:clientId, :userId, :lastKeyId) " +
+    @SqlUpdate("INSERT INTO Clients (client_Id, user_id, lastkey, model, type, class, label, cookie) " +
+            "VALUES (:clientId, :userId, :lastKeyId, :client.model, :client.type, :client.clazz, :client.label, :client.cookie) " +
             "ON CONFLICT (client_Id) DO UPDATE SET lastkey = EXCLUDED.lastkey")
     int insert(@Bind("clientId") String clientId,
                @Bind("userId") UUID userId,
-               @Bind("lastKeyId") int lastKeyId);
+               @Bind("lastKeyId") int lastKeyId,
+               @BindFields("client") NewClient client);
 
     @SqlQuery("SELECT client_Id FROM Clients WHERE user_id = :userId")
     List<String> getClients(@Bind("userId") UUID userId);
@@ -43,11 +46,13 @@ public interface ClientsDAO {
             Device device = new Device();
             device.id = rs.getString("client_Id");
             device.time = Util.time(rs.getDate("time"));
-            device.clazz = "desktop";
-            device.type = "permanent";
-            device.label = "diggy";
+            device.clazz = rs.getString("class");
+            device.type = rs.getString("type");
+            device.label = rs.getString("label");
             device.lastKey = rs.getInt("lastkey");
-            device.model = "Chrome";
+            device.model = rs.getString("model");
+            device.cookie = rs.getString("cookie");
+
             return device;
         }
     }

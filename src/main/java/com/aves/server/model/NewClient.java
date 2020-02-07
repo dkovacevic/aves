@@ -10,9 +10,6 @@ import java.util.ArrayList;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class NewClient {
     @JsonProperty
-    public String id;
-
-    @JsonProperty
     @NotNull
     public PreKey lastkey;
 
@@ -28,4 +25,9 @@ public class NewClient {
     @JsonProperty
     public String label;
 
+    @JsonProperty
+    public String model;
+
+    @JsonProperty
+    public String cookie;
 }

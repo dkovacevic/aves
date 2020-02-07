@@ -6,9 +6,9 @@ import javax.validation.constraints.NotNull;
 
 public class PreKey {
     @NotNull
+    public Integer id;
+
+    @NotNull
     @NotEmpty
     public String key;
-    
-    @NotNull
-    public Integer id;
 }

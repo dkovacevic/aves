@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.UUID;
 
 import static com.aves.server.EventSender.sendEvent;
-import static com.aves.server.tools.Util.time;
 
 @Api
 @Path("/clients")
@@ -57,9 +56,9 @@ public class ClientsResource {
             }
 
             String clientId = Util.nextHex();
-            
+
             PreKey lastkey = newClient.lastkey;
-            clientsDAO.insert(clientId, userId, lastkey.id);
+            clientsDAO.insert(clientId, userId, lastkey.id, newClient);
 
             for (PreKey preKey : newClient.prekeys) {
                 prekeysDAO.insert(clientId, preKey);
@@ -69,8 +68,6 @@ public class ClientsResource {
             Logger.info("New Device: %s, Last key: %d", clientId, lastkey.id);
 
             Device device = clientsDAO.getDevice(userId, clientId);
-            device.cookie = device.label;
-            device.time = time();
 
             Event event = EventSender.userClientAddEvent(device);
             sendEvent(event, userId, jdbi);
@@ -103,7 +100,7 @@ public class ClientsResource {
 
             if (newClient.lastkey != null) {
                 PreKey lastkey = newClient.lastkey;
-                clientsDAO.insert(clientId, userId, lastkey.id);
+                clientsDAO.insert(clientId, userId, lastkey.id, newClient);
                 prekeysDAO.insert(clientId, lastkey);
             }
 
@@ -114,7 +111,6 @@ public class ClientsResource {
             }
 
             Device device = clientsDAO.getDevice(userId, clientId);
-            device.cookie = device.label;
 
             return Response.
                     ok(device).
