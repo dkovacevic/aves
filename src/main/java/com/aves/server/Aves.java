@@ -1,5 +1,8 @@
 package com.aves.server;
 
+import com.aves.server.DAO.ClientsDAO;
+import com.aves.server.DAO.NotificationsDAO;
+import com.aves.server.DAO.PrekeysDAO;
 import com.aves.server.clients.SwisscomClient;
 import com.aves.server.filters.AuthenticationFeature;
 import com.aves.server.healthchecks.StatusHealthcheck;
@@ -96,6 +99,13 @@ public class Aves extends Application<Configuration> {
 
         jdbi = new JdbiFactory().build(environment, database, "aves");
 
+        ClientsDAO clientsDAO = jdbi.onDemand(ClientsDAO.class);
+        PrekeysDAO prekeysDAO = jdbi.onDemand(PrekeysDAO.class);
+        NotificationsDAO notificationsDAO = jdbi.onDemand(NotificationsDAO.class);
+
+        EventSender.clientsDAO = clientsDAO;
+        EventSender.notificationsDAO = notificationsDAO;
+
         // Enable CORS headers
         final FilterRegistration.Dynamic cors = environment.servlets().addFilter("CORS", CrossOriginFilter.class);
 
@@ -124,7 +134,7 @@ public class Aves extends Application<Configuration> {
         environment.jersey().register(new ConfigResource());
         environment.jersey().register(new LoginResource(jdbi, config));
         environment.jersey().register(new RegisterResource(jdbi));
-        environment.jersey().register(new ClientsResource(jdbi));
+        environment.jersey().register(new ClientsResource(clientsDAO, prekeysDAO));
         environment.jersey().register(new ConversationsResource(jdbi));
         environment.jersey().register(new MessagesResource(jdbi));
         environment.jersey().register(new PrekeysResource(jdbi));

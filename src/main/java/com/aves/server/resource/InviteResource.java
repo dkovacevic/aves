@@ -107,7 +107,7 @@ public class InviteResource {
             sendConnectionEvent(userId, inviterId, convId);
 
             // Send User Update event to Inviter
-            sendEvent(userUpdateEvent(user), inviterId, jdbi);
+            sendEvent(userUpdateEvent(user), inviterId);
 
             _InviteResult result = new _InviteResult();
             result.user = user;
@@ -140,7 +140,7 @@ public class InviteResource {
         member.id = from;
         conversation.members.others = Collections.singletonList(member);
         Event event = conversationCreateEvent(from, conversation);
-        sendEvent(event, to, jdbi);
+        sendEvent(event, to);
     }
 
     private void sendConnectionEvent(UUID from, UUID to, UUID convId) throws JsonProcessingException {
@@ -150,7 +150,7 @@ public class InviteResource {
         connection.to = to;
         connection.time = time();
         connection.conversation = convId;
-        sendEvent(connectionEvent(connection), from, jdbi);
+        sendEvent(connectionEvent(connection), from);
     }
 
     private void createSelfConv(UUID userId) throws JsonProcessingException {
@@ -165,7 +165,7 @@ public class InviteResource {
         participantsDAO.insert(conversation.id, userId);
 
         Event event = conversationCreateEvent(userId, conversation);
-        sendEvent(event, userId, jdbi);
+        sendEvent(event, userId);
     }
 
     @JsonInclude(JsonInclude.Include.NON_NULL)

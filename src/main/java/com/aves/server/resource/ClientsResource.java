@@ -14,7 +14,6 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.Authorization;
-import org.jdbi.v3.core.Jdbi;
 
 import javax.validation.Valid;
 import javax.ws.rs.*;
@@ -31,10 +30,12 @@ import static com.aves.server.EventSender.sendEvent;
 @Path("/clients")
 @Produces(MediaType.APPLICATION_JSON)
 public class ClientsResource {
-    private final Jdbi jdbi;
+    private final ClientsDAO clientsDAO;
+    private final PrekeysDAO prekeysDAO;
 
-    public ClientsResource(Jdbi jdbi) {
-        this.jdbi = jdbi;
+    public ClientsResource(ClientsDAO clientsDAO, PrekeysDAO prekeysDAO) {
+        this.clientsDAO = clientsDAO;
+        this.prekeysDAO = prekeysDAO;
     }
 
     @POST
@@ -44,9 +45,6 @@ public class ClientsResource {
                          @ApiParam @Valid NewClient newClient) {
         try {
             UUID userId = (UUID) context.getProperty("zuid");
-
-            ClientsDAO clientsDAO = jdbi.onDemand(ClientsDAO.class);
-            PrekeysDAO prekeysDAO = jdbi.onDemand(PrekeysDAO.class);
 
             if (clientsDAO.getClients(userId).size() > 7) {
                 return Response.
@@ -70,7 +68,7 @@ public class ClientsResource {
             Device device = clientsDAO.getDevice(userId, clientId);
 
             Event event = EventSender.userClientAddEvent(device);
-            sendEvent(event, userId, jdbi);
+            sendEvent(event, userId);
 
             return Response.
                     ok(device).
@@ -94,9 +92,6 @@ public class ClientsResource {
                         @ApiParam NewClient newClient) {
         try {
             UUID userId = (UUID) context.getProperty("zuid");
-
-            ClientsDAO clientsDAO = jdbi.onDemand(ClientsDAO.class);
-            PrekeysDAO prekeysDAO = jdbi.onDemand(PrekeysDAO.class);
 
             if (newClient.lastkey != null) {
                 PreKey lastkey = newClient.lastkey;
@@ -132,8 +127,6 @@ public class ClientsResource {
         try {
             UUID userId = (UUID) context.getProperty("zuid");
 
-            ClientsDAO clientsDAO = jdbi.onDemand(ClientsDAO.class);
-
             List<Device> devices = clientsDAO.getDevices(userId);
 
             return Response.
@@ -158,8 +151,6 @@ public class ClientsResource {
         try {
             UUID userId = (UUID) context.getProperty("zuid");
 
-            ClientsDAO clientsDAO = jdbi.onDemand(ClientsDAO.class);
-
             Device device = clientsDAO.getDevice(userId, clientId);
 
             return Response.
@@ -182,8 +173,6 @@ public class ClientsResource {
     public Response delete(@Context ContainerRequestContext context,
                            @PathParam("clientId") String clientId) {
         try {
-            ClientsDAO clientsDAO = jdbi.onDemand(ClientsDAO.class);
-
             clientsDAO.delete(clientId);
 
             return Response.

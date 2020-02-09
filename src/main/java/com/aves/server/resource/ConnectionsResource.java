@@ -104,7 +104,7 @@ public class ConnectionsResource {
         member2.id = other;
         conversation.members.others.add(member2);
         Event event = conversationCreateEvent(self, conversation);
-        sendEvent(event, self, jdbi);
+        sendEvent(event, self);
     }
 
     private Connection sendConnectionEvent(UUID from, UUID userId, UUID convId) throws JsonProcessingException {
@@ -115,7 +115,7 @@ public class ConnectionsResource {
         connection.conversation = convId;
         connection.status = "accepted";
         Event event = connectionEvent(connection);
-        sendEvent(event, from, jdbi);
+        sendEvent(event, from);
         return connection;
     }
 

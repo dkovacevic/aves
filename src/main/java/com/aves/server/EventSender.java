@@ -16,12 +16,11 @@ import java.util.UUID;
 import static com.aves.server.tools.Util.time;
 
 public class EventSender {
+    static ClientsDAO clientsDAO;
+    static NotificationsDAO notificationsDAO;
     private static ObjectMapper mapper = new ObjectMapper();
 
-    public static void sendEvent(Event event, UUID to, Jdbi jdbi) throws JsonProcessingException {
-        NotificationsDAO notificationsDAO = jdbi.onDemand(NotificationsDAO.class);
-        ClientsDAO clientsDAO = jdbi.onDemand(ClientsDAO.class);
-
+    public static void sendEvent(Event event, UUID to) throws JsonProcessingException {
         List<String> clients = clientsDAO.getClients(to);
         if (clients.isEmpty()) {
             String strEvent = mapper.writeValueAsString(event);

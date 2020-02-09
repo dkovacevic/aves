@@ -73,7 +73,7 @@ public class ConversationsResource {
 
                 // Send event
                 Event event = conversationCreateEvent(userId, conversation);
-                sendEvent(event, selfId, jdbi);
+                sendEvent(event, selfId);
             }
 
             buildConversation(conversation, userId, others);
@@ -192,7 +192,7 @@ public class ConversationsResource {
         List<UUID> participants = participantsDAO.getUsers(convId);
         for (UUID participant : participants) {
             Event event = memberJoinEvent(userId, convId, userIds);
-            sendEvent(event, participant, jdbi);
+            sendEvent(event, participant);
         }
 
         return Response.
@@ -247,7 +247,7 @@ public class ConversationsResource {
         List<UUID> participants = participantsDAO.getUsers(convId);
         for (UUID participant : participants) {
             Event event = memberLeaveEvent(userId, convId, userIds);
-            sendEvent(event, participant, jdbi);
+            sendEvent(event, participant);
         }
         return Response.
                 ok(memberLeaveEvent(userId, convId, userIds)).

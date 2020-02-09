@@ -36,7 +36,7 @@ database:
   driverClass: org.postgresql.Driver
   user: ${AVES_DB_USER:-}
   password: ${AVES_DB_PASSWORD:-}
-  url: ${AVES_DB_URL:-}
+  url: ${AVES_DB_URL:-jdbc:postgresql://localhost/aves}
   properties:
     charSet: UTF-8
   maxWaitForConnection: 1s
