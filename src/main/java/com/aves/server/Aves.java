@@ -48,6 +48,7 @@ public class Aves extends Application<Configuration> {
 
     private static SecretKey key;
     public static Jdbi jdbi;
+    public Client jerseyClient;
 
     public static SecretKey getKey() {
         return key;
@@ -117,7 +118,7 @@ public class Aves extends Application<Configuration> {
         // Add URL mapping
         cors.addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), true, "/*");
 
-        Client jerseyClient = new JerseyClientBuilder(environment)
+        jerseyClient = new JerseyClientBuilder(environment)
                 .using(config.jerseyConfig)
                 .withProvider(JacksonJsonProvider.class)
                 .build(getName());
@@ -153,5 +154,9 @@ public class Aves extends Application<Configuration> {
         environment.jersey().register(new PropertiesResource(jdbi));
         environment.jersey().register(new CallsResource());
         environment.jersey().register(new OnboardingResource());
+    }
+
+    public Client getClient() {
+        return jerseyClient;
     }
 }

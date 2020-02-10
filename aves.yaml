@@ -33,7 +33,7 @@ key: ${AVES_KEY:-}
 tokenExpiration: ${AVES_EXP:-900}
 
 database:
-  driverClass: org.postgresql.Driver
+  driverClass: ${AVES_DB_DRIVER:-org.postgresql.Driver}
   user: ${AVES_DB_USER:-}
   password: ${AVES_DB_PASSWORD:-}
   url: ${AVES_DB_URL:-jdbc:postgresql://localhost/aves}

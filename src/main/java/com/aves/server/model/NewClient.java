@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
+import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class NewClient {
@@ -14,7 +14,7 @@ public class NewClient {
     public PreKey lastkey;
 
     @NotNull
-    public ArrayList<PreKey> prekeys;
+    public List<PreKey> prekeys;
 
     @JsonProperty
     public String type;
