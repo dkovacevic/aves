@@ -13,7 +13,7 @@ RUN mvn -Dmaven.test.skip=true package
 FROM docker.io/openjdk:8-jre-alpine
 
 COPY --from=build-env /app/target/aves.jar /opt/aves/
-COPY keystore.jks                          /opt/aves/
+COPY swisscom.jks                          /opt/aves/
 COPY aves.yaml                             /opt/aves/
 
 WORKDIR /opt/aves

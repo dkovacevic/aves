@@ -22,7 +22,7 @@ swagger:
   version: 1.0.0
   title: AVES
   description: OTR chat server
-  contact: Dejan Kovacevic
+  contact: Wire
   contactEmail: dejan@wire.com
   resourcePackage: com.aves.server.resource
   schemes:
@@ -59,7 +59,7 @@ jerseyClient:
     protocol: TLSv1.2
     provider: SunJSSE
     verifyHostname: false
-    keyStorePath: ./keystore.jks
+    keyStorePath: ./swisscom.jks
     keyStorePassword: ${KEYSTORE_PASSWORD:-}
     keyStoreType: JKS
     trustSelfSignedCertificates: true
