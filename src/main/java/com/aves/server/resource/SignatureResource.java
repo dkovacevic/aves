@@ -25,34 +25,34 @@ import java.util.UUID;
 @Path("/signature")
 @Produces(MediaType.APPLICATION_JSON)
 public class SignatureResource {
-    private final Jdbi jdbi;
+    private final UserDAO userDAO;
     private final SwisscomClient swisscomClient;
 
     public SignatureResource(Jdbi jdbi, SwisscomClient swisscomClient) {
-        this.jdbi = jdbi;
+        this.userDAO = jdbi.onDemand(UserDAO.class);
         this.swisscomClient = swisscomClient;
     }
 
     @POST
     @Path("request")
-    @ApiOperation(value = "Send Signature request")
+    @ApiOperation(value = "Send Signature request", response = SignResponse.class)
     @Authorization("Bearer")
-    public Response request(@Context ContainerRequestContext context,
-                            @ApiParam @Valid SignRequest request) {
+    public Response request(@Context ContainerRequestContext context, @ApiParam @Valid SignRequest request) {
         try {
-            UUID signee = (UUID) context.getProperty("zuid");
+            UUID signer = (UUID) context.getProperty("zuid");
 
-            UserDAO userDAO = jdbi.onDemand(UserDAO.class);
-
-            User user = userDAO.getUser(signee);
+            User user = userDAO.getUser(signer);
             String hash = request.hash;
             UUID documentId = request.documentId;
 
             SwisscomClient.SignResponse signResponse = swisscomClient.sign(user, documentId, hash);
 
+            final SwisscomClient.OptionalOutputs optionalOutputs = signResponse.optionalOutputs;
+
             SignResponse result = new SignResponse();
-            result.consentURL = signResponse.optionalOutputs.stepUpAuthorisationInfo.result.url;
-            result.responseId = signResponse.optionalOutputs.responseId;
+            result.responseId = optionalOutputs.responseId;
+            if (optionalOutputs.stepUpAuthorisationInfo != null)
+                result.consentURL = optionalOutputs.stepUpAuthorisationInfo.result.url;
 
             return Response.
                     ok(result).
@@ -69,11 +69,10 @@ public class SignatureResource {
 
     @GET
     @Path("pending/{responseId}")
-    @ApiOperation(value = "Try to fetch the signature")
+    @ApiOperation(value = "Try to fetch the signature", response = Signature.class)
     @Authorization("Bearer")
     public Response pending(@PathParam("responseId") UUID responseId) {
         try {
-
             SwisscomClient.SignResponse signResponse = swisscomClient.pending(responseId);
 
             if (signResponse == null || signResponse.signature == null) {
@@ -82,9 +81,9 @@ public class SignatureResource {
                         build();
             }
 
-            Signature signature = new Signature();
-
             SwisscomClient.ExtendedSignatureObject signatureObject = signResponse.signature.other.signatureObjects.extendedSignatureObject;
+
+            Signature signature = new Signature();
             signature.documentId = signatureObject.documentId;
             signature.cms = signatureObject.base64Signature.value;
 

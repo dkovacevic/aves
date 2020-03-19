@@ -2,6 +2,7 @@ package com.aves.server.clients;
 
 
 import com.aves.server.model.User;
+import com.aves.server.tools.Logger;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -17,7 +18,7 @@ import java.util.HashMap;
 import java.util.UUID;
 
 public class SwisscomClient {
-
+    private ObjectMapper mapper = new ObjectMapper();
     private WebTarget sign;
     private WebTarget pending;
 
@@ -32,18 +33,24 @@ public class SwisscomClient {
     public SignResponse sign(User signer, UUID documentId, String hash) throws IOException {
         RootSignRequest request = new RootSignRequest();
         InputDocuments inputDocuments = request.signRequest.inputDocuments;
-        CertificateRequest certificateRequest = request.signRequest.optionalInputs.certificateRequest;
-        Phone phone = certificateRequest.stepUpAuthorisation.phone;
 
         inputDocuments.documentHash.hash = hash;
         inputDocuments.documentHash.documentId = documentId;
 
-        certificateRequest.distinguishedName = getDistinguishableName(signer.firstname, signer.lastname, signer.email, signer.country);
+        CertificateRequest certificateRequest = request.signRequest.optionalInputs.certificateRequest;
+        certificateRequest.distinguishedName = getDistinguishableName(
+                signer.firstname,
+                signer.lastname,
+                signer.email,
+                signer.country);
 
-        phone.language = "en";
-        phone.phoneNumber = signer.phone;
+        Phone phone = certificateRequest.stepUpAuthorisation.phone;
+        phone.language = signer.locale;
+        phone.phoneNumber = signer.phone.replace("+", "");
         phone.message = String.format("Please confirm the signing of the document: %s", documentId);
         //phone.serialNumber = "SAS01E0D9GAI7OO1";
+
+        Logger.debug(mapper.writeValueAsString(request));
 
         Response res = sign
                 .request(MediaType.APPLICATION_JSON)
@@ -54,7 +61,8 @@ public class SwisscomClient {
             throw new IOException(res.readEntity(String.class));
 
         String entity = res.readEntity(String.class);
-        ObjectMapper mapper = new ObjectMapper();
+
+        Logger.debug(entity);
 
         RootSignResponse response = mapper.readValue(entity, RootSignResponse.class);
         return response.signResponse;
