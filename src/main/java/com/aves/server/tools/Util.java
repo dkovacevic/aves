@@ -1,5 +1,6 @@
 package com.aves.server.tools;
 
+import com.aves.server.Aves;
 import com.aves.server.resource.InviteResource;
 import com.sendgrid.Method;
 import com.sendgrid.Request;
@@ -30,7 +31,7 @@ import java.util.UUID;
 
 public class Util {
     private static final SecureRandom random = new SecureRandom();
-    private static final String BUCKET_NAME = "aves-bucket";
+    private static final String BUCKET_NAME = "aves";
     private static SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
     private static final BigInteger UNSIGNED_LONG_MASK = BigInteger.ONE.shiftLeft(Long.SIZE).subtract(BigInteger.ONE);
 
@@ -39,15 +40,12 @@ public class Util {
 
     static {
         try {
-            minioClient = new MinioClient("http://play.min.io",
-                    "Q3AM3UQ867SPQQA43P2F",
-                    "zuf+tfteSlswRu7BJ86wekitnifILbZam1KYY3TG");
+            minioClient = new MinioClient(Aves.config.minioURL, Aves.config.minioAccessKey, Aves.config.minioSecretKey);
         } catch (InvalidEndpointException | InvalidPortException e) {
             e.printStackTrace();
         }
         try {
-            String key = System.getenv("SENDGRID_API_KEY");
-            sendgrid = new SendGrid(key);
+            sendgrid = new SendGrid(Aves.config.sendgridApiKey);
             sendgrid.addRequestHeader("X-Mock", "true");
         } catch (Exception e) {
             Logger.error("SendGrid: %s", e);
@@ -55,8 +53,10 @@ public class Util {
     }
 
     public static String s3UploadFile(byte[] bytes) throws Exception {
-        if (!minioClient.bucketExists(BUCKET_NAME))
+        if (!minioClient.bucketExists(BUCKET_NAME)) {
             minioClient.makeBucket(BUCKET_NAME);
+            Logger.info("New Minio bucket: %s", BUCKET_NAME);
+        }
 
         String key = String.format("3-5-%s", UUID.randomUUID());
         try (ByteArrayInputStream bais = new ByteArrayInputStream(bytes)) {

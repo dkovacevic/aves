@@ -62,7 +62,7 @@ public class AssetsResource {
             if (!metadata.visible) {
                 Date exp = new Date(new Date().getTime() + TimeUnit.DAYS.toMillis(30));
                 assetKey.token = Jwts.builder()
-                        .setIssuer("https://aves.com")
+                        .setIssuer("https://aves.services.zinfra.io")
                         .setExpiration(exp)
                         .signWith(Aves.getKey())
                         .compact();
@@ -74,7 +74,7 @@ public class AssetsResource {
                     status(201).
                     build();
         } catch (Exception e) {
-            e.printStackTrace();
+            //e.printStackTrace();
             Logger.error("AssetsResource.post : %s", e);
             return Response
                     .ok(new ErrorMessage(e.getMessage()))
