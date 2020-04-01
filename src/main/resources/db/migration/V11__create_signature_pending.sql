@@ -1,0 +1,5 @@
+CREATE TABLE Pendings (
+ response_id UUID PRIMARY KEY,
+ user_id UUID NOT NULL,
+ time TIMESTAMP DEFAULT NOW()
+)

@@ -1,5 +1,6 @@
 package com.aves.server.resource;
 
+import com.aves.server.DAO.PendingsDAO;
 import com.aves.server.DAO.UserDAO;
 import com.aves.server.clients.SwisscomClient;
 import com.aves.server.model.ErrorMessage;
@@ -9,7 +10,6 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.Authorization;
-import org.hibernate.validator.constraints.NotEmpty;
 import org.jdbi.v3.core.Jdbi;
 
 import javax.validation.Valid;
@@ -26,10 +26,12 @@ import java.util.UUID;
 @Produces(MediaType.APPLICATION_JSON)
 public class SignatureResource {
     private final UserDAO userDAO;
+    private final PendingsDAO pendingsDAO;
     private final SwisscomClient swisscomClient;
 
     public SignatureResource(Jdbi jdbi, SwisscomClient swisscomClient) {
         this.userDAO = jdbi.onDemand(UserDAO.class);
+        this.pendingsDAO = jdbi.onDemand(PendingsDAO.class);
         this.swisscomClient = swisscomClient;
     }
 
@@ -43,9 +45,10 @@ public class SignatureResource {
 
             User user = userDAO.getUser(signer);
             String hash = request.hash;
-            UUID documentId = request.documentId;
+            String documentId = request.documentId;
+            String name = request.name;
 
-            SwisscomClient.SignResponse signResponse = swisscomClient.sign(user, documentId, hash);
+            SwisscomClient.SignResponse signResponse = swisscomClient.sign(user, documentId, name, hash);
 
             final SwisscomClient.OptionalOutputs optionalOutputs = signResponse.optionalOutputs;
 
@@ -53,6 +56,8 @@ public class SignatureResource {
             result.responseId = optionalOutputs.responseId;
             if (optionalOutputs.stepUpAuthorisationInfo != null)
                 result.consentURL = optionalOutputs.stepUpAuthorisationInfo.result.url;
+
+            pendingsDAO.insert(result.responseId, signer);
 
             return Response.
                     ok(result).
@@ -109,15 +114,15 @@ public class SignatureResource {
 
     public static class SignRequest {
         @NotNull
-        public UUID documentId;
-        @NotEmpty
+        public String documentId;
+        public String name;
         @NotNull
         public String hash;
     }
 
     public static class Signature {
         @NotNull
-        public UUID documentId;
+        public String documentId;
         @NotNull
         public String cms;
     }

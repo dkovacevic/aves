@@ -29,4 +29,18 @@ public class Configuration extends io.dropwizard.Configuration {
 
     @JsonProperty
     public long tokenExpiration = 900;
+
+    @JsonProperty
+    @NotNull
+    public String sendgridApiKey;
+    @JsonProperty
+    @NotNull
+    public String minioURL;
+    @JsonProperty
+    @NotNull
+    public String minioAccessKey;
+    @JsonProperty
+    @NotNull
+    public String minioSecretKey;
+
 }

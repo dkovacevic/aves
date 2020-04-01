@@ -32,6 +32,12 @@ swagger:
 key: ${AVES_KEY:-}
 tokenExpiration: ${AVES_EXP:-900}
 
+sendgridApiKey: ${SENDGRID_API_KEY:-}
+
+minioURL: ${MINIO_URL:-http://play.min.io}
+minioAccessKey: ${MINIO_ACCESS_KEY:-Q3AM3UQ867SPQQA43P2F}
+minioSecretKey: ${MINIO_SECRET_KEY:-zuf+tfteSlswRu7BJ86wekitnifILbZam1KYY3TG}
+
 database:
   driverClass: ${AVES_DB_DRIVER:-org.postgresql.Driver}
   user: ${AVES_DB_USER:-}

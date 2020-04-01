@@ -30,7 +30,7 @@ public class SwisscomClient {
                 .target("https://ais.swisscom.com/AIS-Server/rs/v1.0/pending");
     }
 
-    public SignResponse sign(User signer, UUID documentId, String hash) throws IOException {
+    public SignResponse sign(User signer, String documentId, String name, String hash) throws IOException {
         RootSignRequest request = new RootSignRequest();
         InputDocuments inputDocuments = request.signRequest.inputDocuments;
 
@@ -46,9 +46,9 @@ public class SwisscomClient {
 
         Phone phone = certificateRequest.stepUpAuthorisation.phone;
         phone.language = signer.locale;
-        phone.phoneNumber = signer.phone.replace("+", "");
-        phone.message = String.format("Please confirm the signing of the document: %s", documentId);
-        //phone.serialNumber = "SAS01E0D9GAI7OO1";
+        phone.phoneNumber = signer.phone.replace("+", "").replace(" ", "");
+        phone.message = String.format("Please confirm the signing of the document: %s", name);
+        phone.serialNumber = signer.id.toString();
 
         Logger.debug(mapper.writeValueAsString(request));
 
@@ -121,7 +121,7 @@ public class SwisscomClient {
 
     public static class DocumentHash {
         @JsonProperty("@ID")
-        public UUID documentId;
+        public String documentId;
         @JsonProperty("dsig.DigestValue")
         public String hash;
         @JsonProperty("dsig.DigestMethod")
@@ -272,7 +272,7 @@ public class SwisscomClient {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ExtendedSignatureObject {
         @JsonProperty("@WhichDocument")
-        public UUID documentId;
+        public String documentId;
         @JsonProperty("Base64Signature")
         public Base64Signature base64Signature;
     }
