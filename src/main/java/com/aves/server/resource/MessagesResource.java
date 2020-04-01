@@ -151,12 +151,12 @@ public class MessagesResource {
                 build();
     }
 
-    private ClientMismatch checkMissing(UUID ignore, String sender, Recipients recipients, List<UUID> participants) {
+    private ClientMismatch checkMissing(UUID reportMissing, String sender, Recipients recipients, List<UUID> participants) {
         ClientMismatch clientMismatch = new ClientMismatch();
         clientMismatch.time = time();
 
         for (UUID participantId : participants) {
-            if (Objects.equals(ignore, participantId))
+            if (!Objects.equals(reportMissing, participantId))
                 continue;
 
             for (String clientId : clientsDAO.getClients(participantId)) {
