@@ -143,6 +143,16 @@ public class ConversationsResource {
                 build();
     }
 
+    @GET
+    @Path("{convId}/roles")
+    @Authorization("Bearer")
+    @ApiOperation(value = "Get roles for this conversation")
+    public Response getRoles(@Context ContainerRequestContext context, @PathParam("convId") UUID convId) {
+        return Response.
+                ok(new _Result()).
+                build();
+    }
+
     @PUT
     @Path("{convId}/self")
     @Authorization("Bearer")
@@ -314,7 +324,11 @@ public class ConversationsResource {
     public static class _Result {
         @JsonProperty("has_more")
         public boolean hasMore;
+        @JsonProperty
         public List<Conversation> conversations = new ArrayList<>();
+
+        @JsonProperty("conversation_roles")
+        public List<ConversationRole> roles = new ArrayList<>();
     }
 
     public static class _ResultIds {
@@ -327,5 +341,9 @@ public class ConversationsResource {
     public static class Users {
         @NotNull
         public List<UUID> users;
+    }
+
+    public static class ConversationRole {
+
     }
 }
