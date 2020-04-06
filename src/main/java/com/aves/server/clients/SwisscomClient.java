@@ -23,11 +23,10 @@ public class SwisscomClient {
     private WebTarget pending;
 
     public SwisscomClient(Client httpClient) {
-        sign = httpClient
-                .target("https://ais.swisscom.com/AIS-Server/rs/v1.0/sign");
+        final WebTarget target = httpClient.target("https://ais.swisscom.com/AIS-Server/rs/v1.0");
 
-        pending = httpClient
-                .target("https://ais.swisscom.com/AIS-Server/rs/v1.0/pending");
+        sign = target.path("sign");
+        pending = target.path("pending");
     }
 
     public SignResponse sign(User signer, String documentId, String name, String hash) throws IOException {
@@ -215,6 +214,8 @@ public class SwisscomClient {
         public OptionalOutputs optionalOutputs;
         @JsonProperty("SignatureObject")
         public SignatureObject signature;
+        @JsonProperty("Result")
+        public Result result;
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
@@ -225,6 +226,14 @@ public class SwisscomClient {
         public StepUpAuthorisationInfo stepUpAuthorisationInfo;
         @JsonProperty("sc.RevocationInformation")
         public RevocationInformation revocationInformation;
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class Result {
+        @JsonProperty("ResultMajor")
+        public String major;
+        @JsonProperty("ResultMinor")
+        public String minor;
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

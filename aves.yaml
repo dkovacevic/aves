@@ -30,7 +30,7 @@ swagger:
     - https
 
 key: ${AVES_KEY:-}
-tokenExpiration: ${AVES_EXP:-900}
+tokenExpiration: ${AVES_EXP:-3600}
 
 sendgridApiKey: ${SENDGRID_API_KEY:-}
 

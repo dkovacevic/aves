@@ -49,7 +49,6 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 import static com.aves.server.tools.Util.time;
 
@@ -168,10 +167,10 @@ public class Aves extends Application<Configuration> {
         environment.jersey().register(new CallsResource());
         environment.jersey().register(new OnboardingResource());
 
-        environment.lifecycle()
-                .scheduledExecutorService("pullingManager")
-                .build()
-                .scheduleWithFixedDelay(() -> pull(swisscomClient, jdbi.onDemand(PendingsDAO.class)), 10, 5, TimeUnit.SECONDS);
+//        environment.lifecycle()
+//                .scheduledExecutorService("pullingManager")
+//                .build()
+//                .scheduleWithFixedDelay(() -> pull(swisscomClient, jdbi.onDemand(PendingsDAO.class)), 10, 5, TimeUnit.SECONDS);
     }
 
     private void pull(SwisscomClient swisscomClient, PendingsDAO pendingsDAO) {
