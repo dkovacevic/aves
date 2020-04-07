@@ -2,20 +2,15 @@ package com.aves.server;
 
 import com.aves.server.DAO.ClientsDAO;
 import com.aves.server.DAO.NotificationsDAO;
-import com.aves.server.DAO.PendingsDAO;
 import com.aves.server.DAO.PrekeysDAO;
 import com.aves.server.clients.SwisscomClient;
 import com.aves.server.filters.AuthenticationFeature;
 import com.aves.server.healthchecks.StatusHealthcheck;
 import com.aves.server.model.Configuration;
-import com.aves.server.model.Event;
-import com.aves.server.model.Payload;
-import com.aves.server.model.SignatureEvent;
 import com.aves.server.resource.*;
 import com.aves.server.resource.dummy.CallsResource;
 import com.aves.server.resource.dummy.OnboardingResource;
 import com.aves.server.resource.dummy.TeamsResource;
-import com.aves.server.tools.Logger;
 import com.aves.server.websocket.Configurator;
 import com.aves.server.websocket.EventEncoder;
 import com.aves.server.websocket.ServerEndpoint;
@@ -45,12 +40,8 @@ import javax.servlet.DispatcherType;
 import javax.servlet.FilterRegistration;
 import javax.websocket.server.ServerEndpointConfig;
 import javax.ws.rs.client.Client;
-import java.io.IOException;
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.UUID;
-
-import static com.aves.server.tools.Util.time;
 
 public class Aves extends Application<Configuration> {
     private final AdminResourceBundle admin = new AdminResourceBundle();
@@ -139,7 +130,6 @@ public class Aves extends Application<Configuration> {
 
         environment.jersey().register(AuthenticationFeature.class);
 
-        //admin.getJerseyEnvironment().register(new StatusHealthcheck());
         environment.jersey().register(new StatusHealthcheck());
 
         environment.jersey().register(new ProtocolBufferMessageBodyProvider());
@@ -166,40 +156,6 @@ public class Aves extends Application<Configuration> {
         environment.jersey().register(new PropertiesResource(jdbi));
         environment.jersey().register(new CallsResource());
         environment.jersey().register(new OnboardingResource());
-
-//        environment.lifecycle()
-//                .scheduledExecutorService("pullingManager")
-//                .build()
-//                .scheduleWithFixedDelay(() -> pull(swisscomClient, jdbi.onDemand(PendingsDAO.class)), 10, 5, TimeUnit.SECONDS);
-    }
-
-    private void pull(SwisscomClient swisscomClient, PendingsDAO pendingsDAO) {
-        for (UUID responseId : pendingsDAO.getRequests()) {
-            try {
-                SwisscomClient.SignResponse res = swisscomClient.pending(responseId);
-                if (res != null && res.signature != null) {
-                    Payload<SignatureEvent> payload = new Payload<>();
-                    payload.type = "signature.available";
-                    payload.time = time();
-                    payload.data = new SignatureEvent();
-                    payload.data.responseId = responseId;
-
-                    Event event = new Event();
-                    event.id = UUID.randomUUID();
-                    event.payload.add(payload);
-
-                    UUID userId = pendingsDAO.getUserId(responseId);
-
-                    EventSender.sendEvent(event, userId);
-
-                    pendingsDAO.delete(responseId);
-
-                    Logger.info("SignaturePull.sendEvent: user: %s, respId: %s", userId, responseId);
-                }
-            } catch (IOException e) {
-                Logger.error("SignaturePull: ", e);
-            }
-        }
     }
 
     public Client getClient() {

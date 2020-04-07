@@ -1,6 +1,5 @@
 package com.aves.server.resource;
 
-import com.aves.server.DAO.PendingsDAO;
 import com.aves.server.DAO.UserDAO;
 import com.aves.server.clients.SwisscomClient;
 import com.aves.server.model.ErrorMessage;
@@ -34,13 +33,11 @@ import java.util.concurrent.TimeUnit;
 @Produces(MediaType.APPLICATION_JSON)
 public class SignatureResource {
     private final UserDAO userDAO;
-    private final PendingsDAO pendingsDAO;
     private final SwisscomClient swisscomClient;
     private final ConcurrentHashMap<UUID, Date> rates = new ConcurrentHashMap<>();
 
     public SignatureResource(Jdbi jdbi, SwisscomClient swisscomClient) {
         this.userDAO = jdbi.onDemand(UserDAO.class);
-        this.pendingsDAO = jdbi.onDemand(PendingsDAO.class);
         this.swisscomClient = swisscomClient;
     }
 
@@ -85,8 +82,6 @@ public class SignatureResource {
             result.responseId = optionalOutputs.responseId;
             if (optionalOutputs.stepUpAuthorisationInfo != null)
                 result.consentURL = optionalOutputs.stepUpAuthorisationInfo.result.url;
-
-            pendingsDAO.insert(result.responseId, signer);
 
             return Response.
                     ok(result).
@@ -182,7 +177,7 @@ public class SignatureResource {
         SignResponse result = new SignResponse();
         result.responseId = UUID.fromString("5cdcc7bb-6f9e-44f2-b524-cdd865657729");
         result.consentURL = "https://ais-sas.swisscom.com/sas/web/tk8f63384b81fd4efeb3f278b86506a65etx/otp?lang=en-us";
-        return result;
+        return null;
     }
 
     public static class SignResponse {
