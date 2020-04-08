@@ -10,6 +10,7 @@ import javax.websocket.server.ServerEndpointConfig;
 import javax.ws.rs.core.HttpHeaders;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 public class Configurator extends ServerEndpointConfig.Configurator {
 
@@ -30,6 +31,7 @@ public class Configurator extends ServerEndpointConfig.Configurator {
 
             String subject = Jwts.parser()
                     .setSigningKey(Aves.getKey())
+                    .setAllowedClockSkewSeconds(TimeUnit.HOURS.toSeconds(2))
                     .parseClaimsJws(token)
                     .getBody()
                     .getSubject();

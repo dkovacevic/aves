@@ -58,7 +58,7 @@ public class SignatureResource {
 
             if (rateLimit(signer))
                 return Response.
-                        ok(new ErrorMessage("Hold your horses!")).
+                        ok(new ErrorMessage("Hold your horses!", 429, "client-error")).
                         status(429).
                         build();
 
@@ -73,7 +73,7 @@ public class SignatureResource {
 
             if (optionalOutputs == null) {
                 return Response.
-                        ok(new ErrorMessage(signResponse.result.minor)).
+                        ok(new ErrorMessage(signResponse.result.minor, 400, "ais-error")).
                         status(400).
                         build();
             }
@@ -190,6 +190,7 @@ public class SignatureResource {
     public static class SignRequest {
         @NotNull
         public String documentId;
+        @NotNull
         public String name;
         @NotNull
         public String hash;

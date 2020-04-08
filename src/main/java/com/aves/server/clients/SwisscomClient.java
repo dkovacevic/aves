@@ -7,15 +7,18 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.glassfish.jersey.logging.LoggingFeature;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Feature;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.UUID;
+import java.util.logging.Level;
 
 public class SwisscomClient {
     private ObjectMapper mapper = new ObjectMapper();
@@ -27,6 +30,9 @@ public class SwisscomClient {
 
         sign = target.path("sign");
         pending = target.path("pending");
+
+        Feature feature = new LoggingFeature(Logger.getLOGGER(), Level.FINE, null, null);
+        sign.register(feature);
     }
 
     public SignResponse sign(User signer, String documentId, String name, String hash) throws IOException {
@@ -56,12 +62,11 @@ public class SwisscomClient {
                 .accept(MediaType.APPLICATION_JSON)
                 .post(Entity.entity(request, MediaType.APPLICATION_JSON));
 
-        if (res.getStatus() != 200)
-            throw new IOException(res.readEntity(String.class));
-
         String entity = res.readEntity(String.class);
-
         Logger.debug(entity);
+
+        if (res.getStatus() != 200)
+            throw new IOException(entity);
 
         RootSignResponse response = mapper.readValue(entity, RootSignResponse.class);
         return response.signResponse;
@@ -75,11 +80,11 @@ public class SwisscomClient {
                 .accept(MediaType.APPLICATION_JSON)
                 .post(Entity.entity(request, MediaType.APPLICATION_JSON));
 
-        if (res.getStatus() != 200)
-            throw new IOException(res.readEntity(String.class));
-
         String entity = res.readEntity(String.class);
-        ObjectMapper mapper = new ObjectMapper();
+        Logger.debug(entity);
+
+        if (res.getStatus() != 200)
+            throw new IOException(entity);
 
         RootSignResponse response = mapper.readValue(entity, RootSignResponse.class);
         return response.signResponse;

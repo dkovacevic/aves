@@ -5,6 +5,7 @@ import com.aves.server.model.AccessToken;
 import com.aves.server.model.Configuration;
 import com.aves.server.model.ErrorMessage;
 import com.aves.server.tools.Logger;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -46,6 +47,7 @@ public class AccessResource {
 
             String subject = Jwts.parser()
                     .setSigningKey(Aves.getKey())
+                    .setAllowedClockSkewSeconds(TimeUnit.DAYS.toSeconds(1))
                     .parseClaimsJws(expired)
                     .getBody()
                     .getSubject();
@@ -72,12 +74,17 @@ public class AccessResource {
                     ok(result).
                     cookie(new NewCookie("zuid", result.accessToken)).
                     build();
+        } catch (ExpiredJwtException e) {
+            return Response
+                    .ok(new ErrorMessage("Authentication failed.", 403, "invalid-credentials"))
+                    .status(403)
+                    .build();
         } catch (Exception e) {
             e.printStackTrace();
             Logger.error("AccessResource.post : %s", e);
             return Response
-                    .ok(new ErrorMessage("Authentication failed.", 403, "invalid-credentials"))
-                    .status(403)
+                    .ok(new ErrorMessage(e.getMessage(), 500, "server-error"))
+                    .status(500)
                     .build();
         }
     }
