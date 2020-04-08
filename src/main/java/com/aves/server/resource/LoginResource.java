@@ -49,18 +49,12 @@ public class LoginResource {
             String hashed = userDAO.getHash(email);
             if (hashed == null || !SCryptUtil.check(signIn.password, hashed)) {
                 return Response
-                        .ok(new ErrorMessage("Wrong email or password"))
+                        .ok(new ErrorMessage("Authentication failed.", 403, "invalid-credentials"))
                         .status(403)
                         .build();
             }
 
             UUID userId = userDAO.getUserId(email);
-            if (userId == null) {
-                return Response
-                        .ok(new ErrorMessage("Wrong email or password"))
-                        .status(403)
-                        .build();
-            }
 
             long mills = TimeUnit.SECONDS.toMillis(config.tokenExpiration);
             Date exp = new Date(new Date().getTime() + mills);
@@ -86,8 +80,8 @@ public class LoginResource {
             e.printStackTrace();
             Logger.error("LoginResource.login : %s", e);
             return Response
-                    .ok(new ErrorMessage(e.getMessage()))
-                    .status(500)
+                    .ok(new ErrorMessage("Authentication failed.", 403, "invalid-credentials"))
+                    .status(403)
                     .build();
         }
     }

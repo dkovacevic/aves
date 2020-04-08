@@ -38,12 +38,6 @@ public class SelfResource {
         try {
             UUID userId = (UUID) context.getProperty("zuid");
             User user = userDAO.getUser(userId);
-            if (user == null) {
-                return Response.
-                        status(404).
-                        build();
-            }
-
             return Response.
                     ok(user).
                     build();
@@ -81,14 +75,14 @@ public class SelfResource {
             String hashed = userDAO.getHash(userId);
             if (hashed == null || !SCryptUtil.check(newPassword.oldPassword, hashed)) {
                 return Response
-                        .ok(new ErrorMessage("Old password does not match"))
+                        .ok(new ErrorMessage("Authentication failed.", 403, "invalid-credentials"))
                         .status(403)
                         .build();
             }
         }
 
         String hash = SCryptUtil.scrypt(newPassword.newPassword, 16384, 8, 1);
-        int updateHash = userDAO.updateHash(userId, hash);
+        userDAO.updateHash(userId, hash);
 
         return Response.
                 ok().

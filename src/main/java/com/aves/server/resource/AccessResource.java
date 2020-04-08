@@ -5,7 +5,6 @@ import com.aves.server.model.AccessToken;
 import com.aves.server.model.Configuration;
 import com.aves.server.model.ErrorMessage;
 import com.aves.server.tools.Logger;
-import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -45,18 +44,13 @@ public class AccessResource {
                         .build();
             }
 
-            UUID userId;
-            try {
-                String subject = Jwts.parser()
-                        .setSigningKey(Aves.getKey())
-                        .parseClaimsJws(expired)
-                        .getBody()
-                        .getSubject();
+            String subject = Jwts.parser()
+                    .setSigningKey(Aves.getKey())
+                    .parseClaimsJws(expired)
+                    .getBody()
+                    .getSubject();
 
-                userId = UUID.fromString(subject);
-            } catch (ExpiredJwtException e) {
-                userId = UUID.fromString(e.getClaims().getSubject());
-            }
+            UUID userId = UUID.fromString(subject);
 
             long mills = TimeUnit.SECONDS.toMillis(config.tokenExpiration);
             Date exp = new Date(new Date().getTime() + mills);
@@ -82,8 +76,8 @@ public class AccessResource {
             e.printStackTrace();
             Logger.error("AccessResource.post : %s", e);
             return Response
-                    .ok(new ErrorMessage(e.getMessage()))
-                    .status(500)
+                    .ok(new ErrorMessage("Authentication failed.", 403, "invalid-credentials"))
+                    .status(403)
                     .build();
         }
     }

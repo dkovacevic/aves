@@ -48,7 +48,7 @@ public class ClientsResource {
 
             if (clientsDAO.getClients(userId).size() > 7) {
                 return Response.
-                        ok(new ErrorMessage("Too many devices already")).
+                        ok(new ErrorMessage("Too many devices already", 403, "too-many-clients")).
                         status(403).
                         build();
             }
