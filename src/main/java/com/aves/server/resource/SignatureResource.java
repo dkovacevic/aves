@@ -58,8 +58,8 @@ public class SignatureResource {
 
             if (rateLimit(signer))
                 return Response.
-                        ok(new ErrorMessage("Hold your horses!", 429, "client-error")).
-                        status(429).
+                        ok(new ErrorMessage("Hold your horses!", 403, "signature-limit-reached")).
+                        status(403).
                         build();
 
             User user = userDAO.getUser(signer);
@@ -109,12 +109,13 @@ public class SignatureResource {
                         ok(dummy).
                         build();
             }
-            
+
             SwisscomClient.SignResponse signResponse = swisscomClient.pending(responseId);
 
             if (signResponse == null || signResponse.signature == null) {
                 return Response.
-                        status(503).
+                        ok(new ErrorMessage("Signature not ready", 404, "client-error")).
+                        status(404).
                         build();
             }
 
