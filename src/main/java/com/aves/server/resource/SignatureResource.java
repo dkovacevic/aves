@@ -19,6 +19,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.Date;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -30,6 +31,7 @@ public class SignatureResource {
     private final UserDAO userDAO;
     private final SwisscomClient swisscomClient;
     private final ConcurrentHashMap<UUID, Date> rates = new ConcurrentHashMap<>();
+    private final String PENDING = "urn:oasis:names:tc:dss:1.0:profiles:asynchronousprocessing:resultmajor:Pending";
 
     public SignatureResource(Jdbi jdbi, SwisscomClient swisscomClient) {
         this.userDAO = jdbi.onDemand(UserDAO.class);
@@ -60,12 +62,12 @@ public class SignatureResource {
             final SwisscomClient.OptionalOutputs optionalOutputs = signResponse.optionalOutputs;
 
             if (optionalOutputs == null || optionalOutputs.stepUpAuthorisationInfo == null) {
-                Logger.warning("SignatureResource.request : missing data from AIS. userId: %s, phone: %s, error: %s",
+                Logger.warning("SignatureResource.request: UserId: %s, Phone: %s, Error: %s",
                         user.id,
                         user.phone,
-                        signResponse.result.minor);
+                        signResponse.getErrorMessage());
                 return Response.
-                        ok(new ErrorMessage(signResponse.result.minor, 400, "ais-error")).
+                        ok(new ErrorMessage(signResponse.getErrorMessage(), 400, "ais-error")).
                         status(400).
                         build();
             }
@@ -75,7 +77,7 @@ public class SignatureResource {
             result.consentURL = optionalOutputs.stepUpAuthorisationInfo.result.url;
 
             if (result.consentURL == null) {
-                Logger.warning("SignatureResource.request : consentURL is null. userId: %s, phone: %s", user.id, user.phone);
+                Logger.warning("SignatureResource.request: UserId: %s, Phone: %s. ConsentURL is null", user.id, user.phone);
                 return Response.
                         ok(new ErrorMessage("Missing consent URL", 400, "ais-error")).
                         status(400).
@@ -102,10 +104,21 @@ public class SignatureResource {
         try {
             SwisscomClient.SignResponse signResponse = swisscomClient.pending(responseId);
 
-            if (signResponse == null || signResponse.signature == null) {
+            if (Objects.equals(signResponse.result.major, PENDING)) {
+                Thread.sleep(1000); // Forgive me
                 return Response.
-                        ok(new ErrorMessage("Signature not ready", 404, "client-error")).
-                        status(404).
+                        ok(new ErrorMessage("Signature is still pending", 503, "signature-pending")).
+                        status(503).
+                        build();
+            }
+
+            if (signResponse.signature == null) {
+                Logger.warning("SignatureResource.pending: ResponseId: %s, Error: %s",
+                        responseId,
+                        signResponse.getErrorMessage());
+                return Response.
+                        ok(new ErrorMessage(signResponse.getErrorMessage(), 503, "ais-error")).
+                        status(403).
                         build();
             }
 
@@ -119,7 +132,7 @@ public class SignatureResource {
                     ok(signature).
                     build();
         } catch (Exception e) {
-            //e.printStackTrace();
+            e.printStackTrace();
             Logger.error("SignatureResource.pending : %s", e);
             return Response
                     .ok(new ErrorMessage(e.getMessage()))

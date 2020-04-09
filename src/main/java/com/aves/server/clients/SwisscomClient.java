@@ -3,12 +3,14 @@ package com.aves.server.clients;
 
 import com.aves.server.model.User;
 import com.aves.server.tools.Logger;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.glassfish.jersey.logging.LoggingFeature;
 
+import javax.annotation.Nullable;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
@@ -221,6 +223,12 @@ public class SwisscomClient {
         public SignatureObject signature;
         @JsonProperty("Result")
         public Result result;
+
+        @JsonIgnore
+        @Nullable
+        public String getErrorMessage() {
+            return result != null && result.resultMessage != null ? result.resultMessage.message : null;
+        }
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
@@ -239,6 +247,8 @@ public class SwisscomClient {
         public String major;
         @JsonProperty("ResultMinor")
         public String minor;
+        @JsonProperty("ResultMessage")
+        public ResultMessage resultMessage;
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
@@ -326,5 +336,10 @@ public class SwisscomClient {
     }
     ///////////////// Pending Request ////////////////////////////
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class ResultMessage {
+        @JsonProperty("$")
+        public String message;
+    }
 }
 
