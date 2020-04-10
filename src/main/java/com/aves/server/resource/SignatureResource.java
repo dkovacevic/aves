@@ -19,7 +19,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.Date;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -31,7 +30,6 @@ public class SignatureResource {
     private final UserDAO userDAO;
     private final SwisscomClient swisscomClient;
     private final ConcurrentHashMap<UUID, Date> rates = new ConcurrentHashMap<>();
-    private final String PENDING = "urn:oasis:names:tc:dss:1.0:profiles:asynchronousprocessing:resultmajor:Pending";
 
     public SignatureResource(Jdbi jdbi, SwisscomClient swisscomClient) {
         this.userDAO = jdbi.onDemand(UserDAO.class);
@@ -46,28 +44,40 @@ public class SignatureResource {
         try {
             UUID signer = (UUID) context.getProperty("zuid");
 
-            if (rateLimit(signer))
+            if (rateLimit(signer)) {
+                Logger.warning("SignatureResource.request: rate limiting user: %s", signer);
                 return Response.
                         ok(new ErrorMessage("Hold your horses!", 403, "signature-limit-reached")).
                         status(403).
                         build();
+            }
 
             User user = userDAO.getUser(signer);
             String hash = request.hash;
             String documentId = request.documentId;
             String name = request.name;
 
-            SwisscomClient.SignResponse signResponse = swisscomClient.sign(user, documentId, name, hash);
-
-            final SwisscomClient.OptionalOutputs optionalOutputs = signResponse.optionalOutputs;
-
-            if (optionalOutputs == null || optionalOutputs.stepUpAuthorisationInfo == null) {
-                Logger.warning("SignatureResource.request: UserId: %s, Phone: %s, Error: %s",
-                        user.id,
-                        user.phone,
-                        signResponse.getErrorMessage());
+            SwisscomClient.RootSignResponse res = swisscomClient.sign(user, documentId, name, hash);
+            if (res.isError()) {
+                Logger.warning("SignatureResource.request: %s", res.getErrorMessage());
                 return Response.
-                        ok(new ErrorMessage(signResponse.getErrorMessage(), 400, "ais-error")).
+                        ok(new ErrorMessage(res.getErrorMessage(), 400, "signature-error")).
+                        status(400).
+                        build();
+            }
+
+            SwisscomClient.SignResponse signResponse = res.signResponse;
+            SwisscomClient.OptionalOutputs optionalOutputs = signResponse.optionalOutputs;
+
+            // try /pending to see if the DN was parsed correctly
+            SwisscomClient.RootSignResponse pending = swisscomClient.pending(optionalOutputs.responseId);
+
+            if (pending.isError()) {
+                Logger.warning("SignatureResource.request: UserId: %s, Error: %s",
+                        user.id,
+                        pending.getErrorMessage());
+                return Response.
+                        ok(new ErrorMessage(pending.getErrorMessage(), 400, "signature-error")).
                         status(400).
                         build();
             }
@@ -75,14 +85,6 @@ public class SignatureResource {
             SignResponse result = new SignResponse();
             result.responseId = optionalOutputs.responseId;
             result.consentURL = optionalOutputs.stepUpAuthorisationInfo.result.url;
-
-            if (result.consentURL == null) {
-                Logger.warning("SignatureResource.request: UserId: %s, Phone: %s. ConsentURL is null", user.id, user.phone);
-                return Response.
-                        ok(new ErrorMessage("Missing consent URL", 400, "ais-error")).
-                        status(400).
-                        build();
-            }
 
             return Response.
                     ok(result).
@@ -102,23 +104,23 @@ public class SignatureResource {
     @Authorization("Bearer")
     public Response pending(@Context ContainerRequestContext context, @PathParam("responseId") UUID responseId) {
         try {
-            SwisscomClient.SignResponse signResponse = swisscomClient.pending(responseId);
+            final SwisscomClient.RootSignResponse res = swisscomClient.pending(responseId);
+            if (res.isError()) {
+                Logger.warning("SignatureResource.pending: ResponseId: %s, Error: %s",
+                        responseId,
+                        res.getErrorMessage());
+                return Response.
+                        ok(new ErrorMessage(res.getErrorMessage(), 404, "signature-unknown-responseId")).
+                        status(404).
+                        build();
+            }
 
-            if (Objects.equals(signResponse.result.major, PENDING)) {
+            SwisscomClient.SignResponse signResponse = res.signResponse;
+            if (signResponse.isPending()) {
                 Thread.sleep(1000); // Forgive me
                 return Response.
                         ok(new ErrorMessage("Signature is still pending", 503, "signature-pending")).
                         status(503).
-                        build();
-            }
-
-            if (signResponse.signature == null) {
-                Logger.warning("SignatureResource.pending: ResponseId: %s, Error: %s",
-                        responseId,
-                        signResponse.getErrorMessage());
-                return Response.
-                        ok(new ErrorMessage(signResponse.getErrorMessage(), 503, "ais-error")).
-                        status(403).
                         build();
             }
 

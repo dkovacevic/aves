@@ -19,6 +19,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.logging.Level;
 
@@ -26,6 +27,10 @@ public class SwisscomClient {
     private ObjectMapper mapper = new ObjectMapper();
     private WebTarget sign;
     private WebTarget pending;
+    private static final String PENDING = "urn:oasis:names:tc:dss:1.0:profiles:asynchronousprocessing:resultmajor:Pending";
+    private static final String REQUESTER_ERROR = "urn:oasis:names:tc:dss:1.0:resultmajor:RequesterError";
+    private static final String RESPONDER_ERROR = "urn:oasis:names:tc:dss:1.0:resultmajor:ResponderError";
+    private static final String SUBSYSTEM_ERROR = "http://ais.swisscom.ch/1.0/resultmajor/SubsystemError";
 
     public SwisscomClient(Client httpClient) {
         final WebTarget target = httpClient.target("https://ais.swisscom.com/AIS-Server/rs/v1.0");
@@ -37,7 +42,7 @@ public class SwisscomClient {
         sign.register(feature);
     }
 
-    public SignResponse sign(User signer, String documentId, String name, String hash) throws IOException {
+    public RootSignResponse sign(User signer, String documentId, String name, String hash) throws IOException {
         RootSignRequest request = new RootSignRequest();
         InputDocuments inputDocuments = request.signRequest.inputDocuments;
 
@@ -70,11 +75,10 @@ public class SwisscomClient {
         if (res.getStatus() != 200)
             throw new IOException(entity);
 
-        RootSignResponse response = mapper.readValue(entity, RootSignResponse.class);
-        return response.signResponse;
+        return mapper.readValue(entity, RootSignResponse.class);
     }
 
-    public SignResponse pending(UUID responseId) throws IOException {
+    public RootSignResponse pending(UUID responseId) throws IOException {
         RootPendingRequest request = new RootPendingRequest(responseId);
 
         Response res = pending
@@ -88,8 +92,7 @@ public class SwisscomClient {
         if (res.getStatus() != 200)
             throw new IOException(entity);
 
-        RootSignResponse response = mapper.readValue(entity, RootSignResponse.class);
-        return response.signResponse;
+        return mapper.readValue(entity, RootSignResponse.class);
     }
 
     private String getDistinguishableName(String first, String last, String email, String country) {
@@ -209,6 +212,31 @@ public class SwisscomClient {
     public static class RootSignResponse {
         @JsonProperty("SignResponse")
         public SignResponse signResponse;
+        @JsonProperty("Response")
+        public SignResponse response;
+
+        @JsonIgnore
+        public boolean isError() {
+            if (response != null) {
+                return response.isError();
+            }
+            if (signResponse != null) {
+                return signResponse.isError();
+            }
+            return false;
+        }
+
+        @JsonIgnore
+        @Nullable
+        public String getErrorMessage() {
+            if (response != null) {
+                return response.getErrorMessage();
+            }
+            if (signResponse != null) {
+                return signResponse.getErrorMessage();
+            }
+            return null;
+        }
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
@@ -228,6 +256,30 @@ public class SwisscomClient {
         @Nullable
         public String getErrorMessage() {
             return result != null && result.resultMessage != null ? result.resultMessage.message : null;
+        }
+
+        @JsonIgnore
+        @Nullable
+        public String getMajor() {
+            return result != null ? result.major : null;
+        }
+
+        @JsonIgnore
+        @Nullable
+        public String getMinor() {
+            return result != null ? result.minor : null;
+        }
+
+        @JsonIgnore
+        public boolean isPending() {
+            return Objects.equals(getMajor(), PENDING);
+        }
+
+        @JsonIgnore
+        public boolean isError() {
+            return Objects.equals(getMajor(), REQUESTER_ERROR)
+                    || Objects.equals(getMajor(), RESPONDER_ERROR)
+                    || Objects.equals(getMajor(), SUBSYSTEM_ERROR);
         }
     }
 
