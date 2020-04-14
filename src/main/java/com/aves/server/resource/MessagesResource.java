@@ -156,7 +156,7 @@ public class MessagesResource {
         clientMismatch.time = time();
 
         for (UUID participantId : participants) {
-            if (!Objects.equals(reportMissing, participantId))
+            if (reportMissing != null && !Objects.equals(reportMissing, participantId))
                 continue;
 
             for (String clientId : clientsDAO.getClients(participantId)) {
