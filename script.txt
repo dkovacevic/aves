@@ -1,0 +1,8 @@
+#Generate cert
+openssl req -x509 -sha256 -newkey rsa:2048 -keyout certificate.key -out certificate.crt -days 90 -nodes
+
+#Export:
+openssl pkcs12 -export -in certificate.crt -inkey certificate.key -name ais.swisscom.com -out cert-PKCS-12.p12
+
+#Import:
+keytool -importkeystore -destkeystore aves.jks -srckeystore cert-PKCS-12.p12 -srcstoretype PKCS12

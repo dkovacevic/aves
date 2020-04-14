@@ -50,17 +50,19 @@ public class SwisscomClient {
         inputDocuments.documentHash.documentId = documentId;
 
         CertificateRequest certificateRequest = request.signRequest.optionalInputs.certificateRequest;
-        certificateRequest.distinguishedName = getDistinguishableName(
+        certificateRequest.distinguishedName = String.format("CN=TEST %s, givenname=%s, surname=%s, C=%s, emailAddress=%s",
+                signer.name,
                 signer.firstname,
                 signer.lastname,
-                signer.email,
-                signer.country);
+                signer.country,
+                signer.email
+        );
 
         Phone phone = certificateRequest.stepUpAuthorisation.phone;
         phone.language = signer.locale;
         phone.phoneNumber = signer.phone.replace("+", "").replace(" ", "");
         phone.message = String.format("Please confirm the signing of the document: %s", name);
-        phone.serialNumber = signer.id.toString();
+        //phone.serialNumber = signer.id.toString();
 
         Logger.debug(mapper.writeValueAsString(request));
 
@@ -95,28 +97,17 @@ public class SwisscomClient {
         return mapper.readValue(entity, RootSignResponse.class);
     }
 
-    private String getDistinguishableName(String first, String last, String email, String country) {
-        return String.format("CN=TEST %s %s, givenname=%s, surname=%s, C=%s, emailAddress=%s",
-                first, last, first, last, country, email);
-    }
-
     ///////////////// Sign Request ///////////////////////////
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class RootSignRequest {
         @JsonProperty("SignRequest")
-        public SignRequest signRequest;
-
-        public RootSignRequest() {
-            signRequest = new SignRequest();
-            signRequest.requestId = UUID.randomUUID();
-        }
+        public SignRequest signRequest = new SignRequest();
     }
 
     public static class SignRequest {
         @JsonProperty("@Profile")
         public String profile = "http://ais.swisscom.ch/1.1";
         @JsonProperty("@RequestID")
-        public UUID requestId;
+        public UUID requestId = UUID.randomUUID();
         @JsonProperty("InputDocuments")
         public InputDocuments inputDocuments = new InputDocuments();
         @JsonProperty("OptionalInputs")
@@ -152,7 +143,6 @@ public class SwisscomClient {
         public String name = "ais-90days-trial-OTP:OnDemand-Advanced";
     }
 
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class OptionalInputs {
         @JsonProperty("sc.CertificateRequest")
         public CertificateRequest certificateRequest = new CertificateRequest();
@@ -304,6 +294,12 @@ public class SwisscomClient {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class ResultMessage {
+        @JsonProperty("$")
+        public String message;
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class RevocationInformation {
         @JsonProperty("sc.CRLs")
         public HashMap<String, String> CRLs;
@@ -387,11 +383,5 @@ public class SwisscomClient {
         public UUID responseId;
     }
     ///////////////// Pending Request ////////////////////////////
-
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class ResultMessage {
-        @JsonProperty("$")
-        public String message;
-    }
 }
 

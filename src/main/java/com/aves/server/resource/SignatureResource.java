@@ -110,7 +110,7 @@ public class SignatureResource {
                         responseId,
                         res.getErrorMessage());
                 return Response.
-                        ok(new ErrorMessage(res.getErrorMessage(), 404, "signature-unknown-responseId")).
+                        ok(new ErrorMessage(res.getErrorMessage(), 400, "signature-error")).
                         status(404).
                         build();
             }
@@ -129,7 +129,8 @@ public class SignatureResource {
             Signature signature = new Signature();
             signature.documentId = signatureObject.documentId;
             signature.cms = signatureObject.base64Signature.value;
-
+            signature.serialNumber = signResponse.optionalOutputs.stepUpAuthorisationInfo.result.serialNumber;
+            
             return Response.
                     ok(signature).
                     build();
@@ -179,5 +180,7 @@ public class SignatureResource {
         public String documentId;
         @NotNull
         public String cms;
+        @NotNull
+        public String serialNumber;
     }
 }
