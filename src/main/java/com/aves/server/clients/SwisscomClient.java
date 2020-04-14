@@ -227,6 +227,18 @@ public class SwisscomClient {
             }
             return null;
         }
+
+        @JsonIgnore
+        @Nullable
+        public String getMajor() {
+            if (response != null) {
+                return response.getMajor();
+            }
+            if (signResponse != null) {
+                return signResponse.getMajor();
+            }
+            return null;
+        }
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

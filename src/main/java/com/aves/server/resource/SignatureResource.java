@@ -59,9 +59,11 @@ public class SignatureResource {
 
             SwisscomClient.RootSignResponse res = swisscomClient.sign(user, documentId, name, hash);
             if (res.isError()) {
-                Logger.warning("SignatureResource.request: %s", res.getErrorMessage());
+                Logger.warning("SignatureResource.request: major: %s, error: %s",
+                        res.getMajor(),
+                        res.getErrorMessage());
                 return Response.
-                        ok(new ErrorMessage(res.getErrorMessage(), 400, "signature-error")).
+                        ok(new ErrorMessage(res.getErrorMessage(), 400, res.getMajor())).
                         status(400).
                         build();
             }
@@ -73,11 +75,12 @@ public class SignatureResource {
             SwisscomClient.RootSignResponse pending = swisscomClient.pending(optionalOutputs.responseId);
 
             if (pending.isError()) {
-                Logger.warning("SignatureResource.request: UserId: %s, Error: %s",
+                Logger.warning("SignatureResource.request: UserId: %s, Major: %s Error: %s",
                         user.id,
+                        pending.getMajor(),
                         pending.getErrorMessage());
                 return Response.
-                        ok(new ErrorMessage(pending.getErrorMessage(), 400, "signature-error")).
+                        ok(new ErrorMessage(pending.getErrorMessage(), 400, pending.getMajor())).
                         status(400).
                         build();
             }
@@ -106,20 +109,21 @@ public class SignatureResource {
         try {
             final SwisscomClient.RootSignResponse res = swisscomClient.pending(responseId);
             if (res.isError()) {
-                Logger.warning("SignatureResource.pending: ResponseId: %s, Error: %s",
+                Logger.warning("SignatureResource.pending: ResponseId: %s, Major: %s, Error: %s",
                         responseId,
+                        res.getMajor(),
                         res.getErrorMessage());
                 return Response.
-                        ok(new ErrorMessage(res.getErrorMessage(), 400, "signature-error")).
+                        ok(new ErrorMessage(res.getErrorMessage(), 400, res.getMajor())).
                         status(404).
                         build();
             }
 
             SwisscomClient.SignResponse signResponse = res.signResponse;
             if (signResponse.isPending()) {
-                Thread.sleep(1000); // Forgive me
+                Thread.sleep(1000); // forgive me Father, for I have sinned
                 return Response.
-                        ok(new ErrorMessage("Signature is still pending", 503, "signature-pending")).
+                        ok(new ErrorMessage("Epstein didn't kill himself", 503, signResponse.getMajor())).
                         status(503).
                         build();
             }
@@ -130,7 +134,7 @@ public class SignatureResource {
             signature.documentId = signatureObject.documentId;
             signature.cms = signatureObject.base64Signature.value;
             signature.serialNumber = signResponse.optionalOutputs.stepUpAuthorisationInfo.result.serialNumber;
-            
+
             return Response.
                     ok(signature).
                     build();
