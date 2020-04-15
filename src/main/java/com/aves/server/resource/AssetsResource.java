@@ -1,6 +1,7 @@
 package com.aves.server.resource;
 
 import com.aves.server.Aves;
+import com.aves.server.Limiter;
 import com.aves.server.model.AssetKey;
 import com.aves.server.model.ErrorMessage;
 import com.aves.server.tools.Logger;
@@ -18,11 +19,14 @@ import javax.mail.BodyPart;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.util.ByteArrayDataSource;
 import javax.ws.rs.*;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.util.Date;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static com.aves.server.tools.Util.*;
@@ -87,23 +91,31 @@ public class AssetsResource {
     @Path("/{assetId}")
     @ApiOperation(value = "Fetch asset from S3")
     @Authorization("Bearer")
-    public Response get(@PathParam("assetId") String assetId) {
+    public Response get(@Context ContainerRequestContext context, @PathParam("assetId") String assetId) {
         try {
-            InputStream object = s3DownloadFile(assetId);
+            UUID userId = (UUID) context.getProperty("zuid");
 
+            if (Limiter.rate("/assets", userId, 10)) {
+                return Response.
+                        ok(new ErrorMessage("Hold your horses!", 429, "limit-reached")).
+                        status(429).
+                        build();
+            }
+
+            InputStream object = s3DownloadFile(assetId);
             return Response.
                     ok(object).
                     build();
         } catch (ErrorResponseException e) {
             Logger.warning("AssetsResource.get : %s", e.errorResponse().code());
             // Logger.debug("AssetsResource.get : %s", e);
-//            return Response
-//                    .ok(new ErrorMessage(e.errorResponse().code()))
-//                    .status(404)
-//                    .build();
             return Response
-                    .ok(getErrorImage())
+                    .ok(new ErrorMessage(e.errorResponse().code()))
+                    .status(404)
                     .build();
+//            return Response
+//                    .ok(getErrorImage())
+//                    .build();
         } catch (Exception e) {
             e.printStackTrace();
             Logger.error("AssetsResource.get : %s", e);

@@ -1,6 +1,7 @@
 package com.aves.server.resource;
 
 import com.aves.server.DAO.UserDAO;
+import com.aves.server.Limiter;
 import com.aves.server.clients.SwisscomClient;
 import com.aves.server.model.ErrorMessage;
 import com.aves.server.model.User;
@@ -18,10 +19,7 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.Date;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 
 @Api
 @Path("/signature")
@@ -29,7 +27,6 @@ import java.util.concurrent.TimeUnit;
 public class SignatureResource {
     private final UserDAO userDAO;
     private final SwisscomClient swisscomClient;
-    private final ConcurrentHashMap<UUID, Date> rates = new ConcurrentHashMap<>();
 
     public SignatureResource(Jdbi jdbi, SwisscomClient swisscomClient) {
         this.userDAO = jdbi.onDemand(UserDAO.class);
@@ -44,8 +41,7 @@ public class SignatureResource {
         try {
             UUID signer = (UUID) context.getProperty("zuid");
 
-            if (rateLimit(signer)) {
-                Logger.warning("SignatureResource.request: rate limiting user: %s", signer);
+            if (Limiter.rate("/signature", signer, 2)) {
                 return Response.
                         ok(new ErrorMessage("Hold your horses!", 403, "signature-limit-reached")).
                         status(403).
@@ -107,6 +103,8 @@ public class SignatureResource {
     @Authorization("Bearer")
     public Response pending(@Context ContainerRequestContext context, @PathParam("responseId") UUID responseId) {
         try {
+            Thread.sleep(2000); // forgive me Father, for I have sinned
+
             final SwisscomClient.RootSignResponse res = swisscomClient.pending(responseId);
             if (res.isError()) {
                 Logger.warning("SignatureResource.pending: ResponseId: %s, Major: %s, Error: %s",
@@ -115,13 +113,12 @@ public class SignatureResource {
                         res.getErrorMessage());
                 return Response.
                         ok(new ErrorMessage(res.getErrorMessage(), 400, res.getMajor())).
-                        status(404).
+                        status(400).
                         build();
             }
 
             SwisscomClient.SignResponse signResponse = res.signResponse;
             if (signResponse.isPending()) {
-                Thread.sleep(1000); // forgive me Father, for I have sinned
                 return Response.
                         ok(new ErrorMessage("Epstein didn't kill himself", 503, signResponse.getMajor())).
                         status(503).
@@ -146,21 +143,6 @@ public class SignatureResource {
                     .status(400)
                     .build();
         }
-    }
-
-    private boolean rateLimit(UUID signer) {
-        final Date now = new Date();
-        final Date date = rates.computeIfAbsent(signer, x -> now);
-        final long elapsed = now.getTime() - date.getTime();
-        if (elapsed == 0) {
-            return false;
-        }
-        if (elapsed > TimeUnit.SECONDS.toMillis(60)) {
-            rates.remove(signer);
-            return false;
-        }
-
-        return true;
     }
 
     public static class SignResponse {
