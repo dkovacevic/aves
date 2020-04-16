@@ -19,6 +19,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
+import java.net.URL;
 import java.net.URLConnection;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
@@ -28,6 +29,7 @@ import java.text.SimpleDateFormat;
 import java.util.Base64;
 import java.util.Date;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 public class Util {
     private static final SecureRandom random = new SecureRandom();
@@ -70,6 +72,10 @@ public class Util {
                     "application/octet-stream");
         }
         return key;
+    }
+
+    public static URL presignedGetObject(String assetId) throws Exception {
+        return new URL(minioClient.presignedGetObject(BUCKET_NAME, assetId, (int) TimeUnit.HOURS.toSeconds(1)));
     }
 
     public static InputStream s3DownloadFile(String assetId) throws Exception {
@@ -175,6 +181,10 @@ public class Util {
 
     public static String time() {
         return formatter.format(new Date());
+    }
+
+    public static String time(Date date) {
+        return formatter.format(date);
     }
 
     public static String time(java.sql.Date time) {

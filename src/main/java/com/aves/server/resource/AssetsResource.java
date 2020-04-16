@@ -9,7 +9,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Jwts;
-import io.minio.errors.ErrorResponseException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -70,7 +69,7 @@ public class AssetsResource {
                         .setExpiration(exp)
                         .signWith(Aves.getKey())
                         .compact();
-                assetKey.expires = time();
+                assetKey.expires = time(exp);
             }
 
             return Response.
@@ -78,7 +77,6 @@ public class AssetsResource {
                     status(201).
                     build();
         } catch (Exception e) {
-            //e.printStackTrace();
             Logger.error("AssetsResource.post : %s", e);
             return Response
                     .ok(new ErrorMessage(e.getMessage()))
@@ -91,31 +89,22 @@ public class AssetsResource {
     @Path("/{assetId}")
     @ApiOperation(value = "Fetch asset from S3")
     @Authorization("Bearer")
-    public Response get(@Context ContainerRequestContext context, @PathParam("assetId") String assetId) {
+    public Response get(@Context ContainerRequestContext context,
+                        @HeaderParam("Asset-Token") String assetToken,
+                        @PathParam("assetId") String assetId) {
         try {
             UUID userId = (UUID) context.getProperty("zuid");
-
-            if (Limiter.rate("/assets", userId, 200)) {
+            if (Limiter.rate("/assets", userId, 100)) {
                 return Response.
                         ok(new ErrorMessage("Hold your horses!", 429, "limit-reached")).
                         status(429).
                         build();
             }
 
-            InputStream object = s3DownloadFile(assetId);
-            return Response.
-                    ok(object).
-                    build();
-        } catch (ErrorResponseException e) {
-            Logger.warning("AssetsResource.get : %s", e.errorResponse().code());
-            // Logger.debug("AssetsResource.get : %s", e);
             return Response
-                    .ok(new ErrorMessage(e.errorResponse().code()))
-                    .status(404)
+                    .ok(s3DownloadFile(assetId))
+                    .header("content-type", MediaType.APPLICATION_OCTET_STREAM)
                     .build();
-//            return Response
-//                    .ok(getErrorImage())
-//                    .build();
         } catch (Exception e) {
             e.printStackTrace();
             Logger.error("AssetsResource.get : %s", e);
