@@ -23,17 +23,26 @@ public class LogFilterFactory implements FilterFactory<IAccessEvent> {
                     return FilterReply.DENY;
                 }
 
-//                if (requestURI.contains("await")) {
-//                    return FilterReply.DENY;
-//                }
-//
-//                if (requestURI.contains("access")) {
-//                    return FilterReply.DENY;
-//                }
+                if (requestURI.contains("await")) {
+                    return FilterReply.DENY;
+                }
 
-//                if (requestURI.contains("notifications")) {
-//                    return FilterReply.DENY;
-//                }
+                if (requestURI.contains("access")) {
+                    return FilterReply.DENY;
+                }
+
+                if (requestURI.contains("notifications")) {
+                    return FilterReply.DENY;
+                }
+
+                if (requestURI.contains("calls/config")) {
+                    return FilterReply.DENY;
+                }
+
+                if (event.getMethod().equals("OPTIONS")) {
+                    return FilterReply.DENY;
+                }
+                
                 return FilterReply.NEUTRAL;
             }
         };

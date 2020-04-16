@@ -95,7 +95,7 @@ public class AssetsResource {
         try {
             UUID userId = (UUID) context.getProperty("zuid");
 
-            if (Limiter.rate("/assets", userId, 10)) {
+            if (Limiter.rate("/assets", userId, 200)) {
                 return Response.
                         ok(new ErrorMessage("Hold your horses!", 429, "limit-reached")).
                         status(429).

@@ -103,7 +103,7 @@ public class SignatureResource {
     @Authorization("Bearer")
     public Response pending(@Context ContainerRequestContext context, @PathParam("responseId") UUID responseId) {
         try {
-            Thread.sleep(2000); // forgive me Father, for I have sinned
+            //Thread.sleep(2000); // forgive me Father, for I have sinned
 
             final SwisscomClient.RootSignResponse res = swisscomClient.pending(responseId);
             if (res.isError()) {
