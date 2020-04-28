@@ -103,11 +103,13 @@ public class UsersResource {
     public Response getUsers(@ApiParam("List of userIds as UUID strings") @QueryParam("ids") String users) {
         try {
             ArrayList<User> result = new ArrayList<>();
-            for (String id : users.split(",")) {
-                UUID userId = UUID.fromString(id.trim());
-                User user = userDAO.getUser(userId);
-                if (user != null)
-                    result.add(user);
+            if (users != null) {
+                for (String id : users.split(",")) {
+                    UUID userId = UUID.fromString(id.trim());
+                    User user = userDAO.getUser(userId);
+                    if (user != null)
+                        result.add(user);
+                }
             }
             return Response.
                     ok(result).

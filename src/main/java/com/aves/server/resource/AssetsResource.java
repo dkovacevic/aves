@@ -9,10 +9,12 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Jwts;
+import io.minio.errors.*;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.Authorization;
+import org.xmlpull.v1.XmlPullParserException;
 
 import javax.mail.BodyPart;
 import javax.mail.internet.MimeMultipart;
@@ -22,7 +24,10 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.IOException;
 import java.io.InputStream;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.Objects;
 import java.util.UUID;
@@ -32,13 +37,13 @@ import static com.aves.server.tools.Util.*;
 
 @Api
 @Path("/assets/v3")
-@Produces(MediaType.APPLICATION_JSON)
 public class AssetsResource {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @POST
     @ApiOperation(value = "Store asset into S3")
     @Authorization("Bearer")
+    @Produces(MediaType.APPLICATION_JSON)
     public Response post(@HeaderParam("Content-type") String contentType,
                          @ApiParam InputStream data) {
         try {
@@ -95,22 +100,31 @@ public class AssetsResource {
         try {
             UUID userId = (UUID) context.getProperty("zuid");
             if (Limiter.rate("/assets", userId, 100)) {
-                return Response.
-                        ok(new ErrorMessage("Hold your horses!", 429, "limit-reached")).
-                        status(429).
-                        build();
+                return Response
+                        .ok(new ErrorMessage("Hold your horses!", 429, "limit-reached"))
+                        .header("content-type", MediaType.APPLICATION_OCTET_STREAM)
+                        .status(429)
+                        .build();
             }
-
             return Response
                     .ok(s3DownloadFile(assetId))
                     .header("content-type", MediaType.APPLICATION_OCTET_STREAM)
                     .build();
+        } catch (InvalidBucketNameException | NoSuchAlgorithmException | InsufficientDataException | IOException |
+                InvalidKeyException | NoResponseException | XmlPullParserException | ErrorResponseException |
+                InternalException | InvalidArgumentException e) {
+            Logger.warning("AssetsResource.get : %s", "Asset not found: " + assetId);
+            return Response
+                    .ok(new ErrorMessage("Asset not found", 404, "not-found"))
+                    .header("content-type", MediaType.APPLICATION_JSON)
+                    .status(404)
+                    .build();
         } catch (Exception e) {
-            e.printStackTrace();
             Logger.error("AssetsResource.get : %s", e);
             return Response
-                    .ok(new ErrorMessage(e.getMessage()))
-                    .status(500)
+                    .ok(new ErrorMessage(e.getMessage(), 400, "server-error"))
+                    .header("content-type", MediaType.APPLICATION_JSON)
+                    .status(400)
                     .build();
         }
     }
