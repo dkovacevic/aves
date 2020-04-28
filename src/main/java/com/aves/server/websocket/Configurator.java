@@ -31,7 +31,7 @@ public class Configurator extends ServerEndpointConfig.Configurator {
 
             String subject = Jwts.parser()
                     .setSigningKey(Aves.getKey())
-                    .setAllowedClockSkewSeconds(TimeUnit.HOURS.toSeconds(2))
+                    .setAllowedClockSkewSeconds(TimeUnit.HOURS.toSeconds(12))
                     .parseClaimsJws(token)
                     .getBody()
                     .getSubject();
