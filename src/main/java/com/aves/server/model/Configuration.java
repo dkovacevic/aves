@@ -43,4 +43,13 @@ public class Configuration extends io.dropwizard.Configuration {
     @NotNull
     public String minioSecretKey;
 
+
+    @JsonProperty
+    @NotNull
+    public String firebaseCredentialsFilePath;
+
+    @JsonProperty
+    @NotNull
+    public String firebaseDatabaseUrl;
+
 }
