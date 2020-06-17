@@ -7,7 +7,7 @@
     <groupId>com.aves.server</groupId>
     <artifactId>aves</artifactId>
     <version>1.0-SNAPSHOT</version>
-   
+
     <properties>
         <dropwizard.version>1.3.12</dropwizard.version>
     </properties>
@@ -112,6 +112,13 @@
             <artifactId>flyway-core</artifactId>
             <version>6.1.0</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.google.firebase</groupId>
+            <artifactId>firebase-admin</artifactId>
+            <version>6.13.0</version>
+        </dependency>
+
     </dependencies>
 
     <build>

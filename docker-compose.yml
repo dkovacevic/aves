@@ -1,0 +1,16 @@
+version: '3.7'
+services:
+  db:
+    image: postgres:12.2
+    # just for local development
+    environment:
+      - POSTGRES_USER=aves
+      - POSTGRES_PASSWORD=aves
+      - POSTGRES_DB=aves
+    ports:
+      - 5432:5432
+    volumes:
+      - aves-db:/var/lib/postgresql/data/
+
+volumes:
+  aves-db:
