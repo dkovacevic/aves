@@ -40,13 +40,13 @@ public class NotificationPlayground {
     }
 
     @Test
-    public void sendUsingService() throws FirebaseMessagingException {
+    public void sendUsingService() {
         Configuration c = new Configuration();
         c.firebaseCredentialsFilePath = "/Users/lukas/work/wire/aves/firebase-sdk.json";
         c.firebaseDatabaseUrl = "https://wire-bot.firebaseio.com";
         Aves.config = c;
 
-        NotificationService.getInstance()
+        FBNotificationService.getInstance()
                 .send(
                         "someUserId",
                         "someData",
