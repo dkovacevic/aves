@@ -3,6 +3,7 @@ package com.aves.server;
 import com.aves.server.DAO.ClientsDAO;
 import com.aves.server.DAO.NotificationsDAO;
 import com.aves.server.DAO.PrekeysDAO;
+import com.aves.server.DAO.PushTokensDAO;
 import com.aves.server.clients.SwisscomClient;
 import com.aves.server.filters.AuthenticationFeature;
 import com.aves.server.healthchecks.StatusHealthcheck;
@@ -106,6 +107,7 @@ public class Aves extends Application<Configuration> {
         ClientsDAO clientsDAO = jdbi.onDemand(ClientsDAO.class);
         PrekeysDAO prekeysDAO = jdbi.onDemand(PrekeysDAO.class);
         NotificationsDAO notificationsDAO = jdbi.onDemand(NotificationsDAO.class);
+        final PushTokensDAO pushTokensDAO = jdbi.onDemand(PushTokensDAO.class);
 
         EventSender.clientsDAO = clientsDAO;
         EventSender.notificationsDAO = notificationsDAO;
@@ -150,10 +152,11 @@ public class Aves extends Application<Configuration> {
         environment.jersey().register(new SignatureResource(jdbi, swisscomClient));
         environment.jersey().register(new SearchResource(jdbi));
         environment.jersey().register(new ConnectionsResource(jdbi));
+        environment.jersey().register(new PushTokenResource(pushTokensDAO));
+        environment.jersey().register(new PropertiesResource(jdbi));
 
         // Dummies
         environment.jersey().register(new TeamsResource());
-        environment.jersey().register(new PropertiesResource(jdbi));
         environment.jersey().register(new CallsResource());
         environment.jersey().register(new OnboardingResource());
     }
