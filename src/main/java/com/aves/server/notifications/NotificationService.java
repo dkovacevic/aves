@@ -10,14 +10,14 @@ public abstract class NotificationService {
         this.provider = provider;
     }
 
-    public void send(String userId, String data, String token) throws NotificationException {
+    public void send(String userId, String id, String token) throws NotificationException {
         try {
-            sendUnsafe(userId, data, token);
+            sendUnsafe(userId, id, token);
         } catch (Exception ex) {
             Logger.error("Error during sending notification. %s", ex.toString());
             throw new NotificationException(ex.getMessage(), provider, ex);
         }
     }
 
-    protected abstract void sendUnsafe(String userId, String data, String token) throws Exception;
+    protected abstract void sendUnsafe(String userId, String id, String token) throws Exception;
 }

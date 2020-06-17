@@ -8,12 +8,15 @@ import com.google.firebase.FirebaseOptions;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 
+@Ignore
 public class NotificationPlayground {
+
     @Test
     public void rawSend() throws IOException, FirebaseMessagingException {
 

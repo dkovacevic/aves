@@ -3,6 +3,8 @@ package com.aves.server.notifications;
 import com.aves.server.Aves;
 import com.aves.server.model.Configuration;
 import com.aves.server.tools.Logger;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
@@ -13,6 +15,8 @@ import com.google.firebase.messaging.Message;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class FBNotificationService extends NotificationService {
 
@@ -48,8 +52,13 @@ public class FBNotificationService extends NotificationService {
     }
 
 
-    public void sendUnsafe(String userId, String data, String token) throws FirebaseMessagingException {
+    public void sendUnsafe(String userId, String id, String token) throws FirebaseMessagingException, JsonProcessingException {
         Logger.debug("Sending notification fro user %s", userId);
+
+        Map<String, String> dataMap = new LinkedHashMap<>();
+        dataMap.put("id", id);
+        String data = new ObjectMapper().writeValueAsString(dataMap);
+
         Message message = Message.builder()
                 .putData("user", userId)
                 .putData("data", data)
