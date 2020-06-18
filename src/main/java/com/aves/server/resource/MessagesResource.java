@@ -2,9 +2,12 @@ package com.aves.server.resource;
 
 import com.aves.server.DAO.ClientsDAO;
 import com.aves.server.DAO.ParticipantsDAO;
+import com.aves.server.DAO.PushTokensDAO;
 import com.aves.server.model.ErrorMessage;
 import com.aves.server.model.Event;
+import com.aves.server.model.PushToken;
 import com.aves.server.model.otr.*;
+import com.aves.server.notifications.CompositeNotificationService;
 import com.aves.server.tools.Logger;
 import com.aves.server.tools.Util;
 import io.swagger.annotations.Api;
@@ -20,10 +23,7 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.Base64;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 import static com.aves.server.EventSender.conversationOtrMessageAddEvent;
 import static com.aves.server.EventSender.sendEvent;
@@ -37,10 +37,12 @@ public class MessagesResource {
     private final Jdbi jdbi;
     private final ParticipantsDAO participantsDAO;
     private final ClientsDAO clientsDAO;
+    private final PushTokensDAO pushTokensDAO;
 
     public MessagesResource(Jdbi jdbi) {
         participantsDAO = jdbi.onDemand(ParticipantsDAO.class);
         clientsDAO = jdbi.onDemand(ClientsDAO.class);
+        pushTokensDAO = jdbi.onDemand(PushTokensDAO.class);
         this.jdbi = jdbi;
     }
 
@@ -104,6 +106,12 @@ public class MessagesResource {
 
             for (UUID participantId : recipients.keySet()) {
                 ClientCipher clientCipher = recipients.get(participantId);
+                List<PushToken> tokens = pushTokensDAO.getPushTokens(participantId);
+                Map<String, PushToken> clientPushToken = new LinkedHashMap<>();
+                for (PushToken token : tokens) {
+                    clientPushToken.put(token.client, token);
+                }
+
                 for (String clientId : clientCipher.keySet()) {
                     if (!Objects.equals(sender, clientId)) {
                         OtrEvent data = new OtrEvent();
@@ -115,6 +123,16 @@ public class MessagesResource {
 
                         // Send Event
                         sendEvent(event, participantId, clientId, jdbi);
+
+                        // Send Notification to phone clients
+                        PushToken pushToken = clientPushToken.get(clientId);
+                        if (pushToken != null) {
+                            CompositeNotificationService.getInstance().send(
+                                    userId.toString(),
+                                    event.id.toString(),
+                                    pushToken
+                            );
+                        }
                     }
                 }
             }
