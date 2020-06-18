@@ -23,7 +23,10 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.*;
+import java.util.Base64;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 
 import static com.aves.server.EventSender.conversationOtrMessageAddEvent;
 import static com.aves.server.EventSender.sendEvent;
@@ -104,12 +107,20 @@ public class MessagesResource {
                         status(412).
                         build();
 
+            String notificationId = UUID.randomUUID().toString();
             for (UUID participantId : recipients.keySet()) {
                 ClientCipher clientCipher = recipients.get(participantId);
                 List<PushToken> tokens = pushTokensDAO.getPushTokens(participantId);
-                Map<String, PushToken> clientPushToken = new LinkedHashMap<>();
+
+                // Send Notification to phone clients
                 for (PushToken token : tokens) {
-                    clientPushToken.put(token.client, token);
+                    if (!Objects.equals(sender, token.client)) {
+                        CompositeNotificationService.getInstance().send(
+                                userId.toString(),
+                                notificationId,
+                                token
+                        );
+                    }
                 }
 
                 for (String clientId : clientCipher.keySet()) {
@@ -123,16 +134,6 @@ public class MessagesResource {
 
                         // Send Event
                         sendEvent(event, participantId, clientId, jdbi);
-
-                        // Send Notification to phone clients
-                        PushToken pushToken = clientPushToken.get(clientId);
-                        if (pushToken != null) {
-                            CompositeNotificationService.getInstance().send(
-                                    userId.toString(),
-                                    event.id.toString(),
-                                    pushToken
-                            );
-                        }
                     }
                 }
             }
