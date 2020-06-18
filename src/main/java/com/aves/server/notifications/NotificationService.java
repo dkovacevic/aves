@@ -14,7 +14,7 @@ public abstract class NotificationService {
         try {
             sendUnsafe(userId, id, token);
         } catch (Exception ex) {
-            Logger.error("Error during sending notification. %s", ex.toString());
+            Logger.debug("Error during sending notification. %s", ex.toString());
             throw new NotificationException(ex.getMessage(), provider, ex);
         }
     }
