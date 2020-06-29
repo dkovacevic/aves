@@ -2,9 +2,12 @@ package com.aves.server.resource;
 
 import com.aves.server.DAO.ClientsDAO;
 import com.aves.server.DAO.ParticipantsDAO;
+import com.aves.server.DAO.PushTokensDAO;
 import com.aves.server.model.ErrorMessage;
 import com.aves.server.model.Event;
+import com.aves.server.model.PushToken;
 import com.aves.server.model.otr.*;
+import com.aves.server.notifications.CompositeNotificationService;
 import com.aves.server.tools.Logger;
 import com.aves.server.tools.Util;
 import io.swagger.annotations.Api;
@@ -37,10 +40,12 @@ public class MessagesResource {
     private final Jdbi jdbi;
     private final ParticipantsDAO participantsDAO;
     private final ClientsDAO clientsDAO;
+    private final PushTokensDAO pushTokensDAO;
 
     public MessagesResource(Jdbi jdbi) {
         participantsDAO = jdbi.onDemand(ParticipantsDAO.class);
         clientsDAO = jdbi.onDemand(ClientsDAO.class);
+        pushTokensDAO = jdbi.onDemand(PushTokensDAO.class);
         this.jdbi = jdbi;
     }
 
@@ -102,8 +107,22 @@ public class MessagesResource {
                         status(412).
                         build();
 
+            String notificationId = UUID.randomUUID().toString();
             for (UUID participantId : recipients.keySet()) {
                 ClientCipher clientCipher = recipients.get(participantId);
+                List<PushToken> tokens = pushTokensDAO.getPushTokens(participantId);
+
+                // Send Notification to phone clients
+                for (PushToken token : tokens) {
+                    if (!Objects.equals(sender, token.client)) {
+                        CompositeNotificationService.getInstance().send(
+                                userId.toString(),
+                                notificationId,
+                                token
+                        );
+                    }
+                }
+
                 for (String clientId : clientCipher.keySet()) {
                     if (!Objects.equals(sender, clientId)) {
                         OtrEvent data = new OtrEvent();
