@@ -15,6 +15,7 @@ FROM docker.io/openjdk:8-jre-alpine
 COPY --from=build-env /app/target/aves.jar /opt/aves/
 COPY aves.jks                              /opt/aves/
 COPY aves.yaml                             /opt/aves/
+COPY firebase-sdk.json                     /opt/aves
 
 WORKDIR /opt/aves
 

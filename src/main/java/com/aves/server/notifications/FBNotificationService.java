@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.UUID;
 
 public class FBNotificationService extends NotificationService {
 
@@ -52,7 +53,7 @@ public class FBNotificationService extends NotificationService {
     }
 
 
-    public void sendUnsafe(String userId, String id, String token) throws FirebaseMessagingException, JsonProcessingException {
+    public void sendUnsafe(UUID userId, String id, String token) throws FirebaseMessagingException, JsonProcessingException {
         Logger.debug("Sending notification fro user %s", userId);
 
         Map<String, String> dataMap = new LinkedHashMap<>();
@@ -60,7 +61,7 @@ public class FBNotificationService extends NotificationService {
         String data = new ObjectMapper().writeValueAsString(dataMap);
 
         Message message = Message.builder()
-                .putData("user", userId)
+                .putData("user", userId.toString())
                 .putData("data", data)
                 .putData("type", "notice")
                 .setToken(token)

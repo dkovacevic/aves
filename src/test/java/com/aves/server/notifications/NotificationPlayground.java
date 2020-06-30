@@ -13,6 +13,7 @@ import org.junit.Test;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.UUID;
 
 @Ignore
 public class NotificationPlayground {
@@ -51,7 +52,7 @@ public class NotificationPlayground {
 
         FBNotificationService.getInstance()
                 .send(
-                        "someUserId",
+                        UUID.randomUUID(),
                         "someData",
                         "<SERVICE TOKEN HERE>");
     }

@@ -116,7 +116,7 @@ public class MessagesResource {
                 for (PushToken token : tokens) {
                     if (!Objects.equals(sender, token.client)) {
                         CompositeNotificationService.getInstance().send(
-                                userId.toString(),
+                                participantId,
                                 notificationId,
                                 token
                         );

@@ -2,6 +2,8 @@ package com.aves.server.notifications;
 
 import com.aves.server.tools.Logger;
 
+import java.util.UUID;
+
 public abstract class NotificationService {
 
     private final NotificationProvider provider;
@@ -10,7 +12,7 @@ public abstract class NotificationService {
         this.provider = provider;
     }
 
-    public void send(String userId, String id, String token) throws NotificationException {
+    public void send(UUID userId, String id, String token) throws NotificationException {
         try {
             sendUnsafe(userId, id, token);
         } catch (Exception ex) {
@@ -19,5 +21,5 @@ public abstract class NotificationService {
         }
     }
 
-    protected abstract void sendUnsafe(String userId, String id, String token) throws Exception;
+    protected abstract void sendUnsafe(UUID userId, String id, String token) throws Exception;
 }
