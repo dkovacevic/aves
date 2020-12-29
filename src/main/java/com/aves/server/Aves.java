@@ -6,6 +6,7 @@ import com.aves.server.DAO.PrekeysDAO;
 import com.aves.server.DAO.PushTokensDAO;
 import com.aves.server.clients.SwisscomClient;
 import com.aves.server.filters.AuthenticationFeature;
+import com.aves.server.filters.RequestMdcFactoryFilter;
 import com.aves.server.healthchecks.StatusHealthcheck;
 import com.aves.server.model.Configuration;
 import com.aves.server.resource.*;
@@ -154,6 +155,8 @@ public class Aves extends Application<Configuration> {
         environment.jersey().register(new ConnectionsResource(jdbi));
         environment.jersey().register(new PushTokenResource(pushTokensDAO));
         environment.jersey().register(new PropertiesResource(jdbi));
+
+        environment.jersey().register(new RequestMdcFactoryFilter());
 
         // Dummies
         environment.jersey().register(new TeamsResource());
