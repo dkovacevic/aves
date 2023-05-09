@@ -3,11 +3,11 @@ OTR Chat Server
 
 ## Run it
 ```
-docker-compose up
+docker-compose up --build
 ```
 
 ## API Documentation
-http://localhost:8090/swagger
+http://localhost:8090/api/v1/swagger
 
 ## Web Client
 https://app.services.zinfra.io

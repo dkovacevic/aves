@@ -1,8 +1,6 @@
 version: '3.8'
 services:
   aves:
-    build:
-      context: .
     image: aves
     environment:
       - DB_URL=jdbc:postgresql://db/aves
@@ -11,7 +9,8 @@ services:
       - JWT_KEY=dfsdfsdfssdkjfn25k234tlk34mflskdmfsa
       - SENDGRID_API_KEY=fknsdkfjnsdjkfnsd
     ports:
-      - 8080:8080
+      - 8090:8090
+      - 8091:8091
     depends_on:
       - db
 

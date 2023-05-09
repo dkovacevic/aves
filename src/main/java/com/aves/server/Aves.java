@@ -4,7 +4,6 @@ import com.aves.server.DAO.ClientsDAO;
 import com.aves.server.DAO.NotificationsDAO;
 import com.aves.server.DAO.PrekeysDAO;
 import com.aves.server.DAO.PushTokensDAO;
-import com.aves.server.clients.SwisscomClient;
 import com.aves.server.filters.AuthenticationFeature;
 import com.aves.server.filters.RequestMdcFactoryFilter;
 import com.aves.server.healthchecks.StatusHealthcheck;
@@ -129,8 +128,6 @@ public class Aves extends Application<Configuration> {
                 .withProvider(JacksonJsonProvider.class)
                 .build(getName());
 
-        SwisscomClient swisscomClient = new SwisscomClient(jerseyClient);
-
         environment.jersey().register(AuthenticationFeature.class);
 
         environment.jersey().register(new StatusHealthcheck());
@@ -150,7 +147,6 @@ public class Aves extends Application<Configuration> {
         environment.jersey().register(new SelfResource(jdbi));
         environment.jersey().register(new InviteResource(jdbi));
         environment.jersey().register(new NotificationsResource(jdbi));
-        environment.jersey().register(new SignatureResource(jdbi, swisscomClient));
         environment.jersey().register(new SearchResource(jdbi));
         environment.jersey().register(new ConnectionsResource(jdbi));
         environment.jersey().register(new PushTokenResource(pushTokensDAO));

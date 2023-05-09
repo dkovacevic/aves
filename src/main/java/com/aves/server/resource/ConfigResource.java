@@ -1,5 +1,6 @@
 package com.aves.server.resource;
 
+import com.aves.server.Aves;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 
@@ -21,17 +22,17 @@ public class ConfigResource {
                 build();
     }
 
-    static class _Config {
+    public static class _Config {
         public String title = "AVES Staging";
         public _Endpoints endpoints = new _Endpoints();
     }
 
-    static class _Endpoints {
-        public String backendURL = "https://aves.services.zinfra.io";
-        public String backendWSURL = "https://aves.services.zinfra.io";
-        public String accountsURL = "https://aves.services.zinfra.io";
-        public String teamsURL = "https://aves.services.zinfra.io";
-        public String websiteURL = "https://aves.services.zinfra.io";
+    public static class _Endpoints {
+        public String backendURL = "https://" + Aves.config.domain;
+        public String backendWSURL = "https://" + Aves.config.domain;
+        public String accountsURL = "https://" + Aves.config.domain;
+        public String teamsURL = "https://" + Aves.config.domain;
+        public String websiteURL = "https://" + Aves.config.domain;
         public String blackListURL = "https://clientblacklist.wire.com/prod/android";
     }
 }

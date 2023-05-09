@@ -22,8 +22,8 @@ public class Limiter {
     }
 
     private static class Requests {
-        private Date date = new Date();
-        private AtomicInteger counter = new AtomicInteger();
+        private final Date date = new Date();
+        private final AtomicInteger counter = new AtomicInteger();
 
         boolean isClear() {
             final Date now = new Date();

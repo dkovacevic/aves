@@ -18,7 +18,7 @@ import static com.aves.server.tools.Util.time;
 public class EventSender {
     static ClientsDAO clientsDAO;
     static NotificationsDAO notificationsDAO;
-    private static ObjectMapper mapper = new ObjectMapper();
+    private static final ObjectMapper mapper = new ObjectMapper();
 
     public static void sendEvent(Event event, UUID to) throws JsonProcessingException {
         List<String> clients = clientsDAO.getClients(to);
@@ -57,7 +57,7 @@ public class EventSender {
         Event event = new Event();
         event.id = UUID.randomUUID();
 
-        Payload payload = new Payload();
+        Payload<UserIds> payload = new Payload<>();
         payload.type = "user.client-add";
         payload.time = time();
         payload.device = device;
@@ -69,7 +69,7 @@ public class EventSender {
         Event event = new Event();
         event.id = UUID.randomUUID();
 
-        Payload payload = new Payload();
+        Payload<UserIds> payload = new Payload<>();
         payload.type = "user.update";
         payload.time = time();
         payload.user = user;
@@ -81,7 +81,7 @@ public class EventSender {
         Event event = new Event();
         event.id = UUID.randomUUID();
 
-        Payload payload = new Payload();
+        Payload<UserIds> payload = new Payload<>();
         payload.type = "user.connection";
         payload.time = time();
         payload.connection = connection;
