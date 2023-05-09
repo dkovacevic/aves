@@ -1,5 +1,20 @@
 version: '3.8'
 services:
+  aves:
+    build:
+      context: .
+    image: aves
+    environment:
+      - DB_URL=jdbc:postgresql://db/aves
+      - DB_USER=aves
+      - DB_PASSWORD=aves
+      - JWT_KEY=dfsdfsdfssdkjfn25k234tlk34mflskdmfsa
+      - SENDGRID_API_KEY=fknsdkfjnsdjkfnsd
+    ports:
+      - 8080:8080
+    depends_on:
+      - db
+
   db:
     image: postgres:13.1
     # just for local development

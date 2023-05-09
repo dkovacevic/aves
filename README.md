@@ -1,8 +1,13 @@
 # Aves
 OTR Chat Server
 
+## Run it
+```
+docker-compose up
+```
+
 ## API Documentation
-https://aves.services.zinfra.io/swagger#!/default
+http://localhost:8090/swagger
 
 ## Web Client
 https://app.services.zinfra.io

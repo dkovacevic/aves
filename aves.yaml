@@ -1,4 +1,5 @@
 server:
+  rootPath: /api/v1
   applicationConnectors:
     - type: http
       port: ${HTTP_PORT:-8090}
@@ -27,12 +28,13 @@ swagger:
   contact: Wire
   contactEmail: dejan@wire.com
   resourcePackage: com.aves.server.resource
+  prefix: /api/v1
   schemes:
     - http
     - https
 
-key: ${AVES_KEY:-}
-tokenExpiration: ${AVES_EXP:-3600}
+key: ${JWT_KEY:-}
+tokenExpiration: ${JWT_EXP:-3600}
 
 sendgridApiKey: ${SENDGRID_API_KEY:-}
 
@@ -44,10 +46,10 @@ firebaseCredentialsFilePath: ${FIREBASE_CREDENTIALS_PATH:-firebase-sdk.json}
 firebaseDatabaseUrl: ${FIREBASE_DATABASE_URL:-https://wire-bot.firebaseio.com}
 
 database:
-  driverClass: ${AVES_DB_DRIVER:-org.postgresql.Driver}
-  user: ${AVES_DB_USER:-}
-  password: ${AVES_DB_PASSWORD:-}
-  url: ${AVES_DB_URL:-jdbc:postgresql://localhost/aves}
+  driverClass: ${DB_DRIVER:-org.postgresql.Driver}
+  user: ${DB_USER:-}
+  password: ${DB_PASSWORD:-}
+  url: ${DB_URL:-jdbc:postgresql://localhost/aves}
   properties:
     charSet: UTF-8
   maxWaitForConnection: 1s
@@ -65,15 +67,3 @@ jerseyClient:
   keepAlive: 0ms
   retries: 3
   userAgent: Aves
-
-  tls:
-    protocol: TLSv1.2
-    provider: SunJSSE
-    verifyHostname: false
-    keyStorePath: ./aves.jks
-    keyStorePassword: ${KEYSTORE_PASSWORD:-}
-    keyStoreType: JKS
-    trustSelfSignedCertificates: true
-    supportedProtocols:
-      - TLSv1.1
-      - TLSv1.2
