@@ -36,7 +36,7 @@ import java.util.concurrent.TimeUnit;
 import static com.aves.server.tools.Util.*;
 
 @Api
-@Path("/assets/v3")
+@Path("/assets/v4")
 public class AssetsResource {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -91,11 +91,12 @@ public class AssetsResource {
     }
 
     @GET
-    @Path("/{assetId}")
+    @Path("/{domain}/{assetId}")
     @ApiOperation(value = "Fetch asset from S3")
     @Authorization("Bearer")
     public Response get(@Context ContainerRequestContext context,
                         @HeaderParam("Asset-Token") String assetToken,
+                        @PathParam("domain") String domain,
                         @PathParam("assetId") String assetId) {
         try {
             UUID userId = (UUID) context.getProperty("zuid");
