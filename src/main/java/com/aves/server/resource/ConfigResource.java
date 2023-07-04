@@ -15,7 +15,7 @@ import javax.ws.rs.core.Response;
 @Produces(MediaType.APPLICATION_JSON)
 public class ConfigResource {
     @GET
-    @ApiOperation(value = "Get Config")
+    @ApiOperation(value = "Get Config", response = _Config.class)
     public Response getConfig() {
         return Response.
                 ok(new _Config()).
@@ -28,11 +28,11 @@ public class ConfigResource {
     }
 
     public static class _Endpoints {
-        public String backendURL = "https://" + Aves.config.domain;
-        public String backendWSURL = "https://" + Aves.config.domain;
-        public String accountsURL = "https://" + Aves.config.domain;
-        public String teamsURL = "https://" + Aves.config.domain;
-        public String websiteURL = "https://" + Aves.config.domain;
+        public String backendURL = Aves.config.baseURL;
+        public String backendWSURL = Aves.config.baseURL;
+        public String accountsURL = Aves.config.baseURL;
+        public String teamsURL = Aves.config.baseURL;
+        public String websiteURL = Aves.config.baseURL;
         public String blackListURL = "https://clientblacklist.wire.com/prod/android";
     }
 }

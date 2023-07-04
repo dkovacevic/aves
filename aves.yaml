@@ -35,7 +35,7 @@ swagger:
 
 key: ${JWT_KEY:-}
 tokenExpiration: ${JWT_EXP:-3600}
-domain: ${DOMAIN:-aves.services.zinfra.io}
+baseURL: ${BASE_URL:-http://localhost:8090}
 sendgridApiKey: ${SENDGRID_API_KEY:-}
 
 minioURL: ${MINIO_URL:-http://play.min.io}

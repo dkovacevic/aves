@@ -29,7 +29,7 @@ public class AccessResource {
     }
 
     @POST
-    @ApiOperation(value = "Obtain an access tokens for a cookie")
+    @ApiOperation(value = "Obtain an access tokens for a cookie", response = AccessToken.class)
     public Response post(@QueryParam("access_token") String access,
                          @HeaderParam("Authorization") String header,
                          @CookieParam("zuid") String cookie) {

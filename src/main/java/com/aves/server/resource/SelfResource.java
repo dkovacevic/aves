@@ -32,7 +32,7 @@ public class SelfResource {
     }
 
     @GET
-    @ApiOperation(value = "Get your details")
+    @ApiOperation(value = "Get your details", response = User.class)
     @Authorization("Bearer")
     public Response getSelf(@Context ContainerRequestContext context) {
         try {

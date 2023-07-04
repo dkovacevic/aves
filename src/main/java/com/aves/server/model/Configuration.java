@@ -52,5 +52,5 @@ public class Configuration extends io.dropwizard.Configuration {
     @NotNull
     public String firebaseDatabaseUrl;
 
-    public String domain;
+    public String baseURL;
 }

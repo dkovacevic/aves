@@ -18,6 +18,8 @@ import com.aves.server.websocket.ServerEndpoint;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import com.github.mtakaki.dropwizard.admin.AdminResourceBundle;
 import io.dropwizard.Application;
+import io.dropwizard.bundles.redirect.PathRedirect;
+import io.dropwizard.bundles.redirect.RedirectBundle;
 import io.dropwizard.client.JerseyClientBuilder;
 import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
 import io.dropwizard.configuration.SubstitutingSourceProvider;
@@ -86,6 +88,9 @@ public class Aves extends Application<Configuration> {
 
         bootstrap.addBundle(new WebsocketBundle(config));
         bootstrap.addBundle(new ProtobufBundle());
+        bootstrap.addBundle(new RedirectBundle(
+                new PathRedirect("/api-version", "/api/v1/api-version")
+        ));
     }
 
     public void run(Configuration config, Environment environment) {
@@ -134,6 +139,7 @@ public class Aves extends Application<Configuration> {
 
         environment.jersey().register(new ProtocolBufferMessageBodyProvider());
 
+        environment.jersey().register(new ApiVersionResource());
         environment.jersey().register(new ConfigResource());
         environment.jersey().register(new LoginResource(jdbi, config));
         environment.jersey().register(new RegisterResource(jdbi));
