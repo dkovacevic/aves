@@ -33,6 +33,7 @@ swagger:
     - http
     - https
 
+domain: ${DOMAIN:-aves.com}
 jwtKey: ${JWT_KEY:-}
 tokenExpiration: ${JWT_EXP:-3600}
 baseURL: ${BASE_URL:-http://localhost:8090}

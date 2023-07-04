@@ -1,5 +1,6 @@
 package com.aves.server.model;
 
+import com.aves.server.Aves;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -59,5 +60,10 @@ public class User {
         public String size;
         public String key;
         public String type = "image";
+    }
+
+    @JsonProperty("qualified_id")
+    public QualifiedId getQualifiedId() {
+        return new QualifiedId(id, Aves.config.domain);
     }
 }
