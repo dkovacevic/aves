@@ -1,5 +1,5 @@
 server:
-  rootPath: /api/v1
+  rootPath: ${ROOT_PATH:-/v1}
   applicationConnectors:
     - type: http
       port: ${HTTP_PORT:-8090}
@@ -28,7 +28,7 @@ swagger:
   contact: Wire
   contactEmail: dejan@wire.com
   resourcePackage: com.aves.server.resource
-  prefix: /api/v1
+  prefix: ${ROOT_PATH:-/v1}
   schemes:
     - http
     - https

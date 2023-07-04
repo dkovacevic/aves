@@ -89,9 +89,9 @@ public class Aves extends Application<Configuration> {
         bootstrap.addBundle(new WebsocketBundle(config));
         bootstrap.addBundle(new ProtobufBundle());
         bootstrap.addBundle(new RedirectBundle(
-                new PathRedirect("/api-version", "/api/v1/api-version"),
-                new PathRedirect("/", "/api/v1/deep-link")
-        ));
+                new PathRedirect("/api-version", "/v1/api-version"),
+                new PathRedirect("/", "/v1/deep-link")
+        )); //todo pull the root path from the config
     }
 
     public void run(Configuration config, Environment environment) {
