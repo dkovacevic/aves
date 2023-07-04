@@ -142,6 +142,7 @@ public class Aves extends Application<Configuration> {
 
         environment.jersey().register(new ApiVersionResource());
         environment.jersey().register(new ConfigResource());
+        environment.jersey().register(new FeaturesConfigResource());
         environment.jersey().register(new LoginResource(jdbi, config));
         environment.jersey().register(new RegisterResource(jdbi));
         environment.jersey().register(new ClientsResource(clientsDAO, prekeysDAO));
