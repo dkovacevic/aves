@@ -33,7 +33,7 @@ swagger:
     - http
     - https
 
-key: ${AVES_KEY:-}
+jwtKey: ${JWT_KEY:-}
 tokenExpiration: ${JWT_EXP:-3600}
 baseURL: ${BASE_URL:-http://localhost:8090}
 sendgridApiKey: ${SENDGRID_API_KEY:-}
@@ -47,9 +47,9 @@ firebaseDatabaseUrl: ${FIREBASE_DATABASE_URL:-https://wire-bot.firebaseio.com}
 
 database:
   driverClass: ${DB_DRIVER:-org.postgresql.Driver}
-  user: ${AVES_DB_USER:-}
-  password: ${AVES_DB_PASSWORD:-}
-  url: ${AVES_DB_URL:-jdbc:postgresql://localhost/aves}
+  user: ${DB_USER:-}
+  password: ${DB_PASSWORD:-}
+  url: ${DB_URL:-jdbc:postgresql://localhost/aves}
   properties:
     charSet: UTF-8
   maxWaitForConnection: 1s

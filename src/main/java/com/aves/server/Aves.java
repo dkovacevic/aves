@@ -105,7 +105,7 @@ public class Aves extends Application<Configuration> {
                 .load();
         flyway.migrate();
 
-        Aves.key = Keys.hmacShaKeyFor(config.key.getBytes());
+        Aves.key = Keys.hmacShaKeyFor(config.jwtKey.getBytes());
 
         jdbi = new JdbiFactory().build(environment, database, "aves");
 

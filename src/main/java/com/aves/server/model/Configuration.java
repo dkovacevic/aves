@@ -25,7 +25,7 @@ public class Configuration extends io.dropwizard.Configuration {
     @Valid
     @NotNull
     @JsonProperty
-    public String key;
+    public String jwtKey;
 
     @JsonProperty
     public long tokenExpiration = 900;
@@ -42,7 +42,6 @@ public class Configuration extends io.dropwizard.Configuration {
     @JsonProperty
     @NotNull
     public String minioSecretKey;
-
 
     @JsonProperty
     @NotNull
