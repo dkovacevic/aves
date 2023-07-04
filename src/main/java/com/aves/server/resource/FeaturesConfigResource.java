@@ -44,7 +44,13 @@ public class FeaturesConfigResource {
     }
 
     public static class _Status {
+        public _Conf config = new _Conf();
+
         public String status = "enabled";
         public String lockStatus = "unlocked";
+    }
+
+    public static class _Conf {
+        public String[] domains = new String[]{"aves.com"};
     }
 }
