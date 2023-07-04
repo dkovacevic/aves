@@ -11,7 +11,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 @Api
-@Path("/")
+@Path("/deep-link")
 @Produces(MediaType.APPLICATION_JSON)
 public class ConfigResource {
     @GET
