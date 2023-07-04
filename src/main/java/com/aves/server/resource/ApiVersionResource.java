@@ -24,9 +24,9 @@ public class ApiVersionResource {
     }
 
     public static class _Versions {
-        public Integer[] development = new Integer[]{1};
+        public Integer[] development = new Integer[]{2};
         public String domain = "aves.com";
         public boolean federation = false;
-        public Integer[] supported = new Integer[]{1};
+        public Integer[] supported = new Integer[]{2};
     }
 }
