@@ -12,7 +12,7 @@ public class ErrorMessage {
     public Integer code;
 
     @JsonProperty
-    public String label;
+    public String label = "some_error";
 
     public ErrorMessage(String message, int code, String label) {
         this.message = message;

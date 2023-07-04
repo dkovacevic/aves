@@ -7,4 +7,5 @@ public class AssetKey {
     public String key;
     public String token;
     public String expires;
+    public String domain = "aves.com";
 }
