@@ -264,10 +264,11 @@ public class ConversationsResource {
                 build();
     }
 
-    @GET
+    @POST
+    @Path("list-ids")
     @Authorization("Bearer")
     @ApiOperation(value = "Get all conversations")
-    public Response getAll(@Context ContainerRequestContext context) {
+    public Response getAll(@Context ContainerRequestContext context ) {
         ConversationsDAO conversationsDAO = jdbi.onDemand(ConversationsDAO.class);
         ParticipantsDAO participantsDAO = jdbi.onDemand(ParticipantsDAO.class);
 
