@@ -1,5 +1,6 @@
 package com.aves.server.resource;
 
+import com.aves.server.Aves;
 import com.aves.server.DAO.ConversationsDAO;
 import com.aves.server.DAO.ParticipantsDAO;
 import com.aves.server.model.*;
@@ -24,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static com.aves.server.EventSender.*;
 
@@ -264,11 +266,10 @@ public class ConversationsResource {
                 build();
     }
 
-    @POST
-    @Path("list-ids")
+    @GET
     @Authorization("Bearer")
     @ApiOperation(value = "Get all conversations")
-    public Response getAll(@Context ContainerRequestContext context ) {
+    public Response getAll(@Context ContainerRequestContext context) {
         ConversationsDAO conversationsDAO = jdbi.onDemand(ConversationsDAO.class);
         ParticipantsDAO participantsDAO = jdbi.onDemand(ParticipantsDAO.class);
 
@@ -291,10 +292,10 @@ public class ConversationsResource {
                 build();
     }
 
-    @GET
-    @Path("ids")
+    @POST
+    @Path("list-ids")
     @Authorization("Bearer")
-    @ApiOperation(value = "Get all conversation Ids")
+    @ApiOperation(value = "Get all conversation Ids mit pagination")
     public Response getIds(@Context ContainerRequestContext context) {
         ConversationsDAO conversationsDAO = jdbi.onDemand(ConversationsDAO.class);
         ParticipantsDAO participantsDAO = jdbi.onDemand(ParticipantsDAO.class);
@@ -303,7 +304,10 @@ public class ConversationsResource {
 
         _ResultIds result = new _ResultIds();
 
-        result.conversations = participantsDAO.getConversations(userId);
+        result.conversations = participantsDAO.getConversations(userId)
+                .stream()
+                .map(x -> new QualifiedId(x, Aves.config.domain))
+                .collect(Collectors.toList());
 
         return Response.
                 ok(result).
@@ -334,8 +338,13 @@ public class ConversationsResource {
 
     public static class _ResultIds {
         @JsonProperty("has_more")
-        public boolean hasMore;
-        public List<UUID> conversations = new ArrayList<>();
+        public boolean hasMore = false;
+
+        @JsonProperty("paging_state")
+        public String state = "unknown";
+
+        @JsonProperty("qualified_conversations")
+        public List<QualifiedId> conversations = new ArrayList<>();
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
